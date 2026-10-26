@@ -32,6 +32,7 @@ This topic lets you:
 - look at a green test, a replayed recording or a rerun in CI and say which change it could have caught
 - weigh an eval score, a judge's verdict or a search metric before it settles a choice between prompts, models or rankers
 - work back from a quality drop, a slow-reply complaint or an agent's wrong answer to what your logs recorded
+- grade a support agent that acts through tools, and plan the run that tells support how repeated requests fare
 
 ###### 1. Testing the language fix with a fake model
 
@@ -483,10 +484,120 @@ A trace records what each call sent only if each entry is its own copy. `trace.a
 
 ---
 
+###### 13. Grading a support agent on its final reply
+
+An online shop that sells garden furniture has a support agent with two tools: one looks up an order, the other refunds it. You built its eval the way the shop's FAQ chatbot is checked: 100 customer messages, each with the final reply the agent should give, such as "Your refund for order 1182 has been issued.", and code that passes a case when the agent's last message contains that reply. The tools run against a test copy of the order system. The eval reads 96%.
+
+After a case that passes, what refund can the test copy hold?
+
+<details><summary>A. Only one refund, for the order in the customer's message</summary>
+
+✗ The FAQ chatbot's eval worked this way: its reply was the whole product, so a matching reply meant a right answer. An agent's reply only closes a run that acts, and the grader reads that close alone. A run that refunded another order, refunded twice or never refunded can end on the very same sentence.
+
+</details>
+
+<details><summary>B. A right, wrong or double refund, or none</summary>
+
+✓ Right. A case passes with a right refund in the test copy, with a wrong one, with the right one twice and with none at all. The grader reads one message, the agent's last, and a sentence about order 1182 says nothing about which tools ran or what they did.
+
+Once the head of support has announced that the agent refunds correctly, a customer who was told her refund was issued writes in a month later with no money back. Support opens the eval report and finds 96 green cases, none of which says what the agent did to any order.
+
+Running an eval with code as the grader turns each reply into a pass or a fail by comparing it with the answer, and here the answer is one sentence. The agent's actions reach that sentence only through the conversation: each tool result goes into the list as a message, and the final reply is a new message the model writes, so nothing in the loop makes "issued" agree with what the tool returned. Take five runs that end on the same sentence. One looked up order 1182 and refunded it once. One looked it up and never asked for a refund. One refunded order 1281. One asked for the refund and the order system rejected the call. One refunded order 1182 twice. The reply check passes all five, and the test copy holds one refund of 1182, none, a refund of 1281, none and two refunds of 1182. To grade an agent, read its trace and the state it left: assert that the run's tool calls include one refund of the order, that none returned an error and that the test copy holds exactly that refund. Keep the reply check for what the customer reads. The grader and the loop are your code, so this holds on a provider's API and on your own server alike.
+
+</details>
+
+<details><summary>C. One refund, for the right order or a wrong one</summary>
+
+✗ A fair guess, since an agent that writes "issued" ought to have called the refund tool first. Nothing enforces that order: the last message is text the model writes, and no step in the loop compares it with the calls made. A run that never asked for a refund ends on the same sentence, and so does one whose refund the order system rejected, a rejection that reaches the model as one more message.
+
+</details>
+
+<details><summary>D. One refund or more, all for order 1182</summary>
+
+✗ The sentence names order 1182, and a reply that quotes the order back reads as proof of which order the tools touched. The number is text the model writes, copied from the customer's message as readily as from a tool result: a run with a refund of order 1281 can end on a sentence about 1182, and so can a run with no refund at all.
+
+</details>
+
+---
+
+###### 14. Comparing two models with one of them as the judge
+
+A company that runs a home-repair advice app compares its current model with a rival's on 300 homeowners' questions. A judge model reads each pair of answers, shown in random order with no model names, and picks the better one. The judge is the current model itself, and it picks the current model's answer in 66% of the pairs. Before reporting that as the test result, the team reruns the same pairs with the rival's model as the judge.
+
+With the rival's model as the judge, what should you expect of the share of pairs the current model wins?
+
+<details><summary>A. About 66% again</summary>
+
+✗ A test script returns the same verdict whoever runs it, and a judge told to pick the better answer, with the names hidden, reads like one. It is a model reading text, though. A 2024 study found judges favouring summaries they had written themselves over others', and if either judge here leans that way, handing the verdict to the other side's model lowers the share.
+
+</details>
+
+<details><summary>B. More than 66%</summary>
+
+✗ Asked to review its own draft, a model readily lists faults in it, so you might expect the current model to judge its own answers harshest and the rival's model to go easier on them. The 2024 study measured the opposite: judges favoured what they had written themselves. A rival's judge that leans the same way takes pairs from the current model.
+
+</details>
+
+<details><summary>C. Less than 66%</summary>
+
+✓ Right. Expect the current model to win fewer than 66% of the pairs. If either judge leans toward its own side's answers, the swap takes pairs from the current model; if neither does, the share stays near 66%. All three judges in a 2024 study leaned that way, and two of three in a 2023 one, so a fall is what to expect.
+
+Reported as it stands, the 66% would tell the board that the current model beat the rival two times in three. When the support staff grade a sample of the answers themselves, the lead they find is much narrower, and nobody can say which figure to trust.
+
+A judge model is a grader that writes its verdict from the text it reads, and a model used as one is not neutral between its own answers and another's. A 2024 study on two summarisation tasks found three models used as judges favouring the summaries they had written over those of other models and of people. Out of the box, some of them could pick their own text out from other sources with non-trivial accuracy; after training for it, the better a model recognised its own text, the more strongly it preferred it. A 2023 study found the lean in some judges and not in others: one judge gave itself a win rate 10% higher than people gave it, another 25% higher, a third did not favour itself, and the authors said too little data and too small a difference kept them from calling it a bias. The request to the judge holds only the question and the two answers. Hiding the names leaves it the text, and in the 2024 study some models could pick out their own. Both studies measured models of their day, so the judge you use may lean more or less. Run the comparison under both judges: the gap between the two shares is how far the choice of judge moves the result. Check a sample against people's verdicts before you report it. The judge is a call your code makes, so this holds whether it goes to a provider's API or to your own server.
+
+</details>
+
+<details><summary>D. Above or below 66%, with no direction to expect</summary>
+
+✗ Judge verdicts vary from run to run, so a shift either way can pass for ordinary noise. Noise moves a figure up or down by chance, and a lean moves it one way. A lean in either judge, which both published studies found in some judges, lowers the share the rival's judge gives the current model; with no lean the share stays near 66%.
+
+</details>
+
+---
+
+###### 15. Telling support what a repeated request can expect
+
+A travel company has an agent that changes bookings: it moves dates, adds bags and cancels trips. Its eval set has 50 cases, run once each, and reads 80%. Customers often send the same request again, and support asks the team a plain question: of the customers who send one request three times, how many get a wrong result at least once? The team has time for one more run before it answers.
+
+Which extra run answers support's question?
+
+<details><summary>A. Run the whole eval a second time and average the two pass rates</summary>
+
+✗ A second run is the usual cure for a score that may be luck, and averaging the two evens it out. The average throws away which cases passed which run. An agent whose passes sit on the same 40 cases and one whose passes move around from run to run give the same average, and repeating a request depends on which of the two you have.
+
+</details>
+
+<details><summary>B. Grow the set to 500 cases and run each case once, as before</summary>
+
+✗ A bigger set gives a surer number, and the 80% would come with a narrower range. It is still the share of cases passed on one try. An agent that always solves four cases in five and one that solves each case four times in five both read 80% on 500 cases, and a single run of each cannot tell them apart.
+
+</details>
+
+<details><summary>C. Run each case three times and count it passed if one try passes</summary>
+
+✗ Rerunning until something passes is a habit from CI, and counting a case as passed when one of three tries passes follows it. That answers a different question, whether the agent can solve a case. A customer who repeats a request gets a result on every ask, so a case solved on one try in three counts as passed here and fails the customer twice.
+
+</details>
+
+<details><summary>D. Run each case three times and count it passed if no try fails</summary>
+
+✓ Right. Run each case three times, or more, and report the share of cases that passed on every try. For three tries, that is how many customers get a right result each time they send the same request, and the rest are the ones who get a wrong result at least once, if their requests resemble the eval set's cases.
+
+Without that run, support starts telling customers to send a request again when it comes out wrong. A customer whose change the agent never gets right sends it three times and gets three wrong dates, and the 80% gave support no way to know such customers exist.
+
+The pass rate of an eval set run once per case is the average chance that a case passes on one try, and it hides how that chance is spread across the cases. Two agents can read the same 80%. One always solves 40 of the 50 cases and never the other 10, so 80% of its customers get a right result on all three tries. The other solves every case four times in five, and only 51.2% of its customers do. A run per case cannot tell them apart, however many cases it covers or however often it is averaged. Running each case three times or more and counting it passed only when every try passes can. A 2024 benchmark for customer-service agents proposed that count, written pass^k, and found the strongest agents it tested succeeding on fewer than half its tasks and, in its retail domain, solving under a quarter of them on all of eight tries. Those were the agents of their day. The agent and the eval are your code, so this holds on a provider's API and on your own server.
+
+</details>
+
+---
+
 ## Further reading
 
 - [Length-Controlled AlpacaEval](https://arxiv.org/abs/2404.04475), 2024: an automatic judge that favoured longer answers, and a correction that compares two models as if their answers were the same length.
-- [A Careful Examination of Large Language Model Performance on Grade School Arithmetic](https://arxiv.org/abs/2405.00332), 2024: a new set of maths problems written to match a public benchmark, on which several model families lost up to 8% accuracy while many models, frontier ones especially, showed little sign of overfitting.
+- [LLM Evaluators Recognize and Favor Their Own Generations](https://arxiv.org/abs/2404.13076), 2024: models used as judges favouring the summaries they wrote themselves, and how well they pick out their own text.
 - [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685), 2023: strong judge models agreed with human preferences over 80% of the time, about as often as people agree with each other, and the paper examines their position, length and self-preference biases.
+- [τ-bench](https://arxiv.org/abs/2406.12045), 2024: a benchmark of customer-service agents that counts a task as solved only if every one of several tries succeeds, and finds the strongest agents of its day solving under a quarter of its retail tasks on eight tries out of eight.
+- [A Careful Examination of Large Language Model Performance on Grade School Arithmetic](https://arxiv.org/abs/2405.00332), 2024: a new set of maths problems written to match a public benchmark, on which several model families lost up to 8% accuracy while many models, frontier ones especially, showed little sign of overfitting.
 
 Next: [Releasing LLM changes](../releasing-llm-changes/README.md)
