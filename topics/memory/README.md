@@ -2,13 +2,13 @@
 
 Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Reviewed October 2026
 
-Memory in an LLM system is whatever is kept outside the model and sent back to it in a later request. Since the model keeps nothing from one call to the next, what an assistant seems to remember is text that your code or an app wrote down at some moment and put back into a request by some rule.
+Memory in an LLM system is text kept outside the model and sent back to it in a later request. Your code or an app decides when that text is written, in whose words, under which key, and which rule brings it back.
 
-- **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
 - **System prompt**: the instructions meant to hold for the whole chat, sent as the first message of the list or, on some APIs, as a separate field.
-- **Short-term memory**: the messages of the conversation in progress, sent with every call while it lasts; keeping a long one inside the window is covered under Context window.
+- **Short-term memory**: the messages of the conversation in progress, sent with every call while it lasts.
 - **Embedding**: a list of numbers an embedding model computes from a text, so that texts with similar meaning get similar lists.
-- **Recall**: the rule that picks which memories go into a request, such as all of them, the latest, or the ones a search finds for the new message. Recall can bring back only what was written. Your code or the app chose the moment of writing (as soon as it is said, when a session ends, in a later job), the words (the user's, the model's, or a short fact drawn from them) and the key the memory is filed and looked up under, such as a chat's id, a user's account or a team.
+- **Key**: what a memory is filed and looked up under, such as a chat's id, a user's account or a team.
+- **Recall**: the rule that picks which memories go into a request, such as all of them, the latest, or the ones a search finds for the new message; it brings back only what was written.
 - **Memory tool**: a tool the model can call to read and write memory, such as files in a folder; your code or the app carries out each call.
 
 What each kind of system keeps for you between calls:
@@ -16,8 +16,6 @@ What each kind of system keeps for you between calls:
 - **A provider's API**: keeps nothing between calls unless you use a feature that stores the conversation on the provider's side; long-term memory lives in stores your code keeps, and where an API offers a memory tool, your code still holds the files.
 - **Your own server**: keeps nothing between calls either; every memory store is one your code runs.
 - **A ready-made app**: keeps your conversations for you; some chat apps also save facts about you and search your past chats in new ones, and a coding assistant reads its memory files at the start of every session.
-
-How memory works is the same on all three: whatever the model remembers reaches it inside a request.
 
 Memory holds the four kinds of thing in the table below. The conversation is the short-term kind. Facts, episodes and instructions are long-term memory, which papers on agents call semantic, episodic and procedural memory, in that order. In the table, "your code" means your code beside a provider's API or your own server:
 
@@ -30,12 +28,10 @@ Memory holds the four kinds of thing in the table below. The conversation is the
 
 A **second brain** is long-term memory for a person rather than an assistant: their own notes, cut into short passages and indexed, so that the passages that match a question can be found and sent to a model.
 
-Memory problems show up after launch, when users come back: every answer then depends on what was written, in which words, under which key, and how it was brought back.
-
 This topic lets you:
 
 - work out what a returning user's next request carries, given where their conversation and facts were kept and under which id
-- choose when to write a memory, in whose words and with what date, and which rule brings it back when a correction, a booking, a house rule or an old remark has to reach a later session
+- choose when to write a memory and in whose words, and which rule brings it back when a correction, a booking, a house rule or an old remark has to reach a later session
 - give an agent a memory folder, or search your own notes as a second brain, and predict what reaches the model, after a run cut off at its cap or a deploy as well
 
 ###### 1. A recipe bot that promises to remember

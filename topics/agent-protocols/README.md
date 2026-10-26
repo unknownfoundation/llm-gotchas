@@ -2,46 +2,46 @@
 
 Needs: [Tool calling](../tool-calling/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · [Security](../security/README.md) · Reviewed October 2026
 
-An agent protocol is an open standard for the messages between a program that runs a model and the programs it works with. Two are in wide use. The Model Context Protocol (MCP) links the application around a model to servers that offer it tools, data and prompt templates. Agent2Agent (A2A) lets one agent hand work to another agent, often one that another team or company runs. This page follows the version of the MCP specification dated 2026-07-28 and version 1.0 of the A2A specification.
+An agent protocol is an open standard for the messages between a program built around a model and the programs it works with: servers under MCP, other agents under A2A. The two ends of a connection are usually built by different people, and the mistakes happen at that boundary.
 
-- **Host**: the application that runs the model and keeps the conversation, such as a chat app, a coding assistant or your own code.
-- **Server**: a program that offers tools, resources or prompts over MCP, either on your machine or elsewhere on the network.
-- **Client**: in MCP, a connector inside the host that talks to a single server; a host runs one client for each server it uses. A2A uses the word more broadly, for any program that sends work to an agent.
-- **Transport**: how the protocol's messages travel. They are JSON-RPC messages, a standard JSON shape for a request and its result or error, and they go either over the standard input and output of a server the host starts on the same machine (stdio), or as HTTP requests to one address (Streamable HTTP).
-- **Tool call**: the part of a model's reply that asks for a tool, with the tool's name and the arguments; the code or the app that runs the loop runs the tool and sends back the result.
-- **Tool result**: a tool's output, which the host adds to the messages for the model; an MCP server returns it as a list of content items such as text or an image.
+- **MCP** (Model Context Protocol): the protocol that links the application around a model to servers offering it tools, data and prompt templates; this page follows its specification dated 2026-07-28.
+- **A2A** (Agent2Agent): the protocol by which one agent hands work to another agent, often one that another company runs; this page follows its version 1.0.
+- **Host**: in MCP, the application around the model, which keeps the conversation.
+- **Server**: a program that offers tools, resources or prompts over MCP; a local server runs on your machine, a remote one elsewhere on the network.
+- **Client**: in MCP, the part of the host that holds the connection to one server, and a host runs one per server; in A2A, any program that sends work to an agent.
+- **Transport**: the way MCP's messages, JSON-RPC requests with their results or errors, travel: over the standard input and output of a server the host starts on the same machine (stdio), or as HTTP requests to one address (Streamable HTTP).
+- **Tool call**: the part of a model's reply that names a tool and its arguments, for the host to carry out.
+- **Tool result**: the tool's output, which the host adds to the model's messages; an MCP server returns it as a list of content items such as text or an image.
 - **Tool annotations**: optional fields in a tool's definition that describe how it behaves, such as whether it only reads.
 - **Elicitation**: a server's request for more input from the user in the middle of a call, through a form (form mode) or by sending the user to a web page (URL mode).
 - **Agent Card**: the document an A2A agent publishes about itself at a fixed web address, which a client reads before sending it work.
-- **Task**: a piece of work an A2A agent takes on, with an id, a state and a history of messages. Its states run from submitted and working, through input required and auth required, to completed, failed, canceled or rejected.
+- **Task**: a piece of work an A2A agent takes on, with an id, a state and a history of messages; the states are submitted, working, input required, auth required, completed, failed, canceled and rejected.
 - **Context id**: an id that groups a client's related tasks and messages with one agent into one conversation.
 - **Message and artifact**: a message is one turn from the client or the agent; an artifact is an output of a task, such as a document or a file.
-- **Push notification**: a request an A2A agent sends to a web address the client gave it, often called a webhook, each time a task changes.
+- **Push notification**: a request an A2A agent sends, each time a task changes, to the web address the client registered for it, its webhook.
 
 Your code is the host on two kinds of system, and the app is the host on the third:
 
-- **A provider's API**: your code is the host. It runs a client for each server and passes the servers' tools to the model as tool definitions. Some provider APIs can also connect to a remote server you name in the request, and then use only its tools.
-- **Your own server**: your code is the host here too, and the model server reads the servers' tools as ordinary tool definitions.
-- **A ready-made app**: the app is the host. You add servers in its settings, it starts the local ones on your machine, and it decides when to ask you before a tool runs.
+- **A provider's API**: your code passes the servers' tools to the model as tool definitions; some provider APIs can also connect to a remote server you name in the request, and then use only that server's tools.
+- **Your own server**: the model server reads the servers' tools as ordinary tool definitions.
+- **A ready-made app**: you add servers in its settings, it starts the local ones on your machine, and it decides when to ask you before a tool runs.
 
 How the protocols work is the same on all three.
 
-An MCP server can offer three kinds of thing:
+What an MCP server can offer:
 
 | Offering | What it holds | Where you find it |
 | --- | --- | --- |
-| Tools | functions the model can ask for, each with a name, a description and a JSON Schema that lists its arguments and their types | every host, and the provider APIs that connect to a remote server for you |
+| Tools | functions the model can ask for, each with a name, a description and a JSON Schema for its arguments | every host, and the provider APIs that connect to a remote server for you |
 | Resources | data the server reads out by address, such as a file, a web page or a database schema | hosts your code runs (on a provider's API or your own server) and the ready-made apps that support them |
 | Prompts | message templates with arguments, such as a request to review a piece of code | hosts your code runs (on a provider's API or your own server) and the ready-made apps that support them |
 
-A host that passes every tool of every server to the model sends all those definitions with every request, as with any tool.
-
-Agent protocols bite where trust crosses a connection: in what a server can see and do, in which of its claims a host believes, and in the state of work handed to an agent you cannot see. A demo with a single local server and a quick task shows none of it.
+A host that passes every server's tools to the model sends all their definitions with every request.
 
 This topic lets you:
 
-- connect a host to servers you did not write, and say what each one sees, what passes through on the way to it, what of its data reaches the model and what its program can reach on your machine
-- build a server whose pictures, errors and claims a host can use, and keep it safe to call once it leaves your laptop
+- connect a host to servers you did not write, and know what each one receives, what reaches the model and what its program can do on your machine
+- build a server that sends back screenshots, reports errors and asks users for keys, and keep it safe to call once it leaves your laptop
 - hand work to another company's agent, or take work from strangers' clients, and keep each task on track through questions, dropped connections, changes and sign-ins
 
 ###### 1. Three servers behind one coding assistant

@@ -2,12 +2,12 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · Reviewed October 2026
 
-A model writes its reply one token at a time. On each step it scores every token in its vocabulary, the full set of tokens it knows; the scores become probabilities, and a sampler draws one token, which joins the text before the next step begins. The reply is a chain of these draws. **Generation parameters**, or settings, are request fields that act on that step or end the reply; the ones that act on the draw itself are the **sampling settings**.
+A model writes its reply one token at a time: on each step it scores every token it knows, and a sampler draws one by those scores. **Generation parameters** are the request fields that act on that draw or end the reply; the ones that act on the draw itself are the **sampling settings**.
 
-- **Token**: a piece of text, often a word or part of one; the model reads and writes tokens, and limits are counted in them. The model's tokenizer splits text into tokens and gives each one a number, its token ID.
-- **Logits**: the scores the model gives every token in its vocabulary on one step; the higher the score, the likelier that token comes next. A function called softmax turns them into probabilities that add up to 1.
+- **Token**: a piece of text, often a word or part of one, that the model reads and writes; the tokenizer gives each one a number, its token ID.
+- **Logits**: the scores the model gives every token it knows on one step, where a higher score means a likelier next token; a function called softmax turns them into probabilities that add up to 1.
 - **Sampler**: the part that draws the next token by those probabilities, so a likely token wins often and a less likely one now and then.
-- **Greedy decoding**: taking the single likeliest token on every step instead of drawing; a temperature of 0 asks for it.
+- **Greedy decoding**: taking the single likeliest token on every step instead of drawing; a temperature of 0, a setting in the table below, asks for it.
 - **Generation cap**: the request's limit on how many tokens the reply may run to, often called max tokens.
 - **Stop sequence**: a string you list in the request that ends the reply when the model generates it.
 - **Finish reason**: the field in the response that says why the reply ended, such as a natural end, a stop sequence or the cap.
@@ -34,7 +34,7 @@ The sampling settings:
 | Repetition penalty | makes tokens already in the prompt or the reply less likely | mainly your own server |
 | Logit bias | adds a fixed amount, up or down, to the logits of the token IDs you list; at the extreme it bans a token or forces it | some provider APIs, your own server |
 
-These settings are usually set once, in a shared config or in the wrapper function your code calls the model through, and their effects show up weeks later in replies that are wrong, repeated, cut off or empty.
+These settings usually sit in a shared config or a wrapper function, set once, and their effects surface weeks later.
 
 This topic lets you:
 

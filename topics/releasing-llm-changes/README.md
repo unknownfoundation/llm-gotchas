@@ -2,17 +2,17 @@
 
 Needs: [Context window](../context-window/README.md) · [Generation parameters](../generation-parameters/README.md) · [Testing and evals](../testing-and-evals/README.md) · Reviewed October 2026
 
-Releasing an LLM change means putting a new version of a feature in front of its users. The change can sit in any part that shapes a reply: the system prompt and its examples, the model version, the settings, the tool definitions, the documents the feature searches, the library that builds each request, or your own code.
+A release swaps one input of an LLM feature: the model, the prompt, a setting, a tool or the code that builds each request. The questions follow one change from its first users to its rollback.
 
-- **System prompt**: the instructions sent at the start of every request, usually as the first message of the list.
+- **System prompt**: the instructions at the start of every request, usually its first message.
 - **Prompt store**: where the saved versions of a prompt are kept for your code to fetch while it runs, so a prompt can change without a deploy.
-- **Model version**: one fixed release of a model. Some model names always mean one version; others point to whichever version the provider moves them to.
+- **Model version**: one fixed release of a model; some model names always mean one version, and others point to whichever version the provider moves them to.
 - **Tool call**: the part of a model's reply that asks to run one of the tools described in the request, with arguments the model chose; unless the provider runs that tool itself, your code runs it and sends back the result.
 - **Eval set and pass rate**: a collection of cases with known good answers, and the share of them a release passes on one run.
 
-Behind a provider's API, the provider releases model versions and retires old ones on its own schedule. A request to a retired version fails, so no version can be kept for good. On your own server the model files and server settings change only when you change them, so a rollback can bring the old model back too, if the code names its files and you kept them. Shadow runs, canaries and split tests work the same wherever your code builds the requests.
+Behind a provider's API, the provider releases and retires model versions on its own schedule, and a request to a retired version fails, so no version can be kept for good. On your own server the model files and settings change only when you change them, so a rollback can bring the old model back too, if the code names its files and you kept them. Shadow runs, canaries and split tests work the same wherever your code builds the requests.
 
-A release reaches users in one of four ways, which differ in what the new version gets and who sees its replies:
+A release reaches users in one of four ways:
 
 | Way | What the new version gets | Who sees its replies |
 | --- | --- | --- |
@@ -23,13 +23,11 @@ A release reaches users in one of four ways, which differ in what the new versio
 
 A split test is often called an A/B test.
 
-Releases bite in the days after a change, when someone has to decide whether it helped, undo it, or explain one bad reply to the customer who got it.
-
 This topic lets you:
 
-- undo a bad week on an LLM feature, and say what a rollback, a new prompt, a changed tool or a switched-off flag reaches and what it leaves behind
-- read a canary, a shadow run, a split test or a release gate before it decides whether a change goes to everyone
-- take a customer's complaint about one reply and decide what it would take to reproduce it
+- undo a bad week on an LLM feature, and say what a rollback, a new prompt, a changed tool or a switched-off flag reaches
+- read a canary, a shadow run, a split test or a release gate on the eval score before it decides whether a change goes to everyone
+- take a customer's complaint about one reply and work out what your logs and a retry tell you about it
 
 ###### 1. Rolling back a theatre's box-office assistant
 
@@ -604,4 +602,4 @@ A reply comes from one whole request: the system prompt, the settings, the messa
 - [MUSCLE](https://arxiv.org/abs/2407.09435), 2024: updating the base model under fine-tuned adapters turned some of their right answers wrong, and a training method cut those flips by up to 40% in its tests.
 - [Hidden Technical Debt in Machine Learning Systems](https://papers.nips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html), 2015: the costs that pile up around a system built on a model, among them entanglement, hidden feedback loops, configuration and changes in the outside world.
 
-Next: [Running models](../running-models/README.md)
+Next: [Where models run](../where-models-run/README.md)

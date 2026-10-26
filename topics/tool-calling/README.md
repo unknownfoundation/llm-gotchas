@@ -2,19 +2,19 @@
 
 Needs: [Context window](../context-window/README.md) · [Structured outputs](../structured-outputs/README.md) · Reviewed October 2026
 
-Tool calling lets a model ask for an action it cannot take itself. Along with the messages, the request describes the functions your code offers, and instead of text the model's reply can hold a request to run one of them, with the values to pass. Whatever code receives the reply runs it and sends the outcome back on the next request.
+Tool calling lets a model ask for an action it cannot take itself: the request describes the functions your code offers, and the reply can name one with the arguments to pass. Whatever code receives the reply runs the call and sends the result back on the next request.
 
 - **Token**: a piece of text, often a word or part of one; requests are counted, limited and billed in tokens.
 - **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
 - **Tool**: a function your code offers the model, such as a stock lookup or a refund.
-- **Tool definition**: a tool's name, a plain-language description of what it does and when to use it, and a JSON Schema for its arguments, which lists each argument with its type and says which ones are required; definitions go in the request as data, beside the messages.
+- **Tool definition**: a tool's name, a plain-language description of what it does, and a JSON Schema listing each argument with its type and whether it is required; definitions go in the request beside the messages.
 - **Loading on demand**: a way to keep most of a large tool set out of the request and let the model search for the tool it needs, so that tool's definition is added only then; some provider APIs offer it.
 - **Chat template**: the format that turns the messages into the one text the model reads, marking each message's role, such as user or assistant; with tools, it writes their definitions into that text as well.
 - **Tool call**: the part of a reply that asks for a tool: the tool's name and the arguments, and on a provider's API an id for this one call.
 - **Tool-call parser**: on your own server, the part that finds tool calls in the text the model writes and returns them as calls. Some servers take it as a start-up setting; others work out the call format from the model's chat template.
 - **Schema mode for tools**, often called strict mode: a setting on a tool definition that holds each call's arguments to its schema while the model writes them. Without it, a call's arguments can break the schema, such as a number sent as a string or a required argument left out.
 - **Tool result**: a message your code adds after running a tool, carrying the tool's output and the call's id, so each result can be matched to its call; on your own server, some server programs give calls no id and match a result by the tool's name instead. Some APIs take each result as a message of its own with the role `tool`; others take it as a block, a separate part inside a user message.
-- **Step**: one round of the loop: a request goes out, the reply holds tool calls, and your code runs them and adds the reply and the results to the messages for the next request. An agent repeats steps until a reply holds text and no call. A turn is a user's message and everything up to the reply that answers it, however many steps that takes.
+- **Step**: one round of tool calling: a request goes out, the reply holds tool calls, and your code runs them and adds the reply and the results to the messages for the next request. An agent repeats steps until a reply holds text and no call. A turn is a user's message and everything up to the reply that answers it, however many steps that takes.
 
 Who runs a tool, and who finds the call in the model's text:
 
@@ -33,12 +33,12 @@ Tool choice is a request setting for whether the model calls a tool, and it take
 | Forced to one named tool | call that tool |
 | Turned off | answer without calling a tool |
 
-Tool calling bites in the code around the model: the loop that runs each call and answers it, and the history that loop keeps and trims. A demo with one tool and one question exercises almost none of it.
+The hard part is the code around the model: the loop that runs the calls, and the history it keeps and trims, which a demo with one tool barely touches.
 
 This topic lets you:
 
-- say what has run when a reply asks for a refund, and what the tool definitions decide and cost on every request
-- write the loop that answers each call in a reply, and tell what it does when a tool fails or you swap the model behind your own server
+- say what has run when a reply asks for a refund, and what each request of a chat with forty connected tools carries
+- write the loop that handles a reply's tool calls, and tell what it does when a tool fails or you swap the model behind your own server
 - keep a long agent run going when you trim its history or force its tool calls
 
 ###### 1. Letting a support bot refund an order

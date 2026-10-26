@@ -2,18 +2,18 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · Reviewed October 2026
 
-A model is a large set of numbers learned in training, its weights, and a fixed computation that runs them over tokens. On one call it reads the request's tokens together in one pass, then writes the reply one token per pass, each new token joining the text for the next pass. Every pass carries the tokens through the model's layers, a few dozen stages in a row, and in each layer a token takes in information from the tokens before it, never from the ones after.
+A model is a fixed computation that runs its learned weights over tokens. On one call it reads the request's tokens together in one pass, then writes the reply one token per pass, each new token joining the text the next pass reads.
 
 - **Token**: a piece of text, often a word or part of one; the model reads and writes the numbers that stand for tokens.
-- **Weights**: the numbers the model learned, also called parameters; they do not change while it runs. A model's size is how many it has, such as 8 billion, and at 16 bits each one takes 2 bytes of memory.
-- **Pass**: one run of the model, through all its layers, over a set of tokens; it ends in a probability for every token that could come next, and the next token is drawn from those probabilities. Reading the prompt takes one pass over all its tokens; each token of the reply takes a pass of its own.
+- **Weights**: the numbers the model learned, also called parameters; they do not change while it runs, and a model's size is how many it has, such as 8 billion, each taking 2 bytes of memory at 16 bits.
+- **Pass**: one run of the model, through all its layers, over a set of tokens; it ends in a probability for every token that could come next, and the next token is drawn from those probabilities.
 - **Layer**: one stage of the stack a pass goes through, often a few dozen of them; each has an attention part and a part that works on each token alone.
-- **Attention**: the part of a layer where tokens share information. Each token computes two lists of numbers: a key, which works like a label, and a value, the content behind that label. A token compares itself with the keys of the tokens before it and mixes in their values, taking more from those whose keys match it best.
-- **Heads**: attention in a layer runs as several heads side by side, each matching tokens in its own way. A model's configuration gives two counts, attention heads and key-value heads; the second can be smaller, and then several attention heads share one key-value head.
-- **Attention weights**: despite the name, no part of the model's weights; they are the shares a token gives to each earlier token in one head of one layer; together they come to 1, and a library that runs the model can return them, often drawn as a map.
-- **Key-value cache**: the keys and values computed so far for a request's tokens, kept while the request runs so that later passes read them instead of computing them again. A token never looks at the tokens after it, so what was computed for it stays valid.
-- **Context length**: the most tokens a model can take in one call, its context window. Each token goes in with its position, its place counted from the start of the text. The model's card, the page its makers publish with it, states the length it was built and trained for, and on your own server the context length is also a setting.
-- **Quantization**: storing a model's numbers in fewer bits than the usual 16, such as 8 or 4, so that they take less memory and each one is kept less exactly. The number of bits per number is called its precision.
+- **Attention**: the part of a layer where tokens share information. Each token computes two lists of numbers, a key that works like a label and a value that holds the content behind it, then compares itself with the keys of the tokens before it and mixes in their values, taking more from those whose keys match it best.
+- **Heads**: attention in a layer runs as several heads side by side, each matching tokens in its own way; a model's configuration gives two counts, attention heads and key-value heads, and when the second is smaller, several attention heads share one key-value head.
+- **Attention weights**: despite the name, these are the shares a token gives to each earlier token in one head of one layer, and none of them is among the model's weights; together they come to 1, and a library that runs the model can return them, often drawn as a map.
+- **Key-value cache**: the keys and values computed so far for a request's tokens, kept while the request runs so that later passes read them instead of computing them again; they stay valid because a token never looks at the tokens after it.
+- **Context length**: the most tokens a model can take in one call, its context window. Each token goes in with its position, its place counted from the start of the text. The model's card, the page its makers publish with it, states the length it supports, and on your own server the context length is also a setting.
+- **Quantization**: storing a model's numbers in fewer bits than the usual 16, such as 8 or 4, so that they take less memory and each one is kept less exactly; the number of bits per number is called its precision.
 - **Speculative decoding**: a way to write faster: a small draft model proposes the next few tokens, and the large model checks them all in one pass and keeps the ones it accepts.
 
 Through a provider's API you meet the model, its precision and its cache only as the window, the time a reply takes and the price per token, since they run on the provider's machines; on your own server you choose the model, its precision, its context length and how many requests it serves together, and the memory all of it needs is yours to plan. A model reads and writes the same way wherever it runs.
@@ -26,8 +26,6 @@ Models differ in how a layer uses its weights:
 | Mixture-of-experts model | the whole attention part, then a few of many smaller blocks of weights, called experts, picked for that token by a router | two numbers: the total weights, and the active weights one token goes through |
 
 Reply models, the kind this page is about, let a token draw only on itself and earlier tokens. Encoders, the models behind search and classification, let every token draw on the whole text, before and after it.
-
-What happens inside a model matters most when the hardware is yours to plan, and when you try to explain a decision from what you can see in it.
 
 This topic lets you:
 

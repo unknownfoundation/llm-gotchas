@@ -2,7 +2,7 @@
 
 Needs: [Structured outputs](../structured-outputs/README.md) · [Cost and latency](../cost-and-latency/README.md) · Reviewed October 2026
 
-The Python around a model call is the code that runs before and after each request: it builds the prompt, sends the call and waits for the reply, handles what fails on the way, parses and checks the reply, acts on it and stores the results. The model is reached over a connection and answers in seconds, and its reply is text a model wrote, so this code meets delays, failures and inputs that ordinary functions seldom bring.
+The Python around a model call builds the request, sends it, waits, handles failures, and parses, checks and stores the reply. The call crosses a network, takes seconds and returns text a model wrote, so habits from ordinary Python meet delays, failures and inputs they were not built for.
 
 - **Model call**: one request to the model and the reply that comes back. In the code on this page, `call_model(messages=...)` stands for a small function of yours that sends the message list and hands back the reply text; `acall_model` does the same with `async def`.
 - **Message list**: the conversation sent with every call, a Python list of dicts, each with a `role` and a `content`. The system prompt, the standing instructions for the whole chat, often goes first with the role `system`.
@@ -17,7 +17,7 @@ The Python around a model call is the code that runs before and after each reque
 - **Generator**: the object a function containing `yield` returns; it produces the function's values one at a time, as a loop asks for them.
 - **Embedding**: a vector, a list of numbers, that a model computes from a piece of text so that a search store can find texts close in meaning.
 
-Calls to a provider's API go through the provider's client library or plain HTTP, whose own error classes and time limit your handling sits around, and every call that completes is billed for its tokens. Your own server often takes the same request format, so the same Python and client libraries talk to it, and a call costs the server's time instead of money. Python runs this code the same way whichever system answers, while client libraries, their error classes and their time limits differ from one maker to the next; the behaviour described here is that of Python 3.11 and later.
+Calls to a provider's API go through the provider's client library or plain HTTP, each with its own errors and time limit for your code to handle, and every call that completes is billed for its tokens. Your own server often takes the same request format, so the same Python and client libraries talk to it, and a call costs the server's time instead of money. Python runs this code the same way whichever system answers, while client libraries, their error classes and their time limits differ from one maker to the next; the behaviour described here is that of Python 3.11 and later.
 
 The code around a call works in seven steps, and each has Python of its own:
 
@@ -30,8 +30,6 @@ The code around a call works in seven steps, and each has Python of its own:
 | Checking the reply | tests those values before anything acts on them | `isinstance` and other checks you write |
 | Acting on the reply | runs what the reply decides, such as a refund, a tool or a message | `if` tests on the parsed values |
 | Storing the results | saves replies, embeddings and records of each call for later | files, `json.dump`, generators, tasks |
-
-It bites where a habit from ordinary Python meets what a model call brings: a reply shaped a little differently from the ones in your tests, a wait of several seconds, a failure in the middle of many calls at once, a job run a second time.
 
 This topic lets you:
 

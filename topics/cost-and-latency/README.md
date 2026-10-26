@@ -2,7 +2,7 @@
 
 Needs: [Context window](../context-window/README.md) · Reviewed October 2026
 
-A call to a model costs money and takes time, and both come from its tokens: the input it reads, from instructions and tool definitions to documents and the conversation, and the output it writes back. A feature's cost is the sum over every call it makes.
+A model call's price and its wait both come from its tokens: the input it reads and the output it writes. A feature costs the sum of all the calls it makes.
 
 - **Token**: a piece of text, often a word or part of one; a call's input and output are counted, priced and limited in tokens, and a provider prices input and output tokens per million, usually at a separate price for each.
 - **System prompt**: the instructions meant to hold for the whole chat, sent as the first message of the list or, on some APIs, as a separate field.
@@ -30,13 +30,13 @@ On a provider's API, a call's bill can carry these lines:
 | Cache write | the tokens stored in the cache for later calls, on some APIs at more than the input price | some provider APIs |
 | Output | the tokens the model writes in reply | every provider's API |
 
-Cost and latency bite at scale, where a call that was cheap and quick in a test runs thousands of times a day, and every token it carries is multiplied by that count.
+At scale a call that was cheap and quick in a test runs thousands of times a day, and every token it carries is multiplied by that count.
 
 This topic lets you:
 
 - price a feature before it ships, and choose what to shorten or cache when its replies are slow
-- lay out a prompt for prompt caching, and judge which clients' requests will still find their prefix in the cache
-- run a busy morning, an overnight job or a server the whole office shares within its limits, and bring every batch result back to its request
+- lay out a prompt for prompt caching, and judge when a request will find its prefix in the cache
+- run a busy morning, an overnight batch or a server the whole office shares within its limits
 
 ###### 1. Shortening the prompt to make room for longer summaries
 

@@ -2,13 +2,13 @@
 
 Needs: [Context window](../context-window/README.md) · [Tool calling](../tool-calling/README.md) · Reviewed October 2026
 
-An agent is a loop in which the model chooses each next step: after every tool result it decides whether to call another tool or to answer, and the run ends when it answers or your code stops it. A workflow fixes the steps and their order in your code, and the model does the work inside each step. Either way a run is a series of separate model calls. The model keeps nothing from one call to the next, so each call reads only what its own request carries; your code keeps the run's state and decides what each call is sent.
+An agent is a loop in which the model picks each next step, another tool call or the answer; a workflow runs steps your code fixes in advance, and the model does the work inside each. Either way a run is a series of separate model calls, and your code decides what each call is sent.
 
 - **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
 - **Tool**: a function your code offers the model; a reply can ask for it, and your code runs it and sends back the result.
-- **Step**: one round of a run. In an agent loop a call goes out, and its reply either ends the run or leads to the next call; in a workflow a step is one of the stages your code runs in order, which can hold a call and code around it.
+- **Step**: one round of a run: in an agent loop, one call whose reply either ends the run or leads to the next call; in a workflow, one of the stages your code runs in order, which can hold a call and code around it.
 - **Check pass**: one extra call that reviews an answer before it is used, and keeps or corrects it.
-- **Checkpoint**: a saved copy of a run's state, the messages so far and anything your code records beside them, such as an order number or a manager's answer, that the run can be resumed from. It lasts as long as the place your code keeps it: one in a process's memory ends with that process, and one in a file or a database outlives a restart.
+- **Checkpoint**: a saved copy of a run's state that the run can be resumed from: the messages so far and anything your code records beside them, such as an order number or a manager's answer; it lasts as long as the place your code keeps it, so one in a process's memory ends with that process and one in a file or a database outlives a restart.
 - **Approval**, often called human in the loop: a pause in which a run waits for a person's answer, then resumes once the answer arrives.
 
 A provider's API and your own server answer each call from the messages they are sent, so on both the loop, the state and the checkpoints live in your code; a ready-made app such as a coding assistant runs an agent loop of its own and can stop to ask you before it edits a file or runs a command. Loops, patterns and checkpoints work the same way everywhere.
@@ -24,8 +24,6 @@ Most systems combine a few ways of wiring calls together:
 | Evaluator loop | a writer call drafts, a reviewer call (the evaluator) judges the draft, and the writer revises it in light of the review | your code, from the reviewer's verdict |
 | Voting | sends one call several times and keeps the answer that most of the runs return | your code |
 | Agent loop | the model calls tools one step after another and answers when it decides it is done | the model |
-
-These patterns go wrong in the code that joins the calls: in what each call is sent, and in what stops or resumes a run.
 
 This topic lets you:
 

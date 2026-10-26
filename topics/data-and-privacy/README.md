@@ -1,11 +1,10 @@
 # Data and privacy
 
-Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Security](../security/README.md) · [Testing and evals](../testing-and-evals/README.md) · [Running models](../running-models/README.md) · Reviewed October 2026
+Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Security](../security/README.md) · [Testing and evals](../testing-and-evals/README.md) · [Where models run](../where-models-run/README.md) · Reviewed October 2026
 
-Personal data enters an LLM feature as text: what a user types and whatever records or documents a system puts into a request. Each call sends its request to wherever the model runs, and copies of it can stay behind in provider logs, stored replies and files, your logs and traces, caches, indexes, fine-tuned models, app histories, and the exports and backups made of any of them. Keeping it private means knowing where each copy sits, who can read it and what deletes it.
+Personal data enters an LLM feature as text: what a user types and the records and documents your system adds to a request. Privacy then comes down to where each copy of that text sits, who can read it and what deletes it.
 
 - **Personal data**: anything that can be tied to a person, such as a name, an email, an address or a health detail, or a mix of details that together point to one person.
-- **Region**: the area of data centres that an account and its stored data sit in; where each request is processed can follow separate rules.
 - **Stored reply**: some provider APIs keep each reply on their server, so a follow-up can send only the new message and the stored reply's id, which is called chaining.
 - **Trace**: the record of every call made for one user request or one agent run: what each call sent, what came back and how long it took.
 - **Embedding**: a list of numbers an embedding model computes from a text, so that texts with similar meaning get similar lists.
@@ -37,12 +36,10 @@ A copy of a request's text can stay behind in these places:
 
 Beside a provider's API or your own server, your code writes these copies the same way. Any outside service that a tool calls keeps copies of its own. A ready-made app keeps its copies in its own history.
 
-Privacy bites after launch, when a user asks to be erased or a breach, a review or a log search turns up a copy nobody listed.
-
 This topic lets you:
 
 - follow a customer's message, a file or a secret to every place it lands when a coding assistant, an in-house model or a provider's storage handles it
-- judge whether a debug log, a scrubbed transcript or a hashed export still lets someone tell who the customers are
+- judge what a debug log, a scrubbed transcript or a hashed export tells someone about who the customers are
 - carry out an erasure request, or size up a breach, across caches, traces, indexes and a fine-tuned model
 
 ###### 1. Letting a coding assistant explore a payments service

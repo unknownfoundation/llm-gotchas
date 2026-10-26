@@ -2,14 +2,14 @@
 
 Needs: [Prompting](../prompting/README.md) · [Tool calling](../tool-calling/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · Reviewed October 2026
 
-A model reads its whole input as one stream of text and has no reliable way to tell which part is an instruction and which is only data. So text that reaches the input can steer what it writes and which tools it asks for, whoever put it there. An LLM feature is as safe as the limits your code sets on what reaches the model and on what its output is allowed to do.
+Security in an LLM feature is the set of limits your code puts on what reaches the model and on what its replies can do. An attacker works on both ends: text slipped into the input, and a reply that your code shows on a page or turns into a tool call or a payment.
 
 - **System prompt**: the instructions meant to hold for the whole chat, sent as the first message of the list or, on some APIs, as a separate field.
 - **Tool call**: the part of a model's reply that asks for a tool, with the tool's name and the arguments; the code or the app that runs the loop runs the tool and sends back the result.
-- **Untrusted text**: any content your code did not write, such as a user's message, a web page, a document or an email; once it is in the input, the model reads it the same as your instructions.
+- **Untrusted text**: any content your code did not write, such as a user's message, a web page, a document or an email.
 - **Prompt injection**: untrusted text that the model follows as an instruction.
-- **Indirect injection**: the instruction arrives in content the model reads, a retrieved page, a tool result or an email, rather than from the user; when the user types it, the injection is direct.
-- **Data exfiltration**: untrusted text steering the model to move private data to where an outsider can read it, through a tool call or through a link or image in a reply that something later fetches.
+- **Indirect injection**: the instruction arrives in content the model reads rather than from the user; when the user types it, the injection is direct.
+- **Data exfiltration**: untrusted text steering the model to move private data to where an outsider can read it, through a tool call or through a reply.
 - **The risky combination**, often called the lethal trifecta: one agent that can read untrusted text, reach private data and send data out; an injected instruction can join the three into a leak.
 - **Approval**: a pause for a person to confirm an action before your code runs it.
 - **Guard**: a check that screens text on its way to the model, such as a list of phrases or a classifier, and blocks what it flags.
@@ -21,18 +21,16 @@ What an attacker can get falls into three kinds:
 | Kind | What it means | Where you find it |
 | --- | --- | --- |
 | Hijacked task | untrusted text in the input is followed as an instruction, and the model does the attacker's task instead of yours | a provider's API, your own server, a ready-made app |
-| Leaked data | private data reaches someone who should not see it, through a reply, a link or image, or a tool call | a provider's API, your own server, a ready-made app |
+| Leaked data | private data reaches someone who should not see it, through a reply or a tool call | a provider's API, your own server, a ready-made app |
 | Unauthorized action | a tool runs with values that act outside the user's rights | a provider's API, your own server, a ready-made app |
 
 Each can come in through the user's own message or through content the model reads; on your own server, a model file or a search index you download is one more way in.
 
-Security bites in production, when a real user or a hostile page reaches a feature a demo never did.
-
 This topic lets you:
 
-- work out what the model will do with an instruction hidden in a page, a document or an email it reads, and see where a rule in the prompt stops helping
-- say what your code must check for itself before it runs a tool, renders a reply or pays what the model asked
-- spot where private data can cross from one customer to another or leave through a reply, and what to change before it does
+- work out what the model will do with an instruction hidden in a page, a document or an email it reads, and what a rule in the prompt changes
+- decide what your code does between a model's reply and the tool, the page or the payment it asks for
+- follow private data through a cache of answers, a rendered reply and a tool call
 
 ###### 1. Summarising a page that carries its own instruction
 

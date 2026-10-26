@@ -1,14 +1,14 @@
 # AI system design
 
-Needs: [Tool calling](../tool-calling/README.md) · [Cost and latency](../cost-and-latency/README.md) · [Streaming](../streaming/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · [Security](../security/README.md) · [Running models](../running-models/README.md) · Reviewed October 2026
+Needs: [Tool calling](../tool-calling/README.md) · [Cost and latency](../cost-and-latency/README.md) · [Streaming](../streaming/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · [Security](../security/README.md) · [Where models run](../where-models-run/README.md) · Reviewed October 2026
 
-Designing an AI system means choosing the parts that stand around the model on the way from a person's message to the reply, the order they run in, and what each one may do. The parts are the app a person uses, a gateway, a queue, a cache, retrieval, guard checks, the model call, tools and memory; logs and evaluations sit beside them.
+AI system design picks the parts that stand between a person's message and the model's reply, the order they run in, and what each one may do. Each part can pass its own tests while the system fails where one part's output becomes another's input.
 
 - **Token**: a piece of text, often a word or part of one; windows, rate limits and bills are counted in tokens.
 - **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
 - **Critical path**: the parts on a request's way from the person's message to the reply that run one after another, each starting when the one before it ends.
-- **Rate limit**: the most requests and tokens a provider's API takes from you each minute; past it, a request is refused with an error. On your own server the GPUs set the ceiling instead.
-- **Fallback and hedging**: two ways a gateway can use a second model. A fallback calls it when the first model fails; a hedge sends it a copy of a request the first model is slow to answer, and uses whichever reply comes first.
+- **Rate limit**: the most requests and tokens a provider's API takes from you each minute; past it, a request is refused with an error, and on your own server the GPUs set the ceiling instead.
+- **Fallback and hedging**: two ways a gateway, the part that routes your code's model requests, can use a second model: a fallback calls it when the first model fails, and a hedge sends it a copy of a request the first model is slow to answer, and uses whichever reply comes first.
 - **Prompt caching**: the system keeps what the model computed while reading the opening part of a request, such as a long system prompt that repeats from call to call, so a later request that starts with the same text is read faster.
 
 The parts you build, and the capacity you plan for, change with who runs the model:
@@ -34,8 +34,6 @@ The parts a request can pass through, in the order it usually meets them:
 | Memory | what your code keeps from earlier turns and conversations and adds back to later requests |
 
 Logs and evaluations change no reply: logs record what each request carried, and evaluations score the system's replies against cases you chose. Several places where two parts meet have pages of their own: a cache of answers can hand one customer's reply to the next (Security), a filter applied after a search can leave too few passages (Embeddings and vector search), a check on a streamed reply arrives after the reader has seen it (Streaming), and the success rates of a chain's steps multiply (Agents and workflows).
-
-Each part can pass its own tests while the design still fails: the faults show up where one part's output becomes another's input, often on the busiest day or in the longest call.
 
 This topic lets you:
 

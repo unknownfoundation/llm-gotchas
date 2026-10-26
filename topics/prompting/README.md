@@ -2,7 +2,7 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · [Generation parameters](../generation-parameters/README.md) · Reviewed October 2026
 
-A prompt is everything a model reads on one call, carried in the system prompt and the messages so far: instructions, often with examples, a persona or a request for step-by-step reasoning, and the data the task works on. Your code may assemble it from templates, variables and lists. Before the call, the parts are joined into one text by the model's chat template: a fixed pattern of markers that show where each message starts and whose it is. That joined text is what the model reads.
+A prompt is everything a model reads on one call, often built by your code from templates and variables: instructions, examples and the data the task works on, in the system prompt and the messages. Before the call, the model's chat template joins these parts into one text with markers for each message, and that text is what the model reads.
 
 - **Token**: a piece of text, often a word or part of one; prompts are counted and billed in tokens.
 - **Tokenizer**: the vocabulary and rules that cut text into tokens; most model families train their own, so one text can come to different counts on different models.
@@ -32,13 +32,13 @@ A prompt can carry five kinds of part:
 
 Whatever parts it holds, a prompt also has a **format**: the characters that set the content out without changing its words, such as the separator between a label and its text (a colon, a dash, a line break), spacing and casing. Changing the data layout goes further than changing the format. Moving records from JSON to CSV changes some of the words too, along with the characters around them.
 
-Prompts bite in production: one prompt runs on every input a product receives, and every token of it is sent and paid for on each call.
+In production one prompt runs on every input a product receives, and each call sends and bills all of it.
 
 This topic lets you:
 
 - keep a live product's replies true to the data and rules you give it, and decide what goes in the prompt and what your code checks
 - predict what reordering a prompt or adding to it will do to the answers and to the bill, before the change ships
-- work out what drives an answer, and judge what a test score says about a prompt once its wording, its format or the model behind it changes
+- work out what drives an answer, compare two instructions on a test set, and move a tuned prompt to a model's new version
 
 ###### 1. A welcome email for a booking with no check-in date
 

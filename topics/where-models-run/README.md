@@ -1,8 +1,8 @@
-# Running models
+# Where models run
 
 Needs: [Inside the model](../inside-the-model/README.md) · [Generation parameters](../generation-parameters/README.md) · Reviewed October 2026
 
-Running a model means keeping its weights loaded on machines that take requests and send back replies. One model can run in four kinds of place: on its maker's own machines, inside a cloud company's platform that sells models from many makers, at a hosting service for open-weight models, or on hardware you run yourself. The place decides who handles your requests, which limits and rules they meet, and what you have to set up yourself.
+A model runs in one of four places: its maker's servers, a cloud platform, an open-weight host, or your own hardware. The same model meets different limits, prices and data rules in each.
 
 - **Token**: a piece of text, often a word or part of one; requests, limits and prices are counted in tokens, and each model's tokenizer splits text into the tokens of its own vocabulary.
 - **Weights**: the numbers a model learned in training; running it means loading them into memory and computing with them.
@@ -10,7 +10,7 @@ Running a model means keeping its weights loaded on machines that take requests 
 - **Region**: one of a cloud platform's areas of data centres, such as a city or a country; you choose the regions your account and its resources sit in.
 - **Quota**: the cloud platforms' name for rate limits, the number of tokens and requests your account may send to a model each minute.
 - **Finish reason**: the field in a response that says why the reply ended, such as a natural end or the generation cap.
-- **Reserved capacity**: a set amount of a model's throughput, the requests and tokens it can handle each minute, that a platform holds for your account alone, instead of sharing its machines among all its customers; often called provisioned throughput.
+- **Reserved capacity**: a set number of requests and tokens per minute that a platform holds for your account alone, instead of sharing its machines among all its customers; often called provisioned throughput.
 - **Chat template**: the format, shipped with a model's files, that turns a list of messages into the one text the model reads, marking where each turn, one message of the chat, starts and ends, usually with special tokens.
 - **Special token**: a token reserved for structure, such as the start of a turn, with a marker string and an ID of its own in the model's vocabulary.
 - **Chat endpoint and text endpoint**: the two usual ways into a server you run. The chat endpoint takes a list of messages and fills in the model's chat template. The text endpoint takes one finished string: most servers pass it to the model as it is, and some apply the template to it unless you switch that off.
@@ -30,13 +30,11 @@ A model can run in four places:
 
 A router is not a fifth place: it is one API in front of several providers, and it passes each request to one of them, so the same model name can reach hosts that run it differently, for example with the weights stored at lower precision, in fewer bits each. The same model on a cloud platform can lack some of the maker's features, and it comes with the platform's own request format, model names and quotas.
 
-Where a model runs bites when code moves to a new place or onto a new model, and when an auditor asks where the requests went.
-
 This topic lets you:
 
 - choose where a model runs when a tool must stay the same for years, or when an auditor will ask where every request was processed
-- move a feature onto a cloud platform with its quotas, its content filter and a week of reserved capacity planned for
-- change the model behind your own server, or give part of its card to another service, and know what to check first
+- move a feature onto a cloud platform, planning for its quotas, its content filter and a week of reserved capacity
+- change the model behind your own server, or give part of its GPU to another service, and know what to check first
 
 ###### 1. Choosing where a hospital's report sorter runs for five years
 

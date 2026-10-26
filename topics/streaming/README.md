@@ -2,14 +2,14 @@
 
 Needs: [Tool calling](../tool-calling/README.md) · [Cost and latency](../cost-and-latency/README.md) · Reviewed October 2026
 
-Streaming sends a model's reply while the model is still writing it. One request goes out, the connection stays open, and the reply comes back as a series of events, each carrying a small part of it, until the model stops. A stream carries more than text, and your code reads it one event at a time.
+Streaming sends a model's reply in pieces while the model is still writing it: one request, one open connection, and a series of events until the model stops. Your code reads the stream one event at a time, and an event can carry more than text.
 
 - **Token**: a piece of text, often a word or part of one; the model writes a reply one token at a time, and limits and bills are counted in tokens.
 - **Event**: one message in a stream. In the common format, called server-sent events, an event is one or more lines of text, among them a `data:` line with a JSON object on it, and a blank line closes it; some servers you run yourself send one JSON object per line instead.
 - **Idle limit**: the longest a connection may stay silent, with no bytes arriving, before a client, a proxy or a network closes it; client libraries often call it a read timeout. A deadline, by contrast, limits the whole call, from the request to the last byte.
 - **Finish reason**: the field that says why a reply ended, such as a natural end, a stop sequence (a string the request tells the model to stop at), the generation cap (the most tokens the request lets the reply run to) or a tool call.
 
-A provider's API streams when the request asks for it, as server-sent events whose kinds, names and contents differ by provider; on your own server, the server's settings decide details such as how many tokens one event carries. How a stream works is the same everywhere: one request, one open connection, and the reply in events while it is written.
+A provider's API streams when the request asks for it, as server-sent events whose kinds, names and contents differ by provider; on your own server, the server's settings decide details such as how many tokens one event carries.
 
 The kinds of event a stream can hold:
 
@@ -23,7 +23,7 @@ The kinds of event a stream can hold:
 
 While the model is silent, some systems also send keep-alive events, which carry nothing and keep the connection from looking idle; and a model that reasons before it answers can stream that reasoning as pieces of its own, apart from the text.
 
-Streaming bites in the code between the connection and the screen: the loop that reads each event, the limits set around the call, and what your code shows, saves and sends again when a stream breaks partway. A loop that prints each piece of text works in the first demo, and none of these cases comes up there.
+The problems sit in the code between the connection and the screen: the loop that reads each event, the limits set around the call, and what your code shows, saves and sends again when a stream breaks partway.
 
 This topic lets you:
 

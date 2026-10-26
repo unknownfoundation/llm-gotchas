@@ -2,42 +2,42 @@
 
 Needs: none · Reviewed October 2026
 
-A model reads and writes numbers, not characters. Before a request reaches the model, a tokenizer cuts the text into tokens and replaces each one with its number; the reply comes back as numbers, and the tokenizer turns them into text again. A model's context window, the most tokens it can handle in one call, and its limits and bills are all counted in these tokens.
+A tokenizer cuts text into tokens and swaps each one for a number before the text reaches the model, then turns the numbers the model writes back into text. A model's context window, its limits and its bill are all counted in these tokens.
 
 - **Token**: a piece of text the tokenizer treats as one unit, such as a common word, part of a longer word, a punctuation mark or a single character.
 - **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
-- **Vocabulary**: the fixed list of tokens a tokenizer knows, learned from a large body of training text, usually from tens of thousands to a few hundred thousand entries.
-- **Tokenizer**: a vocabulary plus the rules for splitting text into its tokens. Most model families train their own, and a model works only with the tokenizer it was trained with.
-- **Encode and decode**: turning text into token IDs, the numbers that stand for tokens and the only thing the model sees, and token IDs back into text.
-- **Special token**: a token reserved for structure, such as the end of a text or the start of a turn in a chat; each has a marker string and an ID of its own.
-- **Chat template**: the format that turns a chat's list of messages into the one text the model reads, wrapping each message in markers, usually special tokens, that show its role (who wrote it, such as the system, the user or the assistant) and where it starts and ends.
+- **Vocabulary**: the fixed list of tokens a tokenizer knows, learned from a large body of training text.
+- **Tokenizer**: a vocabulary plus the rules for splitting text into its tokens; most model families train their own, and a model works only with the one it was trained with.
+- **Encode and decode**: turning text into token IDs, the numbers that stand for tokens, and token IDs back into text.
+- **Special token**: a token reserved for structure, such as the end of a text or the start of a chat turn, with a marker string and an ID of its own.
+- **Chat template**: the format that turns a chat's list of messages into the one text the model reads, wrapping each message in markers, usually special tokens, that name its role, such as system, user or assistant, and mark where it starts and ends.
 
 The three kinds of system an LLM feature runs on, and how each one counts tokens:
 
-- **A provider's API**: a company runs the model on its own servers, and your code sends it requests over the internet and pays for the tokens they use. The provider counts with its own model's tokenizer and reports the input and output tokens with every response. Some publish their tokenizer so you can run it yourself, and many offer a counting request: you send the request you plan to make and get back its token count, with no reply generated.
+- **A provider's API**: a company runs the model on its own servers; your code sends it requests over the internet and pays for the tokens they use. The provider counts with its own model's tokenizer and reports the input and output tokens with every response. Some providers publish their tokenizer, and many offer a counting request that returns the token count of a request you plan to send, with no reply generated.
 - **Your own server**: you run an open-weight model, one you can download, on your own hardware (for example with vLLM or llama.cpp). Its tokenizer and chat template come with the model's files, so your code can run the exact ones, and the server can tokenize text for you.
 - **A ready-made app**: a chat app, or a coding assistant in your terminal or editor. It counts for you: a chat app can tell you a message is too long, and a coding assistant can show how much of the window and how many tokens a session has used.
 
-How text becomes tokens is the same on all three. Vocabularies, counts, limits and prices differ between models and change with new versions, so count with the model you use.
+How text becomes tokens is the same on all three.
 
-A tokenizer could give each whole word a token, but no list holds every word, and a missing word would become an unknown token. It could give each character a token, but then a text would take several times as many tokens. Models use **subword** tokenizers instead: common words stay whole, and rarer words are built from smaller pieces. Two of the kinds in wide use:
+Models use **subword** tokenizers: common words stay whole, and rarer words are built from smaller pieces. Two of the kinds in wide use:
 
 | Kind | How it splits text | Where you meet it |
 | --- | --- | --- |
-| Byte-level BPE | byte pair encoding: starts from single bytes, the units every text is stored in, and merges pairs that often stand side by side into longer tokens | many chat models |
+| Byte-level BPE | byte pair encoding: starts from single bytes and merges pairs that often stand side by side into longer tokens | many chat models |
 | WordPiece | builds each word from the longest pieces in its vocabulary and marks each piece that continues a word, as in `ship` `##ped` | models for search and classification |
 
-Unigram, a third kind in wide use, trims a large list of candidate pieces down to the ones that best cover its training text, then splits each text in the most likely way; some multilingual and translation models use it. SentencePiece, a common toolkit, runs BPE or Unigram on raw text and treats the space as an ordinary symbol, so it needs no spaces between words.
+Unigram, a third kind in wide use, trims a large list of candidate pieces to the ones that best cover its training text and splits each text the most likely way; some multilingual and translation models use it. SentencePiece, a common toolkit, runs BPE or Unigram on raw text with the space as an ordinary symbol, so it needs no spaces between words.
 
-Everything in the text is tokenized, spaces, newlines and indents included, so the same data laid out two ways can differ in count.
+Spaces, newlines and indents are tokenized like any other text.
 
-Trouble starts wherever your code budgets, cuts, matches or counts text as it looks on screen, in characters, words or letters, while the model, the window and the bill count tokens.
+Mistakes come from code that budgets, cuts, matches or counts text as it looks on screen.
 
 This topic lets you:
 
-- budget tokens for text that is not plain English prose, from replies in another language and a feed in capitals to product data escaped as JSON and a chat of one-word turns
-- judge what a model can tell you about the letters and digits it reads, and how far to trust a count made with another model's tokenizer
-- write code that matches, caches, trims or starts a reply by token, and know what a user's pasted chat markers or an emoji become on their way to the model and to a search index
+- set token budgets for replies in another language, a feed in capitals, product data escaped as JSON and a chat of one-word turns
+- judge what a model can do with the letters and digits it reads, and how far to trust a count made with another model's tokenizer
+- write code that matches, caches, trims or starts a reply by token, and follow a user's pasted chat markers or an emoji on their way to the model and a search index
 
 ###### 1. Checking product title lengths with the model
 

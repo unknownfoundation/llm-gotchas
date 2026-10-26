@@ -2,11 +2,11 @@
 
 Needs: [Generation parameters](../generation-parameters/README.md) · [Prompting](../prompting/README.md) · Reviewed October 2026
 
-A structured output is a model reply your code can parse into fixed fields, most often a JSON object. The model writes it like any other reply, one token at a time: on each step it scores every token in its vocabulary, and one is drawn at random, the higher-scored ones more likely. The request adds a description of the fields and, in some ways of asking, a limit on which tokens may be drawn.
+A structured output is a model reply your code parses into fixed fields, most often a JSON object. The model writes it token by token like any other reply, and the request adds a description of the fields and, in some ways of asking, a limit on which tokens may be drawn.
 
-- **Token**: a piece of text, often a word or part of one; the model writes a reply one token at a time, each drawn from the fixed list of tokens it knows, its vocabulary.
+- **Token**: a piece of text, often a word or part of one; the model writes a reply one token at a time, drawing each at random from its vocabulary, the fixed list of tokens it knows, with higher-scored tokens more likely.
 - **JSON Schema**: a standard way to describe JSON: the fields of an object, which of them every object must have (the required fields), the type of each value (string, number, integer, boolean, array, object or null), and limits a value must meet, such as a minimum, a pattern or a fixed list of allowed values, called an enum.
-- **Constrained decoding**: generation in which, on each step, every token that would take the text outside a given format is removed before the next token is drawn. It works on the model's scores, so a model that follows instructions poorly keeps the format as surely as one that follows them well.
+- **Constrained decoding**: generation in which, on each step, every token that would take the text outside a given format is removed from the model's scores before the next token is drawn.
 - **Grammar**: rules for which text may come next; a server builds one from your schema for constrained decoding.
 - **Tool call**: the part of a reply that asks your code to run a function described in the request, with the arguments as JSON; a request can force every reply to be a call to one named tool.
 - **Generation cap**: the request's limit on how many tokens the reply may run to, often called max tokens.
@@ -31,13 +31,13 @@ Four ways to ask for structured output are common:
 
 Schema mode goes by other names too; some systems call it strict mode.
 
-Structured output bites at the parse and after it: in what your code assumes the object holds, and in what happens to it on its way into a database or a browser.
+The problems show at the parse and after it, in what your code assumes the object holds.
 
 This topic lets you:
 
 - choose how to ask a model for JSON, from a prompt or a forced tool call to schema mode, for a catalogue importer or a homework helper that works step by step
 - design a schema and its prompt together, from the order of the fields to what an input may lack
-- write the code that reads the reply and checks it, from the first streamed piece to the long id a browser shows
+- write the code that parses a streamed or finished reply, checks it and passes it to a database or a web page
 
 ###### 1. Asking an importer for three fields
 

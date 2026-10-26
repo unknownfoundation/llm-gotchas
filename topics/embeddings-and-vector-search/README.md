@@ -2,7 +2,7 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · Reviewed October 2026
 
-An embedding, also called a vector, is a list of numbers, often a thousand or more, that an embedding model, separate from the model that writes replies, computes from a text so that texts with similar meaning get similar lists. Vector search keeps one embedding for every stored text, embeds each query the same way, and returns the texts whose embeddings are nearest to the query's.
+An embedding, or vector, is a list of numbers, often a thousand or more, that an embedding model, separate from the one that writes replies, computes from a text so that texts with similar meaning get similar lists. Vector search keeps one embedding per stored text, embeds each query the same way and returns the texts whose embeddings are nearest to it.
 
 - **Token**: a piece of text, often a word or part of one. An embedding model's input is counted in tokens, and its input limit is the most tokens it takes in for one text.
 - **Query**: the text your code hands to the search, often a user's question as typed.
@@ -29,7 +29,7 @@ A vector is a list of numbers no one can read, so you check a search by running 
 This topic lets you:
 
 - work out what one vector stands for when a page runs long or covers many topics, and which texts a customer's question will find
-- change the embedding model, the way scores are computed or the cutoff in a search that already works, and know what to test again
+- change the embedding model, the way scores are computed or the lowest score a result may have in a search that already works, and know what to test again
 - set up search over many customers' documents, over a store too large to scan, and for queries that hinge on a rare name or a word such as "no"
 
 ###### 1. Embedding a long policy page in one piece

@@ -2,15 +2,15 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · Reviewed October 2026
 
-A model's context window is the most tokens it can handle in one call, a request to the model and the reply that comes back, counting both what it reads and what it writes. It reads the whole request: instructions, messages, descriptions of any tools the model may call and their results, files and images. The model **keeps nothing between calls**: everything it sees is in that call's input, whether your code sends it or a provider's server adds what it stored from earlier calls.
+A model's context window caps the tokens in one call: the request the model reads and the reply it writes, counted together. It decides how you send a long document and how you keep a long chat going.
 
 - **Token**: a piece of text, often a word or part of one; windows, limits and bills are counted in tokens.
 - **System prompt**: the instructions that set how the model should behave, usually sent as the first message, with the role `system`, or as a separate field.
 - **Message list**: the conversation so far, as a list of turns with roles: `user` for the person, `assistant` for the model; tool results go in this list too.
+- **Chaining**: on some provider APIs, the server stores each reply, and a follow-up call sends only the new message and the stored reply's id.
 - **Prompt caching**: the system keeps its work on an opening part of the request that repeats from call to call, so a later call that starts the same way is processed faster and, on a provider's API, billed at a lower rate.
 - **Generation cap**: the request's limit on how many tokens the reply may run to, often called max tokens.
 - **Output limit**: the most tokens one reply from a model can run to, set for each model by its provider.
-- **Reasoning tokens**: the step-by-step thinking a reasoning model produces before its final answer. It counts as output and takes room in the window, and whether it stays in the window on later calls differs by model.
 
 The window's size, what a long request costs and who manages the window:
 
@@ -29,12 +29,6 @@ When one document is larger than the window, something has to be left out, split
 | Compacting | shrinks the older turns into a shorter version, made by the API or the app instead of your code | an option on some provider APIs; a ready-made app can do it for you |
 | Retrieving | keeps older turns outside the request and adds back only the ones related to the new message | your code, on a provider's API or your own server |
 | Moving to a larger window | sends the chat to a model, or a setting, whose window holds more | a provider's API offers models with larger windows; your own server takes a higher context length, its setting for the window size, up to what the model supports |
-
-A larger window raises the limit and brings costs of its own.
-
-Usually your code sends the whole message list on every call. Some provider APIs instead store each reply on their server, and a follow-up sends only the new message and the stored reply's id: **chaining** a call to a stored reply.
-
-The window bites late, in long chats and long agent runs that no test reached, often with no error at all.
 
 This topic lets you:
 

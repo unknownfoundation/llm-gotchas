@@ -2,12 +2,12 @@
 
 Needs: [Generation parameters](../generation-parameters/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · [Security](../security/README.md) · Reviewed October 2026
 
-Putting a model to work on a code repository means one of three tools: a coding assistant that answers and edits in your terminal or editor, a review bot that comments on a change, or an agent that edits code and runs commands on its own. Each call sends the model the code your system selected for it; the model answers or proposes changes as text; and your system applies the changes, runs the commands and the tests, and decides what the result proves.
+A model works on a repository through a coding assistant in your terminal or editor, a review bot on each change, or an agent that edits code and runs commands by itself. Code travels both ways: from the repository into each request, and from the model's reply back into files, commands and tests.
 
 - **Token**: a piece of text, often a word or part of one; requests and replies are counted in tokens.
 - **Tool call**: the part of a model's reply that asks for a tool, with the tool's name and the arguments; the code or the app that runs the loop runs the tool and sends back the result.
 - **Chunk**: a piece of a file, cut out ahead of time and stored in a search index, which a search can find and paste into a request.
-- **Hunk**: one piece of a diff, holding the changed lines with a few unchanged lines of context above and below them. Its header, such as `@@ -13,7 +13,7 @@`, gives the line where the hunk starts in the old file and in the new one, and how many lines it spans in each.
+- **Hunk**: one piece of a diff: the changed lines with unchanged lines of context above and below them, under a header, such as `@@ -13,7 +13,7 @@`, that gives the line where the hunk starts in the old file and in the new one, and how many lines it spans in each.
 - **Generation cap**: the request's limit on how many tokens the reply may run to, often called max tokens.
 - **Sandbox**: whatever you run an agent's commands inside to limit what they can reach.
 
@@ -22,12 +22,12 @@ Your system gets code to the model in four main ways:
 | Symbol index | the definition of a name, looked up in a table of names with the file and line where they are defined |
 | Whole files | the full text of each file that your system picks, that you point it at, or that the model asks to read |
 
-Most of what goes wrong happens around the model: in the code your system selects, in the commands it runs, and in what you count as proof that a change is right. The model itself can also name a library or an import that nobody has published. An agent allowed to run a test or build command without asking runs whatever the files behind that command say (see AI system design). A demo on a small, clean repository reaches none of this.
+A model can name a library or an import that nobody has published. An agent allowed to run a test or build command without asking runs whatever the files behind that command say (see AI system design).
 
 This topic lets you:
 
-- judge which code a tool puts in front of the model, from its own searches to whole files, and what a search that finds nothing has shown
-- weigh what a passing test run or a coverage figure (the share of code lines the tests ran) proves about a change an agent made, and what a public leaderboard says about a model for your own repository
+- judge which code a tool puts in front of the model, from its own searches to whole files, and ask it whether a function is still used
+- weigh what a passing test run or a coverage figure (the share of code lines the tests ran) proves about a change an agent made, and choose a model off a public leaderboard
 - set what an agent's commands and the packages it adds can reach, and check its edits before they land on your branch
 
 ###### 1. Asking a coding assistant whether a function is still used

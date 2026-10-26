@@ -2,15 +2,15 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · [Prompting](../prompting/README.md) · Reviewed October 2026
 
-Fine-tuning trains a model further on data of your own: example replies, pairs of replies with the preferred one marked, scores from a grader, or plain text. The training changes the model's weights, and the result is a new model, or a small add-on to the old one, that you send requests to like any other.
+Fine-tuning trains a model further on data of your own, which changes its weights. The result is a new model, or an adapter on the old one, that you send requests to like any other.
 
 - **Token**: a piece of text, often a word or part of one; a model reads and writes tokens, and training data is counted in them.
 - **Weights**: the numbers inside a model that training sets, also called parameters; they decide what it writes, and they stay fixed while it answers requests.
 - **Chat template**: the format that turns a chat's list of messages into the one text the model reads, marking whose each message is and where it starts and ends.
 - **System prompt**: the instructions meant to hold for the whole chat, sent as the first message of the list or, on some APIs, as a separate field.
-- **Labels and loss**: training walks through an example token by token, and at each position the label is the token the model is trained to write there. The loss is a score of how far the model's guesses fall from the labels, and training changes the weights to bring it down. A position can be left with no label: the model still reads that token, and the loss ignores what it would have written there.
+- **Labels and loss**: training walks through an example token by token, and at each position the label is the token the model is trained to write there; the loss scores how far the model's guesses fall from the labels, and training changes the weights to bring it down. A position can be left with no label: the model still reads that token, and the loss ignores what it would have written there.
 - **Held-out set**: examples kept out of training, so that a score on them shows how the model does on inputs it was not trained on.
-- **Adapter**: a small set of extra weights trained beside the weights of the base model, the one you started from, which stay as they were. A model is a stack of layers, and each layer multiplies what it reads by large grids of weights called matrices. The common kind, a low-rank adapter, often called LoRA, adds a correction to the output of some of those matrices, worked out from two thin matrices of its own.
+- **Adapter**: a small set of extra weights trained beside the weights of the base model, the one you started from, which stay as they were. The common kind, a low-rank adapter, often called LoRA, adds a correction to the output of some of the model's matrices, the large grids of weights each layer multiplies what it reads by, and two thin matrices of its own compute that correction.
 - **Rank**: the width of an adapter's two thin matrices; a higher rank gives the adapter more weights to train.
 - **Gradients and optimizer state**: numbers training keeps in memory while it runs: the gradients, which say how each weight should move to lower the loss, and the optimizer state, two running averages of past gradients that the update method keeps for each trained weight.
 
@@ -27,13 +27,11 @@ Training comes in four kinds, told apart by what the data holds:
 
 On your own server, each kind can train every weight or only an adapter.
 
-Fine-tuning bites after the training run, which takes hours: what the data taught shows only in what the model writes, often on inputs no example covered.
-
 This topic lets you:
 
 - decide whether a fact, a tone or a habit belongs in a fine-tune or in the request, before a model trained on your chats starts answering customers
 - build training data from real chats, from picks between two drafts or around a grader, knowing what each one scores and which examples you can hold out
-- plan a fine-tune on your own server: what an adapter needs to run, the memory, the rank, and what happens to the model's old skills and refusals
+- plan a fine-tune on your own server: what an adapter needs to run, the memory, the rank, and how the tuned model answers everyday and harmful requests
 
 ###### 1. Updating a ferry timetable after the fine-tune
 

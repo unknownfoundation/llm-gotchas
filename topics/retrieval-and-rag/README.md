@@ -2,7 +2,9 @@
 
 Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Reviewed October 2026
 
-Retrieval-augmented generation, or RAG, answers questions from documents the model never saw in training. Before each call, your code searches those documents for the text that best matches the question and pastes that text into the request beside the question; the model reads that request and nothing else of your documents. The work runs in five steps: split each document into chunks, embed each chunk for a vector search, store the chunks in an index, search the index with a query for each question, and paste what the search returns into the request.
+Retrieval-augmented generation, or RAG, answers from documents the model never saw in training: before each call, your code searches them and pastes the best matches into the request. The model reads that request and nothing else of your documents.
+
+The work runs in five steps: split each document into chunks, embed the chunks, store them in an index, search the index for each question, and paste what the search returns into the request.
 
 - **Embedding**: a list of numbers, also called a vector, that an embedding model computes from a text, so that texts with similar meaning get similar lists. To embed a text is to compute its embedding.
 - **Chunk**: a piece of a document, cut by a splitter to a size you choose, sometimes with an overlap that repeats the end of one chunk at the start of the next. Chunks are what gets embedded, stored, found and pasted.
@@ -24,7 +26,7 @@ A search can find chunks in three ways:
 | Vector search | embeds the query and returns the chunks whose embeddings sit nearest to it, usually by cosine similarity, a score that grows as two embeddings point more nearly the same way |
 | Hybrid search | runs both on the same query and merges the two result lists into one |
 
-Retrieval bites between the steps. Each step has its own settings, and a wrong setting seldom raises an error: it changes which text reaches the model.
+Failures come between the steps: each step has its own settings, and a wrong one seldom raises an error; it changes which text reaches the model.
 
 This topic lets you:
 

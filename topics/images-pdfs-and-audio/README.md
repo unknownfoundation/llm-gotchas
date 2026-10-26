@@ -2,11 +2,11 @@
 
 Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · [Context window](../context-window/README.md) · Reviewed October 2026
 
-A model that takes pictures, documents or recordings reads them as tokens, as it reads text, and it gets only what they were turned into on the way. A picture becomes image tokens. A PDF becomes the text it stores, a picture of each page, or both, and a picture can also become recognised text. A recording becomes a transcript or audio tokens.
+A model reads a picture, a PDF or a recording as tokens, and it gets only what the file was turned into on the way. A picture becomes image tokens or recognised text, a PDF its stored text or pictures of its pages, a recording a transcript or audio tokens.
 
 - **Token**: a piece of text, often a word or part of one; the model reads and writes tokens, and requests are limited and billed in them.
 - **Context window**: the most tokens a model can handle in one call, counting both what it reads and what it writes.
-- **Image tokens**: what a picture becomes for the model: its pixels are cut into small squares, and each square turns into one or more tokens that the model reads beside the text.
+- **Image tokens**: the tokens a picture becomes, which the model reads beside the text.
 - **Metadata**: what a file stores about itself beside its content, such as the date and place a phone's camera writes into a photo.
 - **Text layer**: the characters a PDF stores for its text, the ones a viewer lets you select and a PDF library reads out.
 - **Audio tokens**: what a recording becomes for a model that takes audio: the sound itself, turned into tokens with no text step between.
@@ -32,7 +32,7 @@ A file reaches the model in one of six ways:
 
 A file can also reach the model in pieces: a search tool cuts the file into chunks, finds the ones that match the question and adds only those to the request. A request with files meets the context window, counted in tokens, and often a separate size limit, counted in bytes.
 
-It bites where what you see and what the model received part ways: a clear scan, a sharp photo, a call you listened to yourself.
+Errors start where what you see and what the model received part ways: a clear scan, a sharp photo, a call you listened to yourself.
 
 This topic lets you:
 

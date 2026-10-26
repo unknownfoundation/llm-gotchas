@@ -2,20 +2,20 @@
 
 Needs: [Generation parameters](../generation-parameters/README.md) · [Prompting](../prompting/README.md) · [Tool calling](../tool-calling/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · Reviewed October 2026
 
-Testing an LLM feature means finding out whether it does what it should, before it ships and while it runs. Some checks run your own code with the model call swapped for a fake or answered from recordings. Others send real requests to the model, one per test or across a whole set of cases, and score what comes back. In production, your code records what each call sent and got back.
+Testing an LLM feature checks the code around the model call and scores the replies the model gives, before release and on live traffic. What a check can show depends on what answers the model call and on what decides a pass.
 
 - **System prompt**: the instructions meant to hold for the whole chat, sent as the first message of the list or, on some APIs, as a separate field.
 - **Eval case**: one input with a known good answer, or a rule a good reply must meet; an **eval set** is a collection of them.
 - **Grader**: what decides whether each reply passes: code that compares it with the answer, a person, or another model call, often called a judge model.
-- **Held-out set**: eval cases kept out of everything that shaped the feature, such as the examples in its prompt, so that the score speaks for inputs the feature has not seen.
+- **Held-out set**: eval cases kept out of everything that shaped the feature, so that the score speaks for inputs the feature has not seen.
 - **Accuracy, precision and recall**: accuracy is the share of all items a check labels right; precision is the share of the items it flags that are real; recall is the share of the real items that it flags.
 - **Gold passages**: the passages a person marked as answering each question of a search eval.
-- **Precision@k, recall@k and MRR**: three scores for a search, each worked out per question over its first k results and then averaged across the questions. Precision@k is the share of those results that are gold; recall@k is the share of the question's gold passages found among them; MRR is one divided by the rank of the first gold passage.
+- **Precision@k, recall@k and MRR**: three scores for a search, each worked out per question over its first k results and then averaged across the questions: precision@k is the share of those results that are gold, recall@k is the share of the question's gold passages found among them, and MRR is one divided by the rank of the first gold passage.
 - **Trace**: the record of every call made for one user request or one agent run: what each call sent, what came back and how long it took.
 
-Every live test and eval run on a provider's API is billed by the token, and once the provider retires a model version, a reference run made on it, the one you compare new scores with, cannot be repeated; on your own server the model's files are yours, so a reference run can be repeated for as long as you keep them, at the cost of time on your hardware. A check works the same way on every kind of system that allows it.
+Every live test and eval run on a provider's API is billed by the token, and once the provider retires a model version, you can no longer repeat a reference run made on it, the run you compare new scores with; on your own server the model's files are yours, so a reference run can be repeated for as long as you keep them, at the cost of time on your hardware. A check works the same way on every kind of system that allows it.
 
-A feature is usually checked in five ways, which differ in what answers the model call and what it is asked:
+A feature is usually checked in five ways:
 
 | Way | What answers the model call | Where you find it |
 | --- | --- | --- |
@@ -25,11 +25,7 @@ A feature is usually checked in five ways, which differ in what answers the mode
 | Running an eval | the real model, on every case of an eval set, with a grader turning the replies into a pass rate | a provider's API, your own server or a ready-made app |
 | Monitoring live traffic | the real model, on what real users send, with your code recording each call | your code, on a provider's API or your own server |
 
-Splitting live traffic between two versions is often called an A/B test: each version is monitored on its share of real users, and the two are compared.
-
 A public benchmark is an eval set published for comparing models. A 2024 study wrote new problems to match a public maths benchmark: several model families scored lower on the new problems than on the benchmark itself, while many others showed little gap. A model that leads a public benchmark still needs a run on your own cases.
-
-Checks fall behind after launch: a test suite and an eval set stay as they were written in the week the feature shipped, while users send what no case covered.
 
 This topic lets you:
 
