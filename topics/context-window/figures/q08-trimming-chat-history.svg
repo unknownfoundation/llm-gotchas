@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="680" height="152" viewBox="0 0 680 152" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="118" viewBox="0 0 680 118" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
 <title>One list of 52 items, its middle items not drawn. A bracket marks the first 2 items, the system prompt and a user message, as not in the request. A second bracket marks the last 50, sent to the model. The first 2 items turn coral at the call.</title>
 <style>@keyframes a-first-reply-outline{0%,6%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}9%,88%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}94%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
 @keyframes a-last-reply-outline{0%,6%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}9%,88%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}94%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
@@ -16,34 +16,34 @@
 #first-user{animation:a-first-user-outline 5s linear infinite}
 @keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
-<rect width="680" height="152" rx="10" fill="#141A2E"/>
-<text x="95.06" y="31.5" fill="#E6EAF0"><tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">history</tspan>: 52 items</text>
-<rect id="system" x="95.06" y="42" width="78.91" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
-<text x="103.06" y="53.95" fill="#E6EAF0">system prompt</text>
-<rect id="first-user" x="177.97" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
-<text x="185.97" y="53.95" fill="#E6EAF0">user</text>
-<rect id="first-reply" x="224.63" y="42" width="36.79" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
-<text x="232.63" y="53.95" fill="#E6EAF0">reply</text>
-<g fill="#E6EAF0"><circle cx="270.42" cy="51" r="1.2"/><circle cx="275.42" cy="51" r="1.2"/><circle cx="280.42" cy="51" r="1.2"/></g>
-<rect id="last-reply" x="289.42" y="42" width="36.79" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
-<text x="297.42" y="53.95" fill="#E6EAF0">reply</text>
-<rect id="last-user" x="330.22" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
-<text x="338.22" y="53.95" fill="#E6EAF0">user</text>
-<path d="M97.06 63V68H210.63V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
-<text x="153.84" y="81.5" fill="#E6EAF0" text-anchor="middle">not in the request:</text>
-<text x="153.84" y="93.59" fill="#E6EAF0" text-anchor="middle">2 items</text>
-<path d="M226.63 63V68H362.88V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
-<text x="294.76" y="81.5" fill="#E6EAF0" text-anchor="middle"><tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">history[-50:]</tspan>: 50 items</text>
-<path id="send-shaft" d="M376.88 68H528.88" fill="none" stroke="#E6EAF0" stroke-width="1"/>
-<path id="send-flow" d="M376.88 68H528.88" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
-<polygon id="send-head" points="528.88,64.5 536.88,68 528.88,71.5" fill="#E6EAF0"/>
-<text x="452.88" y="62.38" fill="#E6EAF0" text-anchor="middle"><tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">call_model</tspan></text>
-<g id="model"><svg x="545.88" y="50" width="36" height="36" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
+<rect width="680" height="118" rx="10" fill="#141A2E"/>
+<text x="99.75" y="31.5" fill="#E6EAF0">history: 52 items</text>
+<rect id="system" x="99.75" y="42" width="78.91" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+<text x="107.75" y="53.95" fill="#E6EAF0">system prompt</text>
+<rect id="first-user" x="182.67" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+<text x="190.67" y="53.95" fill="#E6EAF0">user</text>
+<rect id="first-reply" x="229.33" y="42" width="36.79" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="237.33" y="53.95" fill="#E6EAF0">reply</text>
+<g fill="#E6EAF0"><circle cx="275.12" cy="51" r="1.2"/><circle cx="280.12" cy="51" r="1.2"/><circle cx="285.12" cy="51" r="1.2"/></g>
+<rect id="last-reply" x="294.12" y="42" width="36.79" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="302.12" y="53.95" fill="#E6EAF0">reply</text>
+<rect id="last-user" x="334.92" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="342.92" y="53.95" fill="#E6EAF0">user</text>
+<path d="M101.75 63V68H215.33V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="158.54" y="81.5" fill="#E6EAF0" text-anchor="middle">not in the request</text>
+<text x="158.54" y="93.59" fill="#E6EAF0" text-anchor="middle">2 items</text>
+<path d="M231.33 63V68H367.58V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="299.46" y="81.5" fill="#E6EAF0" text-anchor="middle">history[-50:]</text>
+<text x="299.46" y="93.59" fill="#E6EAF0" text-anchor="middle">50 items</text>
+<path id="send-shaft" d="M381.58 51H533.58" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M381.58 51H533.58" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="533.58,47.5 541.58,51 533.58,54.5" fill="#E6EAF0"/>
+<text x="457.58" y="45.38" fill="#E6EAF0" text-anchor="middle">call_model</text>
+<g id="model"><svg x="550.91" y="35" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
 <path d="M24 8.5V39.5M24 14.5L18 14.5M24 22L19 22L15.5 25.5M24 32L17.5 32" />
 <circle cx="18" cy="14.5" r="2" fill="currentColor" stroke="none" />
 <circle cx="15.5" cy="25.5" r="2" fill="currentColor" stroke="none" />
 <circle cx="17.5" cy="32" r="2" fill="currentColor" stroke="none" />
 </svg></g>
-<text x="563.88" y="99.5" fill="#E6EAF0" text-anchor="middle">the model</text>
-<text x="340" y="129.88" fill="#E6EAF0" text-anchor="middle">The request carries the last 50 items, and the system prompt is not among them.</text>
+<text x="566.91" y="81.5" fill="#E6EAF0" text-anchor="middle">model</text>
 </svg>
