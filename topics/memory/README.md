@@ -1,6 +1,6 @@
 # Memory
 
-Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Reviewed October 2026
+Prev: [Retrieval and RAG](../retrieval-and-rag/README.md) · Next: [Agents and workflows](../agents-and-workflows/README.md) · Reviewed October 2026
 
 Memory in an LLM system is text kept outside the model and sent back to it in a later request. Your code or an app decides when that text is written, in whose words, under which key, and which rule brings it back.
 
@@ -11,11 +11,7 @@ Memory in an LLM system is text kept outside the model and sent back to it in a 
 - **Recall**: the rule that picks which memories go into a request, such as all of them, the latest, or the ones a search finds for the new message; it brings back only what was written.
 - **Memory tool**: a tool the model can call to read and write memory, such as files in a folder; your code or the app carries out each call.
 
-What each kind of system keeps for you between calls:
-
-- **A provider's API**: keeps nothing between calls unless you use a feature that stores the conversation on the provider's side; long-term memory lives in stores your code keeps, and where an API offers a memory tool, your code still holds the files.
-- **Your own server**: keeps nothing between calls either; every memory store is one your code runs.
-- **A ready-made app**: keeps your conversations for you; some chat apps also save facts about you and search your past chats in new ones, and a coding assistant reads its memory files at the start of every session.
+A provider's API keeps nothing between calls unless you use a feature that stores the conversation on the provider's side, so long-term memory lives in stores your code keeps, and where an API offers a memory tool, your code still holds the files; a model server you run yourself keeps nothing between calls either; a ready-made app keeps your conversations for you, some chat apps also save facts about you and search your past chats in new ones, and a coding assistant reads its memory files at the start of every session.
 
 Memory holds the four kinds of thing in the table below. The conversation is the short-term kind. Facts, episodes and instructions are long-term memory, which papers on agents call semantic, episodic and procedural memory, in that order. In the table, "your code" means your code beside a provider's API or your own server:
 
@@ -42,7 +38,7 @@ What does the model have on Tuesday about the user's diet?
 
 <details><summary>A. Monday's chat, sent again by the provider</summary>
 
-✗ Chat apps list yesterday's conversations down the side, and a provider that saw Monday's messages could keep them for the account in the same way. An API carries a past conversation into a call only when your code sends it, or chains the call to a stored reply. This code does neither: Tuesday's request holds the system prompt, the dinner question and nothing else.
+✗ Chat apps list yesterday's conversations down the side, and the provider saw every one of Monday's messages. An API carries a past conversation into a call only when your code sends it, or chains the call to a reply the provider stored. This code does neither: Tuesday's request holds the system prompt, the dinner question and nothing else.
 
 </details>
 
@@ -54,17 +50,17 @@ What does the model have on Tuesday about the user's diet?
 
 <details><summary>C. No mention of the diet at all</summary>
 
-✓ Right. Tuesday's request carries the system prompt with the dinner question after it, and the word vegetarian appears nowhere in it. The promise on Monday was words in a reply, with nothing stored behind them.
+✓ Right. Tuesday's request carries the system prompt with the dinner question after it, and the word vegetarian appears nowhere in it, so the dinner idea is chosen with no word of the diet.
 
-The bot suggests a chicken stir-fry to someone who was told the day before that they would never have to repeat it, and the app's reviews start quoting "I'll remember that" back at it.
+The model holds nothing over from one call to the next and knows only what a request carries. Monday's messages were short-term memory, and they went when the chat closed; this app has no long-term memory at all. "I'll remember that" is a reply like any other, the words that fit the moment, and a reply cannot write to a store unless your code gives the model a tool for it and carries out the call.
 
-The model holds nothing over from one call to the next and knows only what a request carries. Monday's messages were short-term memory, and they went when the chat closed; this app has no long-term memory at all. "I'll remember that" is a reply like any other, the words that fit the moment, and a reply cannot write to a store unless your code gives the model a tool for it and carries out the call. To carry the diet into later chats, write it under the user's id when they state it, and send it with every new chat. Some ready-made chat apps save facts like this one as you chat, which is a store the app keeps and adds to later requests. A server you run yourself behaves like the API here: it answers from the messages it receives.
+To carry the diet into later chats, write it under the user's id when they state it, and send it with every new chat.
 
 </details>
 
 <details><summary>D. The fact itself, learned by the model on Monday</summary>
 
-✗ A person learns from what they are told, and talk of models that learn blurs training with use. A model's weights change only in a training run. Every call reads the same weights and its own request, so Monday's chat left nothing in the model for Tuesday to draw on.
+✗ The bot answered "I'll remember that", and chat products advertise memory. A model's weights change only in a training run: every call reads the same weights and its own request, so Monday's chat left nothing in the model for Tuesday to draw on.
 
 </details>
 
@@ -78,23 +74,23 @@ What does the request for a customer's third message carry?
 
 <details><summary>A. The customer's first two messages, whichever copy takes the third</summary>
 
-✗ On one copy in testing, every message arrived with the ones before it, and the conversation's id travels with each message wherever it goes. The id finds a conversation only in the dictionary that holds it, and each copy keeps a dictionary of its own, filled by the messages that copy happened to take.
+✗ On a single copy, every message arrives with the ones before it, and the conversation's id travels with each message wherever it goes. The id finds a conversation only in the dictionary that holds it, and each copy keeps a dictionary of its own, filled by the messages that copy happened to take.
 
 </details>
 
 <details><summary>B. The first two for some customers, one or none for others</summary>
 
-✓ Right. The third message's request carries whichever of the first two messages its copy happened to handle. When it lands on a copy that took neither, the request holds the new message alone.
+✓ Right. The third message's request carries whichever of the first two messages its copy happened to handle; when it lands on a copy that took neither, the request holds the new message alone, and the customer can be asked again for what they already said.
 
-A customer asks whether the oak saplings can come on Saturday, gets asked which order they mean, and types the order number again. Their next message reaches yet another copy, and the bot asks for the order number once more.
+A memory store lives where it is kept, and this one is a dictionary inside each running copy, filled by the messages that copy received. The key, the conversation's id, finds a conversation only in the dictionary that holds it, and a single copy never shows the gap. If the balancer chose a copy at random, each message would land on the copy that took the one before it about one time in four, and on one of the other three the rest of the time. A chat-memory class from an agent library that keeps the history inside the process behaves like this dictionary.
 
-A memory store lives where it is kept, and this one is a dictionary inside each running copy, filled by the messages that copy received. The key, the conversation's id, finds a conversation only in the dictionary that holds it, and testing on a single copy never showed the gap, since every message reached the same dictionary. Picture the balancer choosing a copy at random: each message then lands on the copy that took the one before it about one time in four, and the messages before that can be spread over the other three. Move the conversations into a store every copy reads, such as a database, and look each one up by its id on every message. Pinning each conversation to one copy hides the problem until that copy restarts. A chat-memory class from an agent library that keeps the history inside the process behaves like this dictionary. Where a provider's API stores the conversation on its side, keep the id of the stored reply in the shared store, since every copy needs it.
+Move the conversations into a store every copy reads, such as a database, and look each one up by its id on every message; pinning each conversation to one copy hides the problem until that copy restarts. Where a provider's API stores the conversation on its side, keep the id of the stored reply in the shared store, since every copy needs it.
 
 </details>
 
 <details><summary>C. The third message alone, whichever copy takes it</summary>
 
-✗ A service built to scale is often made to forget everything between requests, and four copies behind a balancer fit that picture. These copies keep their dictionaries for as long as they run, so a third message that lands on a copy that took the first or the second carries what that copy holds of the conversation to the model.
+✗ A service built to scale is often made to forget everything between requests, and this one runs as four copies behind a balancer. These copies keep their dictionaries for as long as they run, so a third message that lands on a copy that took the first or the second carries what that copy holds of the conversation to the model.
 
 </details>
 
@@ -108,11 +104,11 @@ What does the model get of the April chat with the July message?
 
 <details><summary>A. No word of the April evening</summary>
 
-✓ Right. The July request names an April reply, and the provider has since deleted it at the end of the period it keeps stored replies for. Nothing said in April can reach the model.
+✓ Right. The July request names an April reply, and the provider has since deleted it at the end of the period it keeps stored replies for, so nothing said in April can reach the model.
 
-The customer, who spent that evening weighing two inns in Kyoto, finds none of it left in the planner, and writes to the agency that their itinerary has vanished.
+Short-term memory here was kept for you, in a memory store on the provider's side, and that store keeps a stored reply only for a period the provider sets: a day on some plans, several weeks on others, after which the reply is deleted and nothing takes its place. Your code held only the ids, and by July they point at replies that no longer exist.
 
-Short-term memory here was kept for you, in a memory store on the provider's side, and that store keeps a stored reply only for a period the provider sets: a day on some plans, several weeks on others, after which the reply is deleted and nothing takes its place. Your code held only the ids, and by July they point at replies that no longer exist. Keep the messages in your own store as well, under the chat's id, and send the history yourself once a stored reply has expired; or close chats older than the period and open the next one with a recap the customer can see. A server you run yourself stores nothing between calls, so a chat there lives in your store from the first message, and a ready-made app keeps conversations under rules of its own.
+Keep the messages in your own store as well, under the chat's id, and send the history yourself once a stored reply has expired; or close chats older than the period and open the next one with a recap the customer can see.
 
 </details>
 
@@ -124,13 +120,13 @@ Short-term memory here was kept for you, in a memory store on the provider's sid
 
 <details><summary>C. A summary of the April evening</summary>
 
-✗ Long conversations get shortened rather than dropped, which is what compaction does, so a summary of April might be waiting. Compaction shortens a conversation while it is in use and outgrowing the window. When stored replies reach the end of their period, the provider deletes them and keeps no summary of what they held.
+✗ Long conversations get shortened rather than dropped, which is what compaction does, and April's chat was a long one. Compaction shortens a conversation while it is in use and outgrowing the window. When stored replies reach the end of their period, the provider deletes them and keeps no summary of what they held.
 
 </details>
 
 <details><summary>D. Only the final reply from April</summary>
 
-✗ Each new message names a single id, the last reply's, and one id reads as one stored item. Each stored reply links back to the one before it, so the chain behind that id held the whole evening, and every reply in it, the last one included, has passed the provider's period by July.
+✗ Each new message names a single id, the last reply's, and one id points at one stored item. Each stored reply links back to the one before it, so the chain behind that id held the whole evening, and every reply in it, the last one included, has passed the provider's period by July.
 
 </details>
 
@@ -150,13 +146,13 @@ Which change stops the agent running the whole suite on the team's later tasks?
 
 <details><summary>B. Save each session and add the past one whose text best matches each new task</summary>
 
-✗ Past sessions hold the correction word for word, and keeping them is how memory is often pictured. A search brings a session back when its text resembles the new task. A session about a date parser shares little with a task about an invoice export, so the correction stays in the store on the day it is needed.
+✗ Past sessions hold the correction word for word, and a searchable store of past sessions is a common way to give an agent memory. A search brings a session back when its text resembles the new task. A session about a date parser shares little with a task about an invoice export, so the correction stays in the store on the day it is needed.
 
 </details>
 
 <details><summary>C. Keep one session open for all of the team's tasks</summary>
 
-✗ The agent ran the right tests for as long as the session lasted, so a session that never ends would keep the rule for good. The conversation grows with every task, each call pays for all of it, and once it outgrows the window, the call is refused, or trimming or compaction drops the oldest turns and the correction with them.
+✗ The agent ran the right tests for as long as the session lasted. The conversation grows with every task, and each call pays for all of it; once it outgrows the window, the call is refused, or trimming or compaction drops the oldest turns, and the correction about which tests to run goes with them.
 
 </details>
 
@@ -164,9 +160,9 @@ Which change stops the agent running the whole suite on the team's later tasks?
 
 ✓ Right. The instructions go out with the first request of every session, so each session starts with the rule about which tests to run before the agent has touched a file.
 
-Without it, a developer who asks for a one-line fix on a Friday afternoon waits 40 minutes for a suite that did not need to run, then corrects the agent in the chat for the fifth time that week.
+A correction in the chat is short-term memory, and it lasts only as long as that conversation. The rule is an instruction, how to do the work, and a rule that must hold on every task needs a recall rule that brings it every time: the instructions sent with each session. A store of past sessions holds the correction too, as an episode, but a search brings an episode back only when its text resembles the new task.
 
-A correction in the chat is short-term memory, and it lasts only as long as that conversation. The rule is an instruction, how to do the work, and a rule that must hold on every task needs a recall rule that brings it every time: the instructions sent with each session. A store of past sessions holds the correction too, as an episode, but a search brings an episode back only when its text resembles the new task. Write the rule once, in plain words, and keep the instructions short, since they are sent and billed with every session. A ready-made coding assistant offers the same through a memory file it loads whenever a session opens, and that file takes room in the window as well.
+Write the rule once, in plain words, and keep the instructions short, since they are sent and billed with every session.
 
 </details>
 
@@ -193,11 +189,11 @@ What does the request for the pension question carry?
 
 <details><summary>A. The system prompt, the morning's messages and the pension question</summary>
 
-✓ Right. The request carries the system prompt, every message of the morning about rental income, and then the pension question, all as one conversation.
+✓ Right. The request carries the system prompt, every message of the morning about rental income, and then the pension question, all as one conversation, and each chat opened after lunch adds to it and costs more on each call.
 
-The client asked a clean question about a pension and gets an answer tangled up with letting income, and every chat they open after lunch adds to one conversation that costs more on each call.
+Short-term memory here is filed under a key, and the key is `user.id`, the client's account. Whatever shares the key shares the memory: `new_chat` clears the screen and leaves the store alone, so the next `send` reads back the whole morning under the same id. The request is a list of messages with roles, and it has no field for where one chat ended and the next began.
 
-Short-term memory here is filed under a key, and the key is `user.id`, the client's account. Whatever shares the key shares the memory: `new_chat` clears the screen and leaves the store alone, so the next `send` reads back the whole morning under the same id. The request is a list of messages with roles, and nothing in it marks where one chat ended and the next began. Give each chat an id of its own, created by `new_chat`, and key the conversation by it. Facts that should carry from chat to chat, such as the client's tax year, belong in long-term memory keyed by the account, and go into each chat on purpose.
+Give each chat an id of its own, created by `new_chat`, and key the conversation by it. Facts that should carry from chat to chat, such as the client's tax year, belong in long-term memory keyed by the account, and go into each chat on purpose.
 
 </details>
 
@@ -209,13 +205,13 @@ Short-term memory here is filed under a key, and the key is `user.id`, the clien
 
 <details><summary>C. The system prompt, a summary of the morning, then the pension question</summary>
 
-✗ Chat apps with a memory feature carry what they learned in earlier chats into new ones, so a summary here would surprise nobody. Nothing in this code writes one: `send` reads the list stored under the client's id and sends every message in it as it was saved.
+✗ Chat apps with a memory feature carry what they learned in earlier chats into new ones, often as a summary. Nothing in this code writes one: `send` reads the list stored under the client's id and sends every message in it as it was saved.
 
 </details>
 
 <details><summary>D. The morning's messages marked as an earlier chat, then the question</summary>
 
-✗ Two chats on the client's screen ought to be two chats to the model, with a line between them. The request is one list of messages with roles and text, and no field in it marks where the morning ended, so the rental questions arrive as earlier turns of the pension conversation.
+✗ The button says New chat, the function is called `new_chat`, and the client sees a boundary between two chats. The request is one list of messages with roles and text, the morning's turns first and the pension question last, with no field for where one chat ended, so the rental questions arrive as earlier turns of the pension conversation.
 
 </details>
 
@@ -246,7 +242,7 @@ Which of the two new facts does the user's next chat get?
 
 <details><summary>B. The peanut allergy, with the oven lost</summary>
 
-✗ Version control refuses a push that would overwrite a colleague's change, and a database could be pictured guarding a list in the same way, so the first save stands. `save_facts` stores the list it is given with no check of what changed, and the later save, from the laptop, is the one that stays.
+✗ Version control refuses a push that would overwrite a colleague's change, and a database can refuse a write that would replace newer data. `save_facts` stores the list it is given with no check of what changed, and the later save, from the laptop, is the one that stays.
 
 </details>
 
@@ -254,15 +250,15 @@ Which of the two new facts does the user's next chat get?
 
 ✓ Right. The next chat gets the old facts and the missing oven. The peanut allergy, which the phone saved a minute earlier, is gone from the database.
 
-A week later the planner suggests a satay with peanut sauce to someone who watched the bot acknowledge the allergy and has no reason to mention it again.
+Each chat took its own copy of the list when it opened, and the laptop's copy was taken before the phone saved the allergy to the database. Writing here happens when a chat closes, and it writes the whole list: the phone's save put the allergy in, and the laptop's save, a minute later, replaced that list with its own copy plus the oven. Two chats of one user overwrite each other as two people editing one record would.
 
-Each chat took its own copy of the list when it opened, and the laptop's copy was taken before the allergy existed anywhere. Writing here happens when a chat closes, and it writes the whole list: the phone's save put the allergy in, and the laptop's save, a minute later, replaced that list with its own copy plus the oven. Two chats of one user overwrite each other as two people editing one record would. Write each fact when it is said, as a row added on its own, so that no save carries an old copy of the rest; or reload the stored list and merge before saving.
+Write each fact when it is said, as a row added on its own, so that no save carries an old copy of the rest; or reload the stored list and merge before saving.
 
 </details>
 
 <details><summary>D. The old list, with neither new fact</summary>
 
-✗ Two saves of one record within a minute have the shape of a collision, and a collision could leave the stored list as it was before either chat. Each save ran on its own and replaced the list: the phone's stood for a minute, then the laptop's took its place with the oven in it.
+✗ Two saves of one record within a minute are a collision, the case locks and transactions exist for. Each save ran on its own and replaced the list: the phone's stood for a minute, then the laptop's took its place with the oven in it.
 
 </details>
 
@@ -283,11 +279,11 @@ What does the November request tell the model about the guest and Lisbon?
 
 <details><summary>A. That they are in Lisbon for work this week</summary>
 
-✓ Right. The request carries the remark as it was typed, in the present tense with "this week" included, and nothing in it says the remark is eight months old.
+✓ Right. The remark goes in as it was typed, in the present tense with "this week" included and no date beside it, though the remark is eight months old, so the guest can be offered hotels near an office they visited in spring.
 
-The guest, planning a weekend away from home, is offered quiet hotels near an office they visited for a few days in spring, and wonders why the hotel chain thinks they are in Lisbon.
+Writing chose the words, and here they are the guest's own, kept with their time: "this week" meant a week in March and still says this week in every request that carries it. The row's date stayed in the database, since `system_prompt` sends only each remark's text, and the model reads "this week" against the request it sits in.
 
-Writing chose the words, and here they are the guest's own, kept with their time: "this week" meant a week in March and still says this week in every request that carries it. The row's date stayed in the database, since `system_prompt` sends only each remark's text, and the model reads "this week" against the request it sits in. When you write a memory, turn relative times into dates ("on a work trip in Lisbon, 3 to 7 March"), send each memory's date along with it, and let facts that hold only for a while expire.
+When you write a memory, turn relative times into dates ("on a work trip in Lisbon, 3 to 7 March"), send each memory's date along with it, and let facts that hold only for a while expire.
 
 </details>
 
@@ -299,13 +295,13 @@ Writing chose the words, and here they are the guest's own, kept with their time
 
 <details><summary>C. That they mentioned a work trip to Lisbon at some earlier time</summary>
 
-✗ Eight months on, the remark reads as history to anyone who knows when it was saved, a trip long since over. The request carries it under "About this guest:" in the present tense, and nothing in it ties the sentence to March or to any other date.
+✗ Eight months on, the trip is long since over, and the store knows when the remark was saved. The request carries it under "About this guest:" in the present tense, with no date beside it, so the model can take it as true this week.
 
 </details>
 
 <details><summary>D. No remark about Lisbon at all</summary>
 
-✗ A weekend away has nothing to do with a work trip, and a careful assistant would leave the remark out. The code makes no such choice: it joins every remark the guest has made and sends them all, the one about Lisbon among them.
+✗ A weekend away has nothing to do with a work trip. The code makes no choice: it joins every remark the guest has made and sends them all, the one about Lisbon among them.
 
 </details>
 
@@ -328,29 +324,29 @@ What does the next chat's system prompt say about the party?
 
 <details><summary>A. Saturday 7 June, for 23 children</summary>
 
-✗ While the chat runs, `messages[-1]` is the parent's latest message each time the model is called, and that is the habit this line leans on. By the time the chat closes, the bot has answered, and the last item of the list is its reply. The parent's sentence with the date and the head count was never stored.
+✗ While the chat runs, `messages[-1]` is the parent's latest message each time the model is called. By the time the chat closes, the bot has answered, and the last item of the list is its reply. The parent's sentence with the date and the head count was never stored.
 
 </details>
 
 <details><summary>B. Early June, around twenty children</summary>
 
-✓ Right. The next chat starts with the bot's closing reply in its system prompt, early June and around twenty children, and neither 7 June nor 23 appears anywhere in it.
+✓ Right. The next chat starts with the bot's closing reply in its system prompt, early June and around twenty children, and neither 7 June nor 23 appears anywhere in it, so whatever the next chat plans from the note works from about twenty children.
 
-A week later the parent comes back to order party bags, and the bot offers twenty of them for a date somewhere in June. They gave the exact figures once and were told they were noted, and three children would go home without a bag.
+The words in the note are the model's: when the chat closes, the last item of the list is the bot's reply, so the note holds the booking as the bot restated it. A reply retells what it heard in its own words, and those words can round a number, blur a date or carry a slip, which the note then hands to every later chat as if the parent had said it.
 
-Writing decided whose words the note keeps, and here they are the model's: when the chat closes, the last item of the list is the bot's reply, so the note holds the booking as the bot restated it. A reply retells what it heard in its own words, and those words can round a number, blur a date or carry a slip, which the note then hands to every later chat as if the parent had said it. Store what the parent said: their message itself, or fields drawn from it, such as the date and the head count, checked against the message before saving. If you keep the bot's reply as well, label it as the bot's, so the next chat can tell the two apart. Your code writes the note, so whichever model answers the chat changes none of this.
+Store what the parent said: their message itself, or fields drawn from it, such as the date and the head count, checked against the message before saving. If you keep the bot's reply as well, label it as the bot's, so the next chat can tell the two apart.
 
 </details>
 
 <details><summary>C. Both the parent's figures and the bot's</summary>
 
-✗ A booking note ought to keep what was asked and what was confirmed, the way an email thread keeps both sides. `close_chat` stores a single item, the content of the last message, and that is the bot's reply. The parent's message went with the rest of the list when the chat closed.
+✗ A booking record keeps what was asked and what was confirmed, the way an email thread keeps both sides. `close_chat` stores a single item, the content of the last message, and that is the bot's reply. The parent's message went with the rest of the list when the chat closed.
 
 </details>
 
 <details><summary>D. A summary of the whole chat</summary>
 
-✗ A chat app's memory picks things up from across a whole conversation, and a note made at closing fits that picture. No model call runs in `close_chat`: it copies the text of the last message as it stands, so the note is one reply, word for word, and no summary is ever written.
+✗ A chat app's memory picks things up from across a whole conversation, and this note is made when the chat closes. No model call runs in `close_chat`: it copies the text of the last message as it stands, so the note is one reply, word for word, and no summary is ever written.
 
 </details>
 
@@ -364,13 +360,13 @@ Which change stops the assistant offering restaurants in Leeds?
 
 <details><summary>A. Tell the model in its instructions to trust the newest fact</summary>
 
-✗ When the model picks the wrong one of two things, an instruction is the first fix to reach for. The request carries both lines as plain statements with no dates, and nothing in it says that the later line is the newer fact, so the model still has to guess, and on some evenings it guesses Leeds.
+✗ When the model picks the wrong one of two things, an instruction is the first fix to reach for. The request carries both lines as plain statements with no dates, so the only sign of which is newer is their place in the list. The instruction gives the model nothing firmer to go on, and on some evenings it guesses Leeds.
 
 </details>
 
 <details><summary>B. Send only the facts a search finds closest in meaning to each message</summary>
 
-✗ Narrowing a long list is sound practice, and a search would keep unrelated facts out. The two facts differ by one city name, so they score close to each other against a delivery request, and a search can bring back both, either or neither; nothing in it prefers the newer one.
+✗ Narrowing a long list is sound practice, and a search by meaning keeps the facts closest to each message. The two facts differ by one city name and score close to each other against a delivery request, so a search can bring back both, either or neither.
 
 </details>
 
@@ -384,9 +380,9 @@ Which change stops the assistant offering restaurants in Leeds?
 
 ✓ Right. With the old fact replaced at the moment "Lives in York." is saved, every later request carries York, and Leeds is no longer in the store to be sent.
 
-Until then the customer opens the app hungry and scrolls past places a city away on some evenings, and a support agent who opens the log finds both cities there and no way to tell which one tonight's reply will follow.
+Writing a fact here adds a line, and adding free text has no step that sees that "Lives in York." answers the same question as "Lives in Leeds.", so both stay, and recall, which sends every fact, brings both. Two homes in one request leave the model to guess, and a guess can go either way.
 
-Writing a fact here adds a line, and nothing in adding free text knows that "Lives in York." answers the same question as "Lives in Leeds.", so both stay, and recall, which sends every fact, brings both. Two homes in one request leave the model to guess, and a guess can go either way. Fix it where the facts are written. Before saving a new fact, look up stored facts on the same subject and replace or retire them, or keep one field per subject, such as the home city, that a new value overwrites. Save the date with each fact as well, so that a newer one can win when two slip through.
+Fix it where the facts are written: before saving a new fact, look up stored facts on the same subject and replace or retire them, or keep one field per subject, such as the home city, that a new value overwrites. Save the date with each fact as well, so that a newer one can win when two slip through.
 
 </details>
 
@@ -411,29 +407,29 @@ What does Friday's session start with about the knee plan?
 
 <details><summary>A. Monday's and Wednesday's recaps, the plan in the first</summary>
 
-✗ A recap per session makes a diary in most people's minds, one that grows a page at a time. The store keeps one recap per patient: `recaps[patient_id] = ...` puts Wednesday's in the place Monday's held, and `start_session` reads that single entry.
+✗ A recap per session makes a diary, one that grows a page at a time. The store keeps one recap per patient: `recaps[patient_id] = ...` puts Wednesday's in the place Monday's held, and `start_session` reads that single entry.
 
 </details>
 
 <details><summary>B. Wednesday's recap, with Monday's knee plan carried into it</summary>
 
-✗ Wednesday's session began with Monday's recap in its system prompt, so the plan was in front of the model while it wrote. The recap call reads `dialogue`, the session minus its system prompt, which is two short messages about Saturday's hours, so the new recap has no plan to carry.
+✗ Wednesday's session began with Monday's recap in its system prompt, so the plan was in front of the model while it wrote. The recap call reads `dialogue`, the session minus its system prompt, which is a short exchange about Saturday's hours, so the new recap has no plan to carry.
 
 </details>
 
 <details><summary>C. Wednesday's recap alone, and no knee plan</summary>
 
-✓ Right. Friday's system prompt holds the coach's instructions and Wednesday's recap, a few lines about the clinic's Saturday hours, and the knee plan appears nowhere in it.
+✓ Right. Friday's system prompt holds the coach's instructions and Wednesday's recap, a few lines about the clinic's Saturday hours, and the knee plan appears nowhere in it, so an hour of Monday's work is gone from the coach.
 
-The patient, back with a sore knee, is asked what brings them in, and has to rebuild an hour of Monday's work from memory while the coach talks about opening hours.
+Recall here takes the latest of the stored episodes, which is Wednesday's: `recaps[patient_id] = ...` writes each recap over the one before. Wednesday's session did start with Monday's recap in its system prompt, but the recap call reads `dialogue`, which leaves the system prompt out. The new recap was written from a short exchange about opening hours, and a recap holds only what its call read. Feeding each new recap the previous one would turn it into a running summary, which carries old details forward and loses some of them on each rewrite.
 
-Recall here takes the latest of the stored episodes, which is Wednesday's: `recaps[patient_id] = ...` writes each recap over the one before. Wednesday's session did start with Monday's recap in its system prompt, but the recap call reads `dialogue`, which leaves the system prompt out. The new recap was written from two messages about opening hours, and a recap holds only what its call read. Keep every recap with its date and bring back more than the last one, such as the latest few or the ones a search finds. Keep what must last, such as the plan itself, as facts the coach gets every session. Feeding each new recap the previous one turns it into a running summary, which carries old details forward and loses some of them on each rewrite.
+Keep every recap with its date and bring back more than the last one, such as the latest few or the ones a search finds, and keep what must last, such as the plan itself, as facts the coach gets every session.
 
 </details>
 
 <details><summary>D. The plan, read back from Monday's messages</summary>
 
-✗ The coach spent an hour on Monday, and an app that keeps sessions would have the whole of it to read back. This code keeps no messages: `end_session` saves only the recap and `start_session` reads only the recap, so Monday's messages went with Monday's session.
+✗ The coach spent an hour on Monday, every message of it typed into this app. This code keeps no messages: `end_session` saves only the recap and `start_session` reads only the recap, so Monday's messages went with Monday's session.
 
 </details>
 
@@ -463,23 +459,23 @@ Which recaps does the request carry?
 
 <details><summary>B. The three most recent recaps</summary>
 
-✗ The question says "last", and a chat history shows the past newest first, so the latest meetings are where the eye goes. `store.search` sorts by how close each recap's embedding is to the question's and by nothing else, so a recap from last month and one from last spring compete on wording alone.
+✗ The question says "last", and "last" means the newest meetings. `store.search` sorts by how close each recap's embedding is to the question's and by nothing else, so a recap from last month and one from last spring compete on wording alone.
 
 </details>
 
 <details><summary>C. No recap, only the question</summary>
 
-✗ No recap mentions 14 October, and a keyword search for a date nobody wrote down comes back empty. This search ranks every recap by closeness and returns the top three however weak the best match is, so the request always carries three recaps ahead of the question.
+✗ A recap seldom spells out its own date, and a keyword search for a date nobody wrote down comes back empty. This search ranks every recap by closeness and returns the top three however weak the best match is, so the request always carries three recaps ahead of the question.
 
 </details>
 
 <details><summary>D. Three recaps closest in meaning</summary>
 
-✓ Right. Three recaps go into the request, the ones whose text sits closest to the question, from any week of the year, with the question after them; their dates stay in the store.
+✓ Right. Three recaps go into the request, the ones whose text sits closest to the question, from any week of the year, with the question after them; their dates stay in the store. A June recap that read "The last review of each month falls on a Tuesday." would share two words with the question and could come first, ahead of the 14 October recap.
 
-Picture a June recap that reads "The last review of each month falls on a Tuesday." It shares two words with the question and can come first, and the designer walks into a client call quoting a review schedule, unaware that last week's meeting dropped the blue logo.
+Recall here is a search, and a search ranks recaps by how close their text is to the question's text: "last Tuesday" is more text to compare, not a date to filter by. The date saved with each recap sits beside it and is never read, and no line of the code reads today's date, Thursday 16 October.
 
-Recall here is a search, and a search ranks recaps by how close their text is to the question's text: "last Tuesday" is more text to compare, not a date to filter by. The date saved with each recap sits beside it and is never read, and nothing in the code knows that today is Thursday 16 October. Turn a time in the question into dates in your code, starting from today's date, filter the store to the recaps held in that range, and only then rank by meaning, or send that range's recaps whole. Put each recap's date into the request as well, so the model can say which meeting it is reading from. LongMemEval, a 2024 benchmark of long-term memory in chat assistants, counts reasoning about time among the five abilities it tests. Nothing here depends on where the model runs: the search and the store are both yours.
+Turn a time in the question into dates in your code, starting from today's date, filter the store to the recaps held in that range, and only then rank by meaning, or send that range's recaps whole. Put each recap's date into the request as well, so the model can say which meeting it is reading from.
 
 </details>
 
@@ -499,23 +495,23 @@ When does the rule reach the model?
 
 <details><summary>B. When the model asks to read the file</summary>
 
-✓ Right. The rule reaches the model as the result of a read the model asked for. Until then the requests carry the memory tool's description and nothing from the folder.
+✓ Right. The rule reaches the model as the result of a read the model asked for. Until then the requests carry the memory tool's description and nothing from the folder, and an agent that goes straight to building the hotfix deploys on a Friday with the rule unread.
 
-If the agent goes straight to building the hotfix, the deploy runs on a Friday with the rule sitting unread in the folder, and the lead who wrote it finds out from the release channel.
+A memory tool makes recall the model's choice: it reads memory the way it uses any tool, by asking, and the file comes back to it only as a tool result your code returns. Some APIs add an instruction telling the model to check its memory folder before it starts, which makes an early read more likely without making it certain.
 
-A memory tool makes recall the model's choice: it reads memory the way it uses any tool, by asking, and the file comes back to it only as a tool result your code returns. Some APIs add an instruction telling the model to check its memory folder before it starts, which makes an early read more likely without making it certain. A rule that must hold every time is an instruction, and it belongs in the instructions sent with every request. Better still, put it in code: a deploy tool that refuses on Fridays does not depend on what the model read. A coding assistant that loads its memory files when a session opens does put them into the opening request, which is why the two kinds of memory get mixed up. On your own server the tool is yours to define, and the model still sees a file only once it asks.
+A rule that must hold every time is an instruction, and it belongs in the instructions sent with every request. Better still, put it in code: a deploy tool that refuses on Fridays does not depend on what the model read.
 
 </details>
 
 <details><summary>C. When the agent reaches a deploy step</summary>
 
-✗ Rules in some tools fire when a matching action comes up, the way a file pattern or a hook does, so a deploy step could be expected to pull in a deploy rule. Nothing in a memory tool watches what the agent is doing; the file is read on the model's request, at a deploy step or at any other moment, or never.
+✗ Rules in some tools fire when a matching action comes up, the way a file pattern or a hook does, and this rule is about deploys. A memory tool does not watch what the agent is doing: the file is read on the model's request, at a deploy step or at any other moment, or never.
 
 </details>
 
 <details><summary>D. In the first request, as a list of the folder's files</summary>
 
-✗ Listing the folder is the cheap first step, and a request could open with it by default. A listing is itself a tool call: the model has to ask for it, your code runs it, and the names come back as a result, so the first request carries neither the names nor the rule.
+✗ Listing the folder is the cheap first step, the one an agent takes before it reads anything. A listing is itself a tool call: the model has to ask for it, your code runs it, and the names come back as a result, so the first request carries neither the names nor the rule.
 
 </details>
 
@@ -538,13 +534,13 @@ What does tonight's run find in the memory folder?
 
 <details><summary>A. The rules and a note of the 20 books done</summary>
 
-✗ The instructions asked for progress notes, and the agent kept to the rest of its instructions all night. A memory tool writes nothing unless the model calls it, and each of the 40 steps in the trace asked for a book tool. No create or edit ever reached your code, so no note exists.
+✗ The instructions asked for progress notes, and the agent follows its other instructions. A memory tool writes nothing unless the model calls it, and each of the 40 steps in the trace asked for a book tool: no create or edit ever reached your code, so no note exists.
 
 </details>
 
 <details><summary>B. The rules and last night's whole run</summary>
 
-✗ A coding assistant keeps a transcript of every session, and a tool named memory invites the same picture. The memory tool stores only what the model asks it to store. The run's messages lived in your loop's list, and when the loop stopped, nothing copied them into the folder.
+✗ A coding assistant keeps a transcript of every session, and this tool is called memory. The memory tool stores only what the model asks it to store. The run's messages lived in your loop's list, and when the loop stopped, nothing copied them into the folder.
 
 </details>
 
@@ -556,11 +552,11 @@ What does tonight's run find in the memory folder?
 
 <details><summary>D. The rules file alone, as before</summary>
 
-✓ Right. Tonight's run finds the tagging rules and nothing else: the folder is exactly as it was before last night, with no word of the 20 books.
+✓ Right. Tonight's run finds the tagging rules and nothing else: the folder is exactly as it was before last night, with no word of the 20 books, so tonight's run can start again at book #1.
 
-With no note to read, tonight's run can start again at book #1 and spend its 40 steps on books already tagged, and the librarian checking the catalogue in the morning finds the same twenty books done two nights running.
+A memory tool makes writing the model's choice, as it makes reading: a file changes only after the model asks for a create or an edit and your code carries it out. An instruction to record progress makes such calls likely, not certain, and some APIs add an instruction of that kind on their own whenever the tool is switched on. The step cap stops your loop between two steps, and nothing runs on the way out unless your code runs it.
 
-A memory tool makes writing the model's choice, as it makes reading: a file changes only after the model asks for a create or an edit and your code carries it out. An instruction to record progress makes such calls likely, not certain, and some APIs add an instruction of that kind on their own whenever the tool is switched on. The step cap stops your loop between two steps, and nothing runs on the way out unless your code runs it. Record progress in your code instead: after each `save_tags` result, write the book's number to your own store, or when the loop stops at the cap, write a note of what the run finished, which the model can read through the memory tool on the next run. Defining the tool yourself for a model on your own server changes nothing here: a file is written on request or not at all.
+Record progress in your code instead: after each `save_tags` result, write the book's number to your own store, or when the loop stops at the cap, write a note of what the run finished, which the model can read through the memory tool on the next run.
 
 </details>
 
@@ -574,7 +570,7 @@ What is in the memory folder when the agent opens it on Tuesday?
 
 <details><summary>A. Every student's file, as on Monday</summary>
 
-✗ Files on a server's disk survive a restart, and the memory tool comes from the provider, so between them the notes appear safe. The provider holds no part of the folder: your code carried out every create and edit, on a disk that belonged to the old container. The new container was built from the repository, and the repository never held a student's file.
+✗ Files on a server's disk survive a restart, and the memory tool comes from the provider. The provider holds no part of the folder: your code carried out every create and edit, on a disk that belonged to the old container. The new container was built from the repository, and the repository never held a student's file.
 
 </details>
 
@@ -586,11 +582,11 @@ What is in the memory folder when the agent opens it on Tuesday?
 
 <details><summary>C. No student files at all</summary>
 
-✓ Right. The agent finds no student files. The folder on the new container is empty, or missing until your code creates it, and every note from the twenty lessons went with the old container.
+✓ Right. The agent finds no student files: the folder on the new container is empty, or missing until your code creates it, and every note from the twenty lessons went with the old container; the same happens on every deploy that replaces the container.
 
-The student is asked their level and given the beginners' warm-up, and every other student meets the same welcome on Tuesday and after each deploy that follows, while their teachers wonder why the agent has forgotten its regulars.
+When memory sits behind a tool, your code picks that place: the provider passes on the model's requests to view, create and edit, and your code decides which disk or database they touch. Data written to a container's own disk goes when that container goes, and a deploy that replaces it starts the new one from the image, the package of your code that every container is built from, which holds nothing the agent wrote.
 
-A memory store lives where it is kept. When memory sits behind a tool, your code picks that place: the provider passes on the model's requests to view, create and edit, and your code decides which disk or database they touch. Data written to a container's own disk goes when that container goes, and a deploy that replaces it starts the new one from the image, the package of your code that every container is built from, which holds nothing the agent wrote. Point the memory folder at storage that outlives containers, such as a database or a shared volume, a disk that every container mounts, and file each student's notes under the student's id, so that two containers running at once read the same file. The same holds when you run the model yourself: the notes outlive a deploy only if the disk or database the handler writes to does.
+Point the memory folder at storage that outlives containers, such as a database or a shared volume, a disk that every container mounts, and file each student's notes under the student's id, so that two containers running at once read the same file.
 
 </details>
 
@@ -616,11 +612,11 @@ What does the request carry for the link in that paragraph?
 
 <details><summary>A. The words "[[Q3 budget]]" and nothing more</summary>
 
-✓ Right. The link reaches the model as the characters `[[Q3 budget]]` inside the paragraph, and none of the budget note's text comes with it.
+✓ Right. The link reaches the model as the characters `[[Q3 budget]]` inside the paragraph, and none of the budget note's text comes with it, so the assistant can say that figures were agreed and not which ones.
 
-The assistant can say that figures were agreed and not which ones, and the consultant, writing to the client that afternoon, ends up opening the budget note by hand to find them.
+A second brain is long-term memory for a person, and its recall is a search: it returns paragraphs by how well their own text matches the question, and a link is text like the rest. The notes app follows links when you click; nothing in this code does. The budget note comes along only if one of its own paragraphs ranks in the five, and a list of costs shares little with a question about a call.
 
-A second brain is long-term memory for a person, and its recall is a search: it returns paragraphs by how well their own text matches the question, and a link is text like the rest. The notes app follows links when you click; nothing in this code does. The budget note comes along only if one of its own paragraphs ranks in the five, and a list of costs shares little with a question about a call. Follow links in your code: when a retrieved paragraph links to a note, add that note's paragraphs, or give the model a tool that opens a note by its title. Indexing can also copy the key lines of each linked note into the paragraph that links to it.
+Follow links in your code: when a retrieved paragraph links to a note, add that note's paragraphs, or give the model a tool that opens a note by its title. Indexing can also copy the key lines of each linked note into the paragraph that links to it.
 
 </details>
 
@@ -632,13 +628,13 @@ A second brain is long-term memory for a person, and its recall is a search: it 
 
 <details><summary>C. A short preview of the Q3 budget note</summary>
 
-✗ Notes apps show a preview of a linked note when you hover over the link, and an index could store one too. `index_notes` stores each paragraph's own text and its embedding, nothing else, so the paragraph carries the title in the link and no preview of the note behind it.
+✗ Notes apps show a preview of a linked note when you hover over the link. `index_notes` stores each paragraph's own text and its embedding, nothing else, so the paragraph carries the title in the link and no preview of the note behind it.
 
 </details>
 
 <details><summary>D. Nothing: the paragraph arrives without the link</summary>
 
-✗ On a web page a link is markup, and the reader sees only its label, so a link in a note could be expected to drop out of the text. `index_notes` stores the paragraph as written, brackets and all, and `ask` sends that text, so the title in the link reaches the model with the rest.
+✗ On a web page a link is markup, and the reader sees only its label; in the notes app a click opens the linked note. `index_notes` stores the paragraph as written, brackets and all, and `ask` sends that text, so the title in the link reaches the model with the rest.
 
 </details>
 
@@ -650,4 +646,4 @@ A second brain is long-term memory for a person, and its recall is a search: it 
 - [Generative Agents](https://arxiv.org/abs/2304.03442), 2023: simulated characters that write every experience to a memory stream and bring memories back by recency, importance and relevance together.
 - [LongMemEval](https://arxiv.org/abs/2410.10813), 2024: a benchmark of five long-term memory abilities of chat assistants, on which commercial assistants and long-context models showed a 30% accuracy drop across sustained interactions.
 
-Next: [Agents and workflows](../agents-and-workflows/README.md)
+Prev: [Retrieval and RAG](../retrieval-and-rag/README.md) · Next: [Agents and workflows](../agents-and-workflows/README.md)

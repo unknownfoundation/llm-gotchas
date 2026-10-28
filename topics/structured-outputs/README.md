@@ -1,6 +1,6 @@
 # Structured outputs
 
-Needs: [Generation parameters](../generation-parameters/README.md) · [Prompting](../prompting/README.md) · Reviewed October 2026
+Prev: [Prompting](../prompting/README.md) · Next: [Tool calling](../tool-calling/README.md) · Reviewed October 2026
 
 A structured output is a model reply your code parses into fixed fields, most often a JSON object. The model writes it token by token like any other reply, and the request adds a description of the fields and, in some ways of asking, a limit on which tokens may be drawn.
 
@@ -12,13 +12,7 @@ A structured output is a model reply your code parses into fixed fields, most of
 - **Generation cap**: the request's limit on how many tokens the reply may run to, often called max tokens.
 - **Finish reason**: the field in the response that says why the reply ended, such as a natural end or the cap.
 
-How much a system lets you ask for beyond a line in the prompt:
-
-- **A provider's API**: JSON mode and schema mode are request settings on many of them, and each API's schema mode accepts only part of JSON Schema, with limits of its own.
-- **Your own server**: the server turns your schema into a grammar for constrained decoding, and some also take a grammar you write yourself or a list of allowed replies.
-- **A ready-made app**: in a chat app you can ask for a format only in your message. Some coding assistants take a schema when a script runs them, and check their final answer against it.
-
-Constrained decoding works the same wherever it runs.
+On many provider APIs, JSON mode and schema mode are request settings, and each API's schema mode accepts only part of JSON Schema; a server you run yourself turns your schema into a grammar for constrained decoding, and some also take a grammar you write or a list of allowed replies; in a chat app you can ask for a format only in your message, though some coding assistants take a schema when a script runs them and check their final answer against it.
 
 Four ways to ask for structured output are common:
 
@@ -47,29 +41,29 @@ Which of the three changes makes the replies without `colour` stop?
 
 <details><summary>A. They stop with any one of the three</summary>
 
-✗ A prompt with a good example gets nearly every reply right when you test by hand, and a second example is the usual next step. The prompt is text the model reads, and nothing in the request holds the reply to it: the replies without `colour` already came from a prompt with an example. JSON mode, for its part, holds the reply only to JSON syntax.
+✗ A prompt with a good example gets nearly every reply right when you test by hand, and a second example is the usual next step. A prompt is read, not enforced: the replies without `colour` already came from a prompt with an example, and JSON mode holds the reply only to JSON syntax.
 
 </details>
 
 <details><summary>B. They stop with schema mode alone</summary>
 
-✓ Right. With schema mode on, every reply that ends normally carries `name`, `price` and `colour`. The firmer prompt and JSON mode leave the gap open.
+✓ Right. With schema mode on, every reply that ends normally carries `name`, `price` and `colour`. With the firmer prompt or JSON mode, a record still reaches the site now and then with no colour.
 
-With either of the other two, a shirt still reaches the shop's site now and then with no colour, and a shopper who filters for blue never sees it until someone in merchandising fixes the row by hand.
+The three ways hold the reply to different things. A prompt is read, and nothing compares the reply with it. JSON mode keeps the reply to JSON syntax, with whatever keys the model chose. Schema mode takes your JSON Schema with the request and uses constrained decoding: on each step, the tokens that would break the schema are removed before the draw, so the model cannot close the object while a required field is missing.
 
-The three ways hold the reply to different things. A prompt is read, and nothing compares the reply with it. JSON mode keeps the reply to JSON syntax, with whatever keys the model chose. Schema mode takes your JSON Schema with the request and uses constrained decoding: on each step, the tokens that would break the schema are removed before the draw, so the model cannot close the object while a required field is missing. Put the fields in the schema, and keep the prompt for what each field means. In a chat app only the prompt is open to you, so check each reply in your code.
+Put the fields in the schema, and keep the prompt for what each field means.
 
 </details>
 
 <details><summary>C. They stop with JSON mode and with schema mode</summary>
 
-✗ The setting is named for JSON, and your prompt already spells out the JSON you want, so the two should meet. JSON mode holds the reply to valid JSON and leaves the keys to the model, and `{"name": "Linen shirt", "price": 39}` is valid JSON with no colour in it.
+✗ The setting is named for JSON, and your prompt already spells out the JSON you want. JSON mode holds the reply to valid JSON and leaves the keys to the model, and `{"name": "Linen shirt", "price": 39}` is valid JSON with no colour in it.
 
 </details>
 
 <details><summary>D. They keep arriving whichever change is made</summary>
 
-✗ Each token is drawn by chance, and it is hard to see how a setting could rule anything out. Schema mode changes what can be drawn: tokens that would break the schema are removed before each draw, so a reply that ends normally cannot leave out a required field.
+✗ Each token is drawn by chance, and chance leaves every token some odds. Schema mode changes what can be drawn: tokens that would break the schema are removed before each draw, so a reply that ends normally cannot leave out a required field.
 
 </details>
 
@@ -83,23 +77,23 @@ What reaches your code from the API?
 
 <details><summary>A. A call whose arguments match the schema, every time</summary>
 
-✗ The schema sits in the tool definition the API receives, so it is natural to take it as a contract the API keeps. The model reads the definition and writes the arguments as text, one token at a time. With schema mode off for the tool, no token is removed for leaving the schema, and nothing checks the call before it reaches you.
+✗ The schema sits in the tool definition the API receives, and the API holds it with every call. The model reads the definition and writes the arguments as text; with schema mode off, no token is removed for leaving the schema, and nothing checks the call before it reaches you.
 
 </details>
 
 <details><summary>B. An error from the API in place of any call that breaks the schema</summary>
 
-✗ A web framework rejects a form that fails its rules, and an API that holds your schema could do the same. Without schema mode on the tool, the API returns each call as the model wrote it, as a normal success, and the checking is left to your code.
+✗ A web framework rejects a form that fails its rules, and the API holds your schema. Without schema mode on the tool, the API returns each call as the model wrote it, as a normal success, and the checking is left to your code.
 
 </details>
 
 <details><summary>C. Now and then, a call whose arguments break the schema</summary>
 
-✓ Right. Every reply is a call to `record_move`, and its arguments usually fit the schema, but nothing makes them: a call can carry `floor` as `"third"` instead of 3, or leave `move_date` out.
+✓ Right. Every reply is a call to `record_move`, and its arguments usually fit the schema, but nothing makes them: a call can carry `floor` as `"third"` instead of 3, which your code cannot use as a number, or leave `move_date` out.
 
-The quote engine multiplies the price by the floor, so the call with `"third"` raises an exception and the quote form answers with an error page. A family pricing a move out of a third-floor flat gets no quote, gives up and books another company's van that evening.
+On a provider's API, forcing the call decides that the reply is a call to that tool and says nothing about how the arguments are written. Tool arguments are text the model writes, like any reply, and the schema in the tool definition is part of what it reads. Without schema mode, nothing removes a token that leaves the schema, so the arguments are the model's attempt at it.
 
-Forcing the call decides that the reply is a call to that tool; it says nothing about how the arguments are written. Tool arguments are text the model writes, like any reply, and the schema in the tool definition is part of what it reads. Without schema mode, nothing removes a token that leaves the schema, so the arguments are the model's attempt at it. Turn schema mode on for the tool, and the arguments are written under constrained decoding, as a reply is under schema mode; or check the arguments with a validator and ask again on a failure. APIs differ in the default. On some, schema mode is on for a tool unless you turn it off, as long as the tool's schema is one it accepts; on others it stays off until you turn it on. A server you run yourself may write a call forced to one named tool under constrained decoding anyway, so its arguments fit the schema even with schema mode off.
+Turn schema mode on for the tool, so the arguments are written under constrained decoding, or check them with a validator and ask again on a failure. APIs differ in the default: on some, schema mode is on for a tool unless you turn it off, as long as the tool's schema is one it accepts; on others it stays off until you turn it on.
 
 </details>
 
@@ -113,29 +107,29 @@ Where do the deletion requests show up on the weekly chart?
 
 <details><summary>A. In a new bar, <code>privacy</code></summary>
 
-✗ The prompt line names this exact case, and it was written after the schema, so it reads as the rule now in force. The two are not weighed against each other. The schema decides which tokens may be drawn in `category`, and `privacy` is not among them, however plainly the prompt asks for it.
+✗ The prompt line names this exact case and was written after the schema, and the newer instruction usually wins. The two are not weighed against each other. The schema decides which tokens may be drawn in `category`, and `privacy` is not among them, however plainly the prompt asks for it.
 
 </details>
 
 <details><summary>B. Some in a new <code>privacy</code> bar, the rest in the old three</summary>
 
-✗ If schema mode were one more instruction, a firm prompt line could pull part of the replies its way. Schema mode is not weighed against the prompt: once `"category": "` is written, only the three listed values can follow, on every reply.
+✗ A firm, specific prompt line usually wins some ground with a model. Schema mode is not weighed against the prompt: once `"category": "` is written, only the three listed values can follow, on every reply.
 
 </details>
 
 <details><summary>C. Inside the three existing bars</summary>
 
-✓ Right. Each deletion request is filed as `billing`, `shipping` or `returns`, and those bars grow by about 40 a week between them, while no `privacy` bar ever appears.
+✓ Right. Each deletion request is filed as `billing`, `shipping` or `returns`, and those bars grow by about 40 a week between them while no `privacy` bar appears.
 
-The colleague who added the line sees the chart unchanged and concludes the law has brought no requests yet. Meanwhile the requests sit in queues whose agents handle refunds and parcels, and each customer who asked to be deleted gets an answer about a return or a delivery.
+Under schema mode, the schema alone decides which tokens are removed; the prompt is text the model reads. After `"category": "` is written, the tokens that would start any word other than the three listed are removed, so `privacy` cannot be drawn, and the model writes the listed value it scores highest. Keys follow the same rule: when the schema admits only the keys it lists, a key the prompt asks for and the schema leaves out is never written.
 
-Under schema mode, the schema alone decides which tokens are removed; the prompt is text the model reads. After `"category": "` is written, the tokens that would start any word other than the three listed are removed, so `privacy` cannot be drawn. The model writes the listed value it scores highest, and nothing in the reply marks the misfit. Add `privacy` to the enum and keep the prompt line, which tells the model when to use it; a value such as `other`, with its weekly count watched, is how the next new kind of message shows up. A field works the same way: when the schema admits only the fields it lists, a field the prompt asks for and the schema leaves out is never written.
+Add `privacy` to the enum and keep the prompt line, which tells the model when to use it. A value such as `other`, with its weekly count watched, is how the next new kind of message shows up.
 
 </details>
 
 <details><summary>D. Nowhere; the requests fail with an error</summary>
 
-✗ A prompt that names a value the schema forbids reads as a request that contradicts itself, and a strict API might refuse one. Nothing compares the prompt with the schema. The request is valid, the prompt is read as text, and each reply comes back with one of the three values.
+✗ A prompt that names a value the schema forbids contradicts the schema, and APIs refuse requests they can see are invalid. The request is valid, the prompt is read as text, and each reply comes back with one of the three values.
 
 </details>
 
@@ -165,11 +159,11 @@ What does `record["weight_kg"]` hold for one of those notes?
 
 <details><summary>A. A number, though the note shows no weight</summary>
 
-✓ Right. `record["weight_kg"]` holds a number, such as 0 or a plausible weight, though the note shows none. The record parses, passes the schema and sits in the table like every other.
+✓ Right. `record["weight_kg"]` holds a number, such as 0 or a plausible weight, though the note shows none. The record parses and passes the schema, so those invented weights sit in your data among the real ones.
 
-At the end of the month the dispatcher's tonnage report adds those invented weights to the real ones, and a pallet recorded at 0 kg goes onto a lorry whose load nobody planned for.
+The schema makes `weight_kg` required and types it as a number, and constrained decoding enforces both. Once the reply reaches `"weight_kg": `, the only tokens left are those that can start a number; `null`, the closing brace and the next key are all removed. The model writes the best number it can, and on a note without a weight that number is a guess, since the schema has no place for "not on the note".
 
-The schema makes `weight_kg` required and types it as a number, and constrained decoding enforces both. Once the reply reaches `"weight_kg": `, the only tokens left are those that can start a number; `null`, the closing brace and the next key are all removed. The model writes the best number it can, and on a note without a weight that number is a guess. Nothing in this schema has a place for "not on the note", so the model is made to fill the gap. Let the type include null, as `["number", "null"]`, and say in the field's description or the prompt to use null when the note shows no weight; your code then reads `None` as missing.
+Let the type include null, as `["number", "null"]`, and say in the field's description or the prompt to use null when the note shows no weight; your code then reads `None` as missing.
 
 </details>
 
@@ -181,13 +175,13 @@ The schema makes `weight_kg` required and types it as a number, and constrained 
 
 <details><summary>C. A missing key: reading it raises <code>KeyError</code></summary>
 
-✗ Leaving a field out is the obvious move when there is nothing to put in it, and replies asked for by prompt alone do skip fields. Here the schema lists `weight_kg` as required, and schema mode will not let the reply close until the key and a value are written, so the key is always there with a value in it.
+✗ Leaving a field out is what people do when there is nothing to put in it, and replies asked for by prompt alone skip fields. Here the schema lists `weight_kg` as required, and schema mode will not let the reply close until the key and a value are written.
 
 </details>
 
 <details><summary>D. No reply at all: <code>call_model</code> raises an error for that note</summary>
 
-✗ An input that cannot fill a required field sounds like an invalid request, the kind an API refuses. The request is valid: the schema is well formed, and the note is text. Schema mode has no step that compares the note with the schema. It shapes the reply as it is written, and the reply it shapes holds a number.
+✗ APIs refuse invalid requests, and this note cannot fill a required field. The request is valid, since the schema is well formed and the note is text, and schema mode has no step that compares the note with the schema: it shapes the reply as it is written.
 
 </details>
 
@@ -201,23 +195,23 @@ Once `findings` is listed first in the schema, which field does each of the bot'
 
 <details><summary>A. <code>findings</code></summary>
 
-✓ Right. Every reply now opens with `findings` and closes with `verdict`, where before the change every reply opened with `verdict`.
+✓ Right. Every reply now opens with `findings` and closes with `verdict`. Before the change every reply opened with `verdict`, written before a single finding existed.
 
-Leave the schema as it was on the colleague's word, and each verdict keeps being written before a single finding exists. A developer whose pull request was rejected reads findings written after the reject and in its light, and a problem the model noticed only while listing them could never have turned an approve into a reject.
+A program that reads a JSON object finds its keys by name, so their order means nothing to it, and the colleague is right about that. The model, though, writes the reply from front to back, and schema mode builds its constraint from the schema with the keys in sequence: after `{`, the only key that may come is the first one the schema lists, then the next. So the order of the schema's properties is the order of writing. Some systems write required fields before optional ones, so the listed order can change when some fields are optional; both are required here.
 
-A program that reads a JSON object finds its keys by name, so their order means nothing to it. The model, though, writes the reply from front to back. Schema mode builds its constraint from the schema with the keys in sequence: after `{`, the only key that may come is the first one the schema lists, then the next. So the order of the schema's properties is the order of writing: list a field that should shape another above it, as reasons go above a score. Some systems write required fields before optional ones, so the listed order can change when some fields are optional; both are required here.
+List a field that should shape another above it.
 
 </details>
 
 <details><summary>B. <code>verdict</code>, as before</summary>
 
-✗ The colleague is right that a program reading JSON finds keys by name, whatever their order, and from there it is a short step to thinking the model's habit decides. The model writes the reply front to back, and schema mode allows only the key the schema lists next: with `findings` listed first, `"findings"` is the only key a reply can open with.
+✗ The colleague is right that a program reading JSON finds keys by name, whatever their order, and JSON itself leaves the order of keys free. Schema mode allows only the key the schema lists next, so with `findings` listed first, `"findings"` is the only key a reply can open with.
 
 </details>
 
 <details><summary>C. Either one, varying from reply to reply</summary>
 
-✗ Since a JSON object's keys have no order, a schema that lists both appears to leave the order to the model on each reply. The constraint is built from the schema with its keys in sequence, so the order is fixed: every reply opens with the field listed first.
+✗ A JSON object's keys have no order, and a schema lists them without saying which comes first. The constraint is built from the schema with its keys in sequence, so the order is fixed: every reply opens with the field listed first.
 
 </details>
 
@@ -231,29 +225,29 @@ What reaches the ledger from that invoice?
 
 <details><summary>A. Nothing; your validator rejects the reply and stops the save</summary>
 
-✗ A check that runs before every save is the safety net you built for bad data, and this total is bad. A validator compares the reply with the schema, and the schema asks only that `total` be a number. The misread total is still a number, so the reply passes with no errors, as would a due date of February 30 in a string field.
+✗ A check before every save is the safety net you built for bad data, and this total is bad. A validator compares the reply with the schema, which asks only that `total` be a number; the misread total is still a number, so the reply passes, as would a due date of February 30 if the schema typed it as a plain string.
 
 </details>
 
 <details><summary>B. A total of 1,240.00, flagged as not matching the lines</summary>
 
-✗ The schema lists each line's amount and the total side by side, and a person reading them together would spot the gap at once. A schema describes each value on its own: the total must be a number, and each line must have an amount. Nothing in it adds the lines and compares the sum with the total, so the validator stays silent and nothing flags the invoice.
+✗ The schema lists the line amounts and the total side by side, and a person reading them together would spot the gap at once. A schema describes each value on its own and never adds the lines to compare the sum with the total, so the validator stays silent and the invoice goes through unflagged.
 
 </details>
 
 <details><summary>C. A total of 1,240.00, with no flag on it</summary>
 
-✓ Right. The reply passes the validator, and the ledger records a total of 1,240.00, with nothing on the way to flag it.
+✓ Right. The reply passes the validator, and the ledger records a total of 1,240.00 with nothing on the way to flag it, so the ledger holds 180.00 less than the invoice.
 
-The supplier is paid 180.00 short, and the first anyone hears of it is a reminder letter weeks later, which a bookkeeper has to trace back to one smudged scan.
+A schema describes each value on its own: which fields exist, the type of each, which are required, and any limits such as a minimum or a pattern, which a validator does check. A limit would not have caught this total, a positive number like the real one. Constrained decoding keeps the reply within the schema and the validator checks it once more, and neither compares one field with another or with the scan: a total that does not match the lines, a due date of February 30 in a plain string field and a supplier name that appears nowhere on the page all pass both.
 
-A schema describes each value on its own: which fields exist, the type of each, which are required, and any limits a value must meet, such as a minimum or a pattern, which a validator does check. A limit would not have caught this total, which is a positive number like the real one. Constrained decoding keeps the reply within the schema, the validator checks the parsed object against the schema once more, and neither compares one field with another or with the scan. A total that does not match the lines, a due date of February 30 in a string field and a supplier name that appears nowhere on the page all pass both. Checks of meaning are your code's job: add up the lines and compare them with the total, parse the due date as a real date, and look the supplier up in the list of suppliers you already pay. If the lines were read right, they add up to 1,420.00, and a sum check would have held this invoice back for a person to look at.
+Checks of meaning are your code's job: add up the lines and compare them with the total, parse the due date as a real date, and look the supplier up in the list of suppliers you already pay. If the lines were read right, they add up to 1,420.00, and a sum check would hold this invoice back for a person to look at.
 
 </details>
 
 <details><summary>D. Nothing; the model call fails with an error before any reply</summary>
 
-✗ A setting on the request passes readily for a gate that turns bad replies away. What the setting does is hold the reply to the format while it is written. A reply that fits the format comes back as a normal success, and this one fits, since a misread number is still a number.
+✗ Schema mode is a setting on the request, and the API enforces it, the way it enforces the generation cap. Schema mode holds the reply to the format while it is written: a reply that fits the format comes back as a normal success, and this one fits, since a misread number is still a number.
 
 </details>
 
@@ -279,29 +273,29 @@ What does the page show while the reply streams in?
 
 <details><summary>A. Each field, filling in word by word as it arrives</summary>
 
-✗ Schema mode keeps the reply valid, and it is tempting to read that as valid at every moment. It holds the reply to the schema token by token, so each piece is the start of a valid reply, and the start of an object is not a whole JSON document. Every parse before the closing brace throws, and `render` never runs until then.
+✗ Every piece arrives under schema mode, which promises a reply that fits the schema. Schema mode holds the reply to the schema token by token, so each piece is the start of a valid reply, and the start of an object is not a whole JSON document: every parse before the closing brace throws, and the card stays blank until the end.
 
 </details>
 
 <details><summary>B. Each field, appearing once its value is complete</summary>
 
-✗ A value broken off halfway is the obvious thing that stops a parse, so the moments between two fields look safe. Right after the headline's closing quote, the text is still an object with no closing brace, and `JSON.parse` throws on it the same way. Only the last piece closes the object and gives the parser a whole document.
+✗ A value broken off halfway is the usual thing that stops a parse, and between two fields no value is broken. Right after the headline's closing quote, the text is still an object with no closing brace, and `JSON.parse` throws on it the same way. Only the last piece closes the object and gives the parser a whole document.
 
 </details>
 
 <details><summary>C. An error from the request, and no stream at all</summary>
 
-✗ A reply held to a schema sounds like something that has to be finished before it can be sent. Schema mode works token by token, so the reply streams like any other: the pieces arrive as they are written, each one the start of a valid reply.
+✗ A validator needs the whole document before it can check it, and schema mode checks the reply against a schema. Schema mode works token by token, so the reply streams like any other: the pieces arrive as they are written, each one the start of a valid reply.
 
 </details>
 
 <details><summary>D. Nothing until the end, then all three fields at once</summary>
 
-✓ Right. Every parse but the last one throws, so the card stays blank while the model writes and then fills in all three fields together when the closing brace arrives.
+✓ Right. Every parse but the last one throws, so the card stays blank while the model writes and fills in all three fields together when the closing brace arrives: the same wait as with no streaming, and the error log stays empty, since the `catch` swallows every failure.
 
-On a slow connection a house hunter stares at an empty card for several seconds and then sees it fill at once, the same wait as with no streaming. The team that built the streaming path sees no gain on its latency chart and nothing in its error log, since the `catch` swallows every failure.
+A JSON object is a whole document only once its closing brace is written. Every shorter piece is an object still open, and a JSON parser refuses it wherever the piece ends: inside a string, after a comma or right after a complete value. Schema mode makes the finished reply fit the schema, and while the reply streams, the text so far is only the start of one. Cut a 127-character reply of this shape after any character, and only the cut after the last one leaves text that parses.
 
-A JSON object is a whole document only once its closing brace is written. Every shorter piece of it is an object still open, and a JSON parser refuses it wherever the piece ends: inside a string, after a comma or right after a complete value. Schema mode makes the finished reply fit the schema, and while the reply streams, the text so far is only the start of one. Cut this 127-character reply after any character, and only the cut after the last one leaves text that parses. To show fields as they arrive, use a parser made for incomplete JSON, which closes whatever is still open and returns the fields finished so far, or ask for a format your code can read line by line; run the full parse after the stream ends and the finish reason says the reply is complete.
+To show fields as they arrive, use a parser made for incomplete JSON, which closes whatever is still open and returns the fields finished so far, or ask for a format your code can read line by line; run the full parse after the stream ends and the finish reason says the reply is complete.
 
 </details>
 
@@ -329,29 +323,29 @@ What reaches `json.loads` for a 60-page policy?
 
 <details><summary>A. A closed object with only the first clauses in it</summary>
 
-✗ Only a closed object fits the schema, so a mode that promises the schema would have to finish one in time. Constrained decoding works one token at a time: it keeps the reply inside the format and knows nothing of how many tokens are left. The model writes clauses as if there were no cap, and the cap stops it partway through one.
+✗ Schema mode knows the whole schema in advance, and the cap is set on the same request. Constrained decoding works one token at a time and knows nothing of how many tokens are left: the model writes clauses as if there were no cap, and the cap stops it partway through one.
 
 </details>
 
 <details><summary>B. The start of the object, broken off mid-clause</summary>
 
-✓ Right. `json.loads` gets the start of the object, the policy number and the first clauses, broken off partway through a clause, and it raises `JSONDecodeError`, Python's error for text that is not valid JSON. The response arrives as a success, and its finish reason says the generation cap was reached.
+✓ Right. `json.loads` gets the start of the object, the policy number and the first clauses, broken off partway through a clause, and raises `JSONDecodeError`, Python's error for text that is not valid JSON. The response arrives as a success with a finish reason that names the cap, and since the parse fails before the loop, not one clause of a long policy is saved.
 
-The parse fails before the loop, so not one clause of a long policy is saved, not even those finished before the cut. A retry under the same cap is cut again, and on launch morning the broker's account manager finds the commercial policies missing from the comparison page.
+Constrained decoding chooses which tokens may come next from the text written so far, and the number of tokens left plays no part in that choice, so nothing steers the reply toward an early close. Generation halts when the count reaches the cap, with the clause, the list and the object still open, and the promise of schema mode covers only a reply that ended normally.
 
-Constrained decoding chooses which tokens may come next from the text written so far; the number of tokens left plays no part in that choice, so nothing steers the reply toward an early close. Generation halts when the count reaches the cap, with the clause, the list and the object still open, and the promise of schema mode covers only a reply that ended normally. Read the finish reason before you parse; on a cut, raise the cap, or split the policy and extract its clauses in parts.
+Read the finish reason before you parse; on a cut, raise the cap, or split the policy and extract its clauses in parts. A retry under the same cap is cut again.
 
 </details>
 
 <details><summary>C. The whole object, written past the cap</summary>
 
-✗ A shape guarantee that gave way to a token count would hardly be a guarantee, and the schema is the promise you turned schema mode on for. The cap counts the reply's tokens and halts generation when the count is reached, whatever the format still needs, and a policy that needs several thousand tokens gets only as many as the cap allows.
+✗ You turned schema mode on so that replies always fit the schema, and a reply cut short does not fit. The cap halts generation at its 1,000 tokens, whatever the format still needs, so the object for a policy that needs several thousand stops mid-clause and `json.loads` raises on it.
 
 </details>
 
 <details><summary>D. Empty text, with a finish reason that names the cap</summary>
 
-✗ A reply cut mid-clause cannot match the schema, and holding it back would keep the promise that every reply does. The response carries the text written up to the cap, along with a finish reason that names the cap, and that cut text is what reaches `json.loads`.
+✗ Every reply you have seen under schema mode fitted the schema, and a cut reply cannot. The response carries the text written up to the cap, along with a finish reason that names the cap, and that cut text is what reaches `json.loads`.
 
 </details>
 
@@ -365,29 +359,29 @@ When you run both versions on the eval set, what scores should you expect agains
 
 <details><summary>A. Both versions about as well as free text</summary>
 
-✗ The steps still come before the answer, so the model reasons first either way, as the usual advice for reasoning in JSON asks. That order helps, yet in a 2024 study, prompts that asked for JSON with the reasoning first still scored below free text on reasoning tasks in most of its comparisons.
+✗ The steps still come before the answer, so the model reasons first either way, as the usual advice for reasoning in JSON asks. In a 2024 study, prompts that asked for JSON with the reasoning first still scored below free text on reasoning tasks in most of its comparisons, so the one-call version falls below free text, and only the two-call version keeps level with it.
 
 </details>
 
 <details><summary>B. The one-call version as well as free text, the two-call version lower</summary>
 
-✗ One call has fewer moving parts, and a second call that copies text is one more place for a slip. Copying is not where the study found the loss. One small model did lose a little to conversion errors, but for most models the converted answers scored nearly the same as free text. The loss came from answering inside the format.
+✗ One call has fewer moving parts, and a second call that copies text is one more place for a slip. A 2024 study found one small model losing a little to conversion errors, but for most models the converted answers scored nearly the same as free text; the loss came from answering inside the format, so it is the one-call version that drops, and the two-call version stays close to free text.
 
 </details>
 
 <details><summary>C. The two-call version close to free text, the one-call version lower</summary>
 
-✓ Right. The two-call version should score close to free text, and the one-call JSON version lower. A 2024 study, Let Me Speak Freely?, found models' reasoning accuracy falling when they had to answer inside a format such as JSON. Answering in free text and converting in a second step scored nearly the same as free text for most models.
+✓ Right. The two-call version should score close to free text, and the one-call JSON version lower. A 2024 study, Let Me Speak Freely?, found that the models of that time reasoned less accurately when they had to answer inside a format such as JSON, while free text converted by a second step scored nearly the same as free text for most of them.
 
-Ship the one-call version instead, and more pupils than before find a wrong final answer under steps that read well; the parent who rechecks one of them blames the app.
+The format is part of what each token is drawn from, so asking for JSON in the reasoning call can change the reasoning itself. The study ran the same tasks four ways: free text; JSON asked for in the prompt, reasoning field first; JSON held by constrained decoding; and free text that a second call converted to JSON. On reasoning tasks free text did best in most cases, the converted version close behind and the formats lower; on classification tasks, which pick one label from a fixed list, strict JSON did about as well, sometimes better.
 
-The format is part of what each token is drawn from, so asking for JSON in the reasoning call can change the reasoning, not only its wrapping. The study ran the same tasks four ways: plain free text; JSON asked for in the prompt, reasoning field first; JSON held by constrained decoding; and free text that a second call converted to JSON. On reasoning tasks, free text did best in most cases, the converted version close behind, and the formats lower. On classification tasks, which pick one label from a fixed list, strict JSON did about as well, sometimes better. Keep the reasoning in free text and use schema mode for the copy, where the format costs little. Those were 2024 models, so run both versions on your own eval set before you choose.
+Keep the reasoning in free text and use schema mode for the copy, where the format costs little, and run both versions on your own eval set before you choose.
 
 </details>
 
 <details><summary>D. The one-call version better than free text</summary>
 
-✗ A `steps` field makes the model show its work in order, and showing work is what a good tutor asks of a pupil. The study found the opposite on reasoning tasks: JSON with the reasoning field first scored below free text in most of its comparisons, and the version that let the model reason in free text came closest to it.
+✗ A `steps` field makes the model show its work in order, and showing work is what a good tutor asks of a pupil. A 2024 study found the opposite on reasoning tasks: JSON with the reasoning first scored below free text in most comparisons, and free text converted afterwards came closest to it, so the steps field costs the one-call version accuracy instead of adding any.
 
 </details>
 
@@ -401,13 +395,13 @@ What does the dashboard show as the order number?
 
 <details><summary>A. The same number as the log</summary>
 
-✗ Your log shows the right number, and the dashboard reads the same JSON, so the same digits are a fair guess. The two programs read numbers differently: Python keeps an integer exact at any size, while the browser's parser turns it into a 64-bit floating-point value, which cannot hold this 19-digit id exactly.
+✗ Your log shows the right number, the dashboard reads the same JSON, and JSON carries the digits as written. The two programs read numbers differently: Python keeps an integer exact at any size, while the browser's parser turns it into a 64-bit floating-point value, which cannot hold this 19-digit id exactly.
 
 </details>
 
 <details><summary>B. A negative number</summary>
 
-✗ A fixed-width integer wraps round to a negative value when it gets too big, and a 19-digit id sounds big enough to wrap. The browser's parser reads every number as a 64-bit float, which has a sign of its own and loses exactness in the low digits instead of wrapping. The id stays positive and keeps its 19 digits.
+✗ A fixed-width integer wraps round to a negative value when it gets too big, and a 19-digit id is big enough to make that worry real. The browser's parser reads every number as a 64-bit float, which has a sign of its own and loses exactness in the low digits instead of wrapping. The id stays positive and keeps its 19 digits.
 
 </details>
 
@@ -419,11 +413,11 @@ What does the dashboard show as the order number?
 
 <details><summary>D. A slightly different number</summary>
 
-✓ Right. The dashboard shows 1846029371564823800, which differs from the log in its last digits. Nothing fails, and the number on screen has the shape of any other order number.
+✓ Right. The dashboard shows 1846029371564823800, which differs from the log in its last digits. Nothing fails, and the wrong id has the shape of any other, so a search for it finds a different order or none.
 
-A packer types the dashboard's number into the order system and pulls up another customer's order, or none at all, and the returned sofa is booked against the wrong one.
+JSON writes a number as digits and leaves its precision to the program that reads it. Python reads an integer into an exact whole number of any size, which is why the log is right. JavaScript in the browser, like many JSON readers, turns every number into a 64-bit floating-point value, and such values hold every whole number exactly only up to 2^53, 9007199254740992, a 16-digit number. At this id's size a 64-bit float holds only every 256th whole number, and an odd id such as this one is never among them, so the browser keeps the nearest one it can hold, 1846029371564823808, and prints it as 1846029371564823800. The JSON standard warns that integers outside that range may not read the same everywhere.
 
-JSON writes a number as digits and leaves its precision to the program that reads it. Python reads an integer into an exact whole number of any size, which is why the log is right. JavaScript in the browser, like many JSON readers, turns every number into a 64-bit floating-point value, and those hold every whole number exactly only up to 2^53, which is 9007199254740992, a 16-digit number. This id is far above that: at its size a 64-bit float holds only every 256th whole number, and an odd id such as this one is never among them, so the browser keeps the nearest one it can hold, 1846029371564823808, and prints it as 1846029371564823800. The JSON standard warns that integers outside that range may not read the same everywhere. Type identifiers as strings in the JSON Schema, digits and all, and schema mode makes the model write them in quotes; a string arrives in the browser digit for digit, and nobody does arithmetic on an order number.
+Type identifiers as strings in the JSON Schema, digits and all, so schema mode makes the model write them in quotes and they arrive in the browser digit for digit; nobody does arithmetic on an order number.
 
 </details>
 
@@ -434,4 +428,4 @@ JSON writes a number as digits and leaves its precision to the program that read
 - [Let Me Speak Freely?](https://arxiv.org/abs/2408.02442), 2024: reasoning accuracy declined when models had to answer in a fixed format such as JSON, while classification accuracy held or rose.
 - [Grammar-Constrained Decoding for Structured NLP Tasks without Finetuning](https://arxiv.org/abs/2305.13971), 2023: a grammar written for each task, even one that depends on the input, keeps an off-the-shelf model's output to valid structures, and in its tests beat unconstrained models on extraction and parsing.
 
-Next: [Tool calling](../tool-calling/README.md)
+Prev: [Prompting](../prompting/README.md) · Next: [Tool calling](../tool-calling/README.md)

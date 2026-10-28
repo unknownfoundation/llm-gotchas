@@ -1,6 +1,6 @@
 # Releasing LLM changes
 
-Needs: [Context window](../context-window/README.md) · [Generation parameters](../generation-parameters/README.md) · [Testing and evals](../testing-and-evals/README.md) · Reviewed October 2026
+Prev: [Testing and evals](../testing-and-evals/README.md) · Next: [Where models run](../where-models-run/README.md) · Reviewed October 2026
 
 A release swaps one input of an LLM feature: the model, the prompt, a setting, a tool or the code that builds each request. The questions follow one change from its first users to its rollback.
 
@@ -10,7 +10,7 @@ A release swaps one input of an LLM feature: the model, the prompt, a setting, a
 - **Tool call**: the part of a model's reply that asks to run one of the tools described in the request, with arguments the model chose; unless the provider runs that tool itself, your code runs it and sends back the result.
 - **Eval set and pass rate**: a collection of cases with known good answers, and the share of them a release passes on one run.
 
-Behind a provider's API, the provider releases and retires model versions on its own schedule, and a request to a retired version fails, so no version can be kept for good. On your own server the model files and settings change only when you change them, so a rollback can bring the old model back too, if the code names its files and you kept them. Shadow runs, canaries and split tests work the same wherever your code builds the requests.
+Behind a provider's API, the provider releases and retires model versions on its own schedule, and a request to a retired version fails, so no version can be kept for good. On your own server the model files and settings change only when you change them, so a rollback can bring the old model back too, if the code names its files and you kept them.
 
 A release reaches users in one of four ways:
 
@@ -50,23 +50,23 @@ Which of the changes in the table are still live after Thursday's rollback?
 
 <details><summary>B. The spring season's listings, and nothing else</summary>
 
-✗ The manager's rewrite first reached customers on Wednesday, the day of your deploy, so filing it under that release comes naturally. It arrived then because the deploy restarted the assistant, and every start reads the latest version from the store. Thursday's restart read it again, and the rewrite is still the latest.
+✗ The manager's rewrite first reached customers on Wednesday, the day of your deploy, and a change that appears with a deploy usually belongs to it. It arrived then because the deploy restarted the assistant, and every start reads the latest version from the store. Thursday's restart read it again, and the rewrite is still the latest.
 
 </details>
 
 <details><summary>C. The rewritten prompt and the spring listings</summary>
 
-✓ Right. The manager's rewrite and the spring listings are both still live, and only Wednesday's code went back to Monday's.
+✓ Right. The manager's rewrite and the spring listings are both still live, and only Wednesday's code went back to Monday's, so if the wrong curtain times come from either, the rollback has changed nothing customers see.
 
-If the wrong curtain times come from the rewrite or the new listings, the rollback has changed nothing customers see. On Friday a couple reach the stalls twenty minutes after curtain-up, holding a reply that gave them the wrong time, a day after the rollback went out.
+A rollback puts the previous version of your code back into service, and only what lives inside that code goes back with it. A prompt store exists so a prompt can change without a deploy, which also means no deploy, forward or back, changes it: Monday's code asks for the latest version as it starts, and the latest is the manager's rewrite. It first reached customers with Wednesday's restart, which is why it looked like part of the deploy. The index is the job's output, and output stays as it was written whichever version of the job's code is deployed.
 
-A rollback puts the previous version of your code back into service, and only what lives inside that code goes back with it. A prompt store exists so a prompt can change without a deploy, which also means no deploy, forward or back, changes it: Monday's code asks for the latest version as it starts, and the latest is the manager's rewrite. It first reached customers with Wednesday's restart, which is why it looked like part of the deploy. The index is the job's output, and output stays as it was written whichever version of the job's code is deployed. Keep a record for each release of everything it ran on: the code, the prompt version, the index and the model version. Have the code take the prompt version and the index's name from that record instead of the latest, and a rollback then restores the whole record. On your own server, add the model files to the record; the old model comes back only if those files were kept.
+Keep a record for each release of everything it ran on: the code, the prompt version, the index and the model version, and on your own server the model files. Have the code take the prompt version and the index's name from that record instead of the latest, and a rollback then restores the whole record.
 
 </details>
 
 <details><summary>D. The rewritten prompt, and nothing else</summary>
 
-✗ The listings job lives in your repository, and rolling the repository back to Monday feels as if it takes the job's work back too. A rollback changes which code runs, and the index is data the job has already written. Monday's version of the job reads the same website tonight and builds the spring listings again.
+✗ The listings job lives in your repository, and a rollback puts the repository back to Monday. That changes which code runs, and the index is data the job has already written. Monday's version of the job reads the same website tonight and builds the spring listings again.
 
 </details>
 
@@ -80,17 +80,17 @@ After the canary's day, how correct are the new prompt's answers compared with t
 
 <details><summary>A. More correct than the current prompt's</summary>
 
-✗ The finance lead reads a 6% saving as the bot getting to the point, with customers helped in fewer messages. It can as easily mean shorter replies or customers giving up. Cost counts tokens, and a right answer and a wrong one of the same length cost the same.
+✗ A prompt that gets to the point uses fewer tokens, and cost per chat came out 6% lower. The 6% can as easily mean shorter replies or customers giving up. Cost counts tokens, and a right answer and a wrong one of the same length cost the same, so the saving says nothing about which answers were right.
 
 </details>
 
 <details><summary>B. Not known yet</summary>
 
-✓ Right. Not known yet. A wrong answer is an ordinary reply: the call succeeds, arrives on time and costs what its tokens cost, so none of the three numbers can tell a right answer from a wrong one.
+✓ Right. Not known yet. A wrong answer is an ordinary reply: the call succeeds, arrives on time and costs what its tokens cost, so none of the three numbers can tell a right answer from a wrong one, and from tomorrow half of all customers can get whatever the new prompt gets wrong.
 
-Suppose the new prompt has the bot quoting an overdraft fee the bank dropped last year. From tomorrow half of all customers can get it, and the first sign may be a customer at a branch counter holding up a screenshot of the chat.
+A canary widens a change step by step while chosen numbers stay within limits, and it can only stop for what those numbers measure. The error rate counts calls that failed, reply time counts seconds, and cost counts tokens; a fluent wrong answer clears all three. The 6% could come from shorter replies, from customers who gave up sooner or from a prompt with fewer tokens, and none of those says whether a reply was right.
 
-A canary widens a change step by step while chosen numbers stay within limits, and it can only stop for what those numbers measure. The error rate counts calls that failed, reply time counts seconds, and cost counts tokens; a fluent wrong answer clears all three. The 6% could come from shorter replies, from customers who gave up sooner or from a prompt with fewer tokens, and none of those says whether a reply was right. Check the answers before the canary, with an eval, and give the canary a number that moves when answers go wrong, for instance how often a chat ends with the customer asking for a person. A provider's API and your own server both return a wrong answer as a success, so that number has to come from your side.
+Check the answers before the canary, with an eval, and give the canary a number that moves when answers go wrong, for instance how often a chat ends with the customer asking for a person.
 
 </details>
 
@@ -102,7 +102,7 @@ A canary widens a change step by step while chosen numbers stay within limits, a
 
 <details><summary>D. Less correct than the current prompt's</summary>
 
-✗ A prompt that makes the model spend less might be one that makes it try less: you get what you pay for. Spending says nothing about correctness: a shorter reply can be a sharper one, and a long reply can be wrong from its first line.
+✗ Spending less often means trying less: you get what you pay for. Cost per chat follows the number of tokens, and a shorter reply can be a sharper one while a long reply can be wrong from its first line. Error rate, reply time and cost each count something other than right answers, so after the canary's day the new prompt's correctness is unknown.
 
 </details>
 
@@ -116,29 +116,29 @@ Which ending of the hour can tell you whether the new prompt has stopped the dos
 
 <details><summary>A. A clean hour</summary>
 
-✗ No dose in 250 chats feels like proof, the way a clean test run does. At 1 in 2,000, the old prompt itself would have given a clean hour 88% of the time, so the hour looks the same whether the new prompt fixed anything or not.
+✗ A clean run is how a test suite tells you a fix worked, and 250 chats passed without a dose. At 1 in 2,000, the old prompt itself would have given a clean hour 88% of the time, so the hour looks the same whether the new prompt fixed anything or not.
 
 </details>
 
 <details><summary>B. A clean hour and a dosing reply alike</summary>
 
-✗ A check that can pass or fail usually tells you something either way, and both results seem to count, but these two are lopsided. A dose shows the failure is still there; a clean hour is what 250 chats give most of the time even at the old rate, and it tells you almost nothing.
+✗ A test that can pass or fail normally carries news either way, green for fixed and red for broken. This one carries news only when it fails: one dosing reply proves the old behaviour is still there, while a clean hour is what the old prompt itself produces in most hours, so it settles nothing.
 
 </details>
 
 <details><summary>C. Neither a clean hour nor a dosing reply</summary>
 
-✗ Two hundred and fifty chats against a failure that rare sounds far too few to show anything at all, and for a clean hour that is so. A single dose is different: it can only happen if the new prompt still gives doses, so one is enough to rule out a cure.
+✗ Rare failures need large samples, and 250 chats against a rate of 1 in 2,000 is a small one. A dosing reply needs no sample size behind it: it can only come from a prompt that still doses, so a single one rules out a cure.
 
 </details>
 
 <details><summary>D. A single dosing reply</summary>
 
-✓ Right. Only a dose can: one dosing reply in the hour shows the change has not stopped them. At the old rate of 1 in 2,000, 88% of such hours would have come through without a dose as well.
+✓ Right. Only a dose can: one dosing reply in the hour shows the change has not stopped them. At the old rate of 1 in 2,000, 88% of such hours would have come through without a dose as well, so promoting on a clean hour rests on a result that would look the same had the prompt done nothing.
 
-Promoting on that hour sends the prompt to every customer on a result that would have looked the same had it done nothing. In that case about one customer in 2,000 goes on reading a dose in a chat window instead of being sent to the pharmacist on duty.
+A canary sees only as many chats as its share and its hours give it. At 1 in 2,000, the failure is expected 0.125 times in 250 chats, about once in eight such hours, so most hours come up clean whichever prompt runs; even if the new prompt doubled the failure, 78% of hours would still come up clean. A dose rules out a full cure, while a clean hour fits a full cure, a partial one and none at all. A 95% chance of seeing the old failure at least once takes about 6,000 chats, a full day of this canary, and telling stopped from rarer takes far more.
 
-A canary sees only as many chats as its share and its hours give it. At 1 in 2,000, the failure is expected 0.125 times in 250 chats, about once in eight such hours, so most hours come up clean whichever prompt runs. Even if the new prompt doubled the failure, 78% of hours would still come up clean. The two results do not weigh the same: a dose rules out a fix that works, while a clean hour fits a full cure, a partial one and none at all. A 95% chance of seeing the old failure at least once takes about 6,000 chats, a full day of this canary, and telling stopped from rarer takes far more. Test a rare failure before the canary: send the eval cases that drew a dose to the new prompt many times each, and count. Keep the canary for faults common enough to show in the chats it gets.
+Test a rare failure before the canary: send the eval cases that drew a dose to the new prompt many times each, and count. Keep the canary for faults common enough to show in the chats it gets.
 
 </details>
 
@@ -164,29 +164,29 @@ What has the passenger received an hour later?
 
 <details><summary>A. A reply saying she keeps her seat, and an email that she is on the 18:40</summary>
 
-✓ Right. Her chat says she keeps her seat on the delayed flight, and her inbox holds the booking system's email that she is now on the 18:40. The pool ignored the newer model's text after its rebooking had gone through.
+✓ Right. Her chat says she keeps her seat on the delayed flight, and her inbox holds the booking system's email that she is now on the 18:40. The pool ignored the newer model's text after its rebooking had gone through, so the same chat that told her to stay has moved her.
 
-She queues at the gate of the delayed flight and learns there that she was moved to the 18:40 by the same chat that told her to stay. With a full flight behind her, the gate agent has to pick which of the two answers to honour.
+In a shadow run the new version's replies are logged and thrown away, and that is all the throwing away covers. A tool call in a reply is an instruction for your code, and `answer_with` carries out every one before it returns, on the trial's thread as on the live one. By the time the pool's result is ignored, the seat has moved and the booking system has sent its email.
 
-In a shadow run the new version's replies are logged and thrown away, and that is all the throwing away covers. A tool call in a reply is an instruction for your code, and `answer_with` carries out every one before it returns, on the trial's thread as on the live one. By the time the pool's result is ignored, the seat has moved and the booking system has sent its email. A shadow has to be kept from acting: point the trial at a test copy of the booking system, which accepts a rebooking and moves nobody, and route that copy's emails to a mailbox the team reads. The test copy's list of rebookings is then the trial's result, the passengers the newer model would have moved. Whether the model sits behind a provider's API or on your own server, your code is what runs the tools, so the email goes out either way.
+Keep a shadow from acting: point the trial at a test copy of the booking system, which accepts a rebooking and moves nobody, and route that copy's emails to a mailbox the team reads. The test copy's list of rebookings is then the trial's result, the passengers the newer model would have moved.
 
 </details>
 
 <details><summary>B. A reply saying she keeps her seat, and nothing more</summary>
 
-✗ From where she sits the trial is invisible: one chat, one reply, the current model's. Being invisible in the chat is a different thing from doing nothing. The loop in `answer_with` ran the rebooking on the trial's thread before that thread's text came back to be ignored, and the email went out with it.
+✗ From where she sits the trial is invisible: one chat, one reply, the current model's. The loop in `answer_with` still ran the rebooking on the trial's thread before that thread's text came back to be ignored, so she is moved to the 18:40 and the email goes out.
 
 </details>
 
 <details><summary>C. A reply saying she keeps her seat, and an email asking her to confirm the 18:40</summary>
 
-✗ Every airline site you have used asks you to confirm a change before it counts, so a rebooking she never asked for should wait for her yes. Nothing waits here: the tool moves her the moment `run_tool` runs it, and the email is the booking system reporting a move already made, with nothing for her to answer.
+✗ Every airline site you have used asks you to confirm a change before it counts. Nothing waits here: the tool moves her the moment `run_tool` runs it, and the email is the booking system reporting a move already made, with nothing for her to answer.
 
 </details>
 
 <details><summary>D. A move to the 18:40, undone when the trial's reply is thrown away</summary>
 
-✗ Work with databases teaches that unfinished work is rolled back, and a run whose answer nobody uses has the feel of unfinished work. There is no transaction around a tool call here. The rebooking finished inside `answer_with`, and ignoring the text afterwards reverses none of it.
+✗ Work with databases teaches that unfinished work is rolled back, and a trial whose answer is thrown away counts as abandoned work. There is no transaction around a tool call here. The rebooking finished inside `answer_with`, and ignoring the text afterwards reverses none of it.
 
 </details>
 
@@ -200,29 +200,29 @@ When the newer model writes its second reply in a chat, which messages is it rep
 
 <details><summary>A. The customer's first and second messages, with no reply between them</summary>
 
-✗ The trial is there to write replies of its own, so handing it only what the customer typed sounds like the clean way to copy a chat. The copy is the live request itself, and that list holds the assistant's turns as well: the newer model's second request carries the current model's first reply between the customer's two messages.
+✗ The trial exists to see what the newer model writes on its own. The copy is the live request itself, and that list holds the assistant's turns as well: the newer model's second request carries the current model's first reply between the customer's two messages.
 
 </details>
 
 <details><summary>B. Only the customer's second message, with nothing before it</summary>
 
-✗ If you have mirrored web traffic to a test service, each copied request stood alone, and a chat message looks like one more of those. The copy here is of the model request, and in a chat that request carries the conversation so far, since a model remembers nothing from one call to the next. The second request holds the whole first exchange.
+✗ Mirrored web traffic sends a test service each request on its own, and a chat message is one more request. The copy here is of the model request, and in a chat that request carries the conversation so far, since a model remembers nothing from one call to the next. The second request holds the whole first exchange.
 
 </details>
 
 <details><summary>C. Its own first reply, then what the customer said to the current model</summary>
 
-✗ A trial that keeps its own copy of the chat, with its replies where the live ones were, is a natural design to picture. This trial copies the live request, which holds the replies the customer saw and none of the newer model's. Its own first reply appears nowhere in what it is sent.
+✗ A shadow model that writes replies needs a chat to write them in, and the simplest is its own copy, with its replies where the live ones were. This trial copies the live request, which holds the replies the customer saw and none of the newer model's. Its own first reply appears nowhere in what it is sent.
 
 </details>
 
 <details><summary>D. The current model's first reply, and the customer's answer</summary>
 
-✓ Right. The newer model's second reply answers the current model's first reply and the customer's response to it. Only the first reply in each chat answers an opening the newer model would have met on its own.
+✓ Right. The newer model's second reply answers the current model's first reply and the customer's response to it. Only its first reply in each chat answers a real opening, so the log cannot show how it steers a fault from its own start.
 
-The support lead reads twenty turns of the newer model calmly working through a router fault and marks it ready for long chats. Every turn after the first rested on steps the current model chose, so how the newer model steers a fault from its own start is the one thing the log cannot show.
+A shadow run sends a copy of each live request, and in a chat a request is the whole list so far: the system prompt, every customer message and every reply the customer saw. Those replies are the current model's, so from the second turn on the newer model is handed a conversation another model has been steering and asked to carry on. If its own first reply would have asked for the router's model number while the current model said to restart the router, the customer's next message is about the restart, and the log records the newer model reacting to that.
 
-A shadow run sends a copy of each live request, and in a chat a request is the whole list so far: the system prompt, every customer message and every reply the customer saw. Those replies are the current model's, so from the second turn on the newer model is handed a conversation another model has been steering and asked to carry on. If its own first reply would have asked for the router's model number while the current model said to restart the router, the customer's next message is about the restart, and the log records the newer model reacting to that. Read a shadow log of chats as first replies to real openings plus continuations of the current model's chats. To see the newer model hold a conversation from start to finish, give it conversations of its own. A canary on a small share of chats does that, and so does a test in which another model plays the customer, starting from a recorded chat's opening. Wherever the model is served, the copied request carries the replies the customer saw, so the log reads the same way.
+Read a shadow log of chats as first replies to real openings plus continuations of the current model's chats. To see the newer model hold a conversation from start to finish, give it conversations of its own: a canary on a small share of chats does that, and so does a test in which another model plays the customer, starting from a recorded chat's opening.
 
 </details>
 
@@ -242,7 +242,7 @@ Which number can tell you whether the new version answers better?
 
 <details><summary>B. The share of chats with a question asked twice</summary>
 
-✗ A customer who asks the same thing twice was not helped the first time, and that signal needs no button at all. The button reaches it anyway: on the new side an unhappy customer can ask for a person instead of asking again, while the current side offers no such way out, so the two shares count different customers.
+✗ A customer who asks the same thing twice was not helped the first time, and that signal needs no button at all. The new button changes that signal too: on the new side an unhappy customer can ask for a person instead of asking again, while the current side offers no such way out, so the two shares count different customers.
 
 </details>
 
@@ -250,15 +250,15 @@ Which number can tell you whether the new version answers better?
 
 ✓ Right. Grades given to a random sample of chats from each side, scored the same way by a person with a rubric or a judge model, are the one number both sides produce alike.
 
-The new version goes to everyone on the strength of the drop, and the operations manager takes one person off the evening chat rota to match the better answers. Every press of the new button now lands in a queue with one person fewer to answer it.
+A split test gives both sides the same kind of customers, so any number taken the same way on both sides compares them fairly. User feedback is not taken the same way here. It counts only customers who choose to press a thumb, and the new side hands an unhappy customer a second thing to press, a request for a person, in place of a vote or a repeated question. Say both versions give a bad answer in 1 chat in 10. An unhappy customer votes 12.3% of the time on the current side and a third less often on the new one, and a happy customer votes 10% of the time on both. Down votes then make up 12.0% and 8.4% of the votes, the figures in the question, with answers exactly as good on both sides. Adding the presses to the thumbs-downs, or leaving out chats with a press, trades one difference between the sides for another, since the button exists on one side only.
 
-A split test gives both sides the same kind of customers, so any number taken the same way on both sides compares them fairly. User feedback is not taken the same way here. It counts only customers who choose to press a thumb, and the new side hands an unhappy customer a second thing to press, a request for a person, in place of a vote or a repeated question. Picture both versions giving a bad answer in 1 chat in 10. An unhappy customer votes 12.3% of the time on the current side and a third less often on the new one; a happy customer votes 10% of the time on both. Down votes then make up 12.0% and 8.4% of the votes, the dashboard's figures, with answers exactly as good on both sides. Adding the presses to the thumbs-downs, or leaving out chats with a press, swaps one difference between the sides for another. Draw the same number of chats at random from each side and have them graded without the grader knowing which version wrote them.
+Draw the same number of chats at random from each side and have them graded without the grader knowing which version wrote them.
 
 </details>
 
 <details><summary>D. Thumbs-downs and "Talk to a person" presses added together</summary>
 
-✗ If the button drew unhappy customers away from the thumbs, putting their presses back has the look of a fair repair. A press is not a verdict on the last answer: customers ask for a person to change a delivery slot or report a missing item. And the current side had no button, so its unhappy customers left no presses to add.
+✗ A button under every reply gives unhappy customers somewhere other than the thumbs to go, so counting their presses as thumbs-downs puts them back. A press is not a verdict on the last answer: customers ask for a person to change a delivery slot or report a missing item. And the current side had no button, so its unhappy customers left no presses to add.
 
 </details>
 
@@ -285,29 +285,29 @@ What does the survey's one-point lead for the new prompt measure?
 
 <details><summary>A. Chats on the new prompt solve a point more than chats on the current one</summary>
 
-✗ A fresh draw for every message is as random as a split can get, and randomness is what makes a test fair. It makes the version of each chat's last reply a fair draw, and no more. In chats of six replies, 31 in 32 of the chats on either side heard both prompts, so neither side holds chats that one prompt ran.
+✗ A fresh draw for every message is as random as a split can get, and randomness is what makes a test fair. It makes the version of each chat's last reply a fair draw, and no more. In chats of six replies, 31 in 32 of the chats on either side heard both prompts, so almost no chat on either side was run by one prompt.
 
 </details>
 
 <details><summary>B. Chats whose last reply came from the new prompt solve a point more than the others</summary>
 
-✓ Right. The point compares chats whose last reply came from the new prompt with chats whose last reply came from the current one, and in chats of six replies 31 in 32 of each group heard both prompts.
+✓ Right. The point compares chats whose last reply came from the new prompt with chats whose last reply came from the current one, and in chats of six replies 31 in 32 of each group heard both prompts, so the shop has no number for chats run by one prompt throughout.
 
-The shop moves everyone to the new prompt on the strength of the lead. A customer asking about a puppy's diet now gets six replies from one prompt, a chat the test never ran, and the shop has no number for how those chats go.
+A split test compares two versions only when each side's chats were run by one of them. This code draws a fresh key for every message, so it splits by request: a chat of six replies stays on one version only when six draws in a row agree, 1 chat in 32. Each reply is written on top of the other version's earlier replies, which the request carries in its history, and `chat.version` keeps only the latest draw, so the survey's verdict on the whole chat goes to whichever prompt spoke last. That draw is random, so the lead is a fair comparison of last replies, and at 40,000 answers a side it sits about 3.5 standard errors from no difference.
 
-A split test compares two versions only when each side's chats were run by one of them. This code draws a fresh key for every message, so it splits by request: a chat of six replies stays on one version only when six draws in a row agree, 1 chat in 32. Each reply is written on top of the other version's earlier replies, which the request carries in its history, and `chat.version` keeps only the latest draw, so the survey's verdict on the whole chat goes to whichever prompt spoke last. That draw is random, so the lead is a fair comparison of last replies, and at 40,000 answers a side it sits about 3.5 standard errors from no difference. A standard error is the size of gap that chance alone usually makes. The lead is not a comparison of the prompts over whole chats, which no chat in the test ran. Use the chat's id as the key, so every message in a chat draws the same version, or the customer's id where one customer opens several chats. The split is made in your code, so where the model runs changes nothing here.
+Use the chat's id as the key, so every message in a chat draws the same version, or the customer's id where one customer opens several chats.
 
 </details>
 
 <details><summary>C. Noise that more chats would wash out</summary>
 
-✗ A point is small, and small gaps in a survey often melt away once more answers arrive. With about 40,000 on each side this one is unlikely to: chance alone would rarely produce a gap 3.5 standard errors from none. That the gap is real is settled; what it is a gap between is not.
+✗ A point is small, and small gaps in a survey often melt away once more answers arrive. With about 40,000 on each side this one is unlikely to: chance alone would rarely produce a gap 3.5 standard errors from none. The gap is real, and it compares chats by the prompt that wrote their last reply, after nearly all of them had heard the other prompt too.
 
 </details>
 
 <details><summary>D. Chats on the new prompt solve well over a point more than chats on the current one</summary>
 
-✗ Mixing two prompts in one chat blurs a test, and a blurred test is expected to understate the gap it looks for. Here the blur can run either way, since a prompt may do worse after replies it did not write as easily as better. No chat in the survey ran on one prompt, so it gives no size for whole chats on the new one, larger or smaller.
+✗ Mixing two prompts in one chat blurs a test, and blur in a measurement usually shrinks the gap it finds. Here the blur can run either way, since a prompt can do better or worse when it follows replies another prompt wrote. Only 1 chat in 32 ran on one prompt, and `chat.version` keeps only the last draw, so the survey cannot pick those chats out and gives no size for whole chats on the new one, larger or smaller.
 
 </details>
 
@@ -337,23 +337,23 @@ Which system prompt does that student's request carry tonight?
 
 <details><summary>A. Last week's prompt, which allows full answers</summary>
 
-✓ Right. The request carries last week's prompt, saved with the chat the day it opened, ahead of every turn. Today's release reaches only chats opened from now on.
+✓ Right. The request carries last week's prompt, saved with the chat the day it opened, ahead of every turn. Today's release reaches only chats opened from now on, so a student with an older chat gets a worked solution while a chat opened this morning gets hints.
 
-Tonight a student with a chat open since last week gets a worked solution to the graded problem, while a classmate who opened a chat this morning gets hints. The teacher who asked for the change hears that it works for some students and not for others.
+The system prompt is only the first message of the list your code sends, and this code saves the list with the chat, so the prompt in force when a chat opened travels with it until the chat ends. The release changed a constant that only `open_chat` reads. A rollback has the same blind spot the other way round: chats opened while a bad prompt was live keep it after the code goes back.
 
-The system prompt is only the first message of the list your code sends, and this code saves the list with the chat, so the prompt in force when a chat opened travels with it until the chat ends. The release changed a constant that only `open_chat` reads. A rollback has the same blind spot the other way round: chats opened while a bad prompt was live keep it after the code goes back. A switch-over reaches open chats only if each call builds the system prompt fresh. Keep it out of the saved messages, store its version beside the chat if you want a record, and put the current one in front of the saved turns on every call. Your code builds the list on a provider's API and on your own server alike, so both behave this way.
+Keep the system prompt out of the saved messages, store its version beside the chat if you want a record, and put the current one in front of the saved turns on every call, so a switch-over reaches open chats.
 
 </details>
 
 <details><summary>B. Today's prompt, which asks for hints on graded work</summary>
 
-✗ The prompt lives in your code, and every other change you deploy reaches every user on their next request. The constant is read in one place, `open_chat`, which runs once per chat. Last week's chat was saved with last week's prompt as its first message, and `reply` sends that saved list.
+✗ The prompt lives in your code, and code you deploy runs on every user's next request. The constant is read in one place, `open_chat`, which runs once per chat. Last week's chat was saved with last week's prompt as its first message, and `reply` sends that saved list.
 
 </details>
 
 <details><summary>C. Both prompts, last week's first</summary>
 
-✗ The code holds one prompt and the saved chat holds another, and you may picture both going out. Only the saved list is sent: `reply` loads it and appends the student's message, and nothing puts `SYSTEM_PROMPT` in front of it again.
+✗ Frameworks that manage chats often put the current system prompt in front of every request. Only the saved list is sent here: `reply` loads it and appends the student's message, and no line puts `SYSTEM_PROMPT` in front of it again, so the request carries last week's prompt alone.
 
 </details>
 
@@ -380,23 +380,23 @@ How much does the customer get back?
 
 <details><summary>A. The 180 euros the agent meant</summary>
 
-✗ The call was written before the release, and a change you ship usually leaves finished work alone. This work was not finished: it was waiting to run, and it ran on today's code. `approve` hands the saved 180 to the payment service as cents, and nothing in the saved call says it was meant in euros.
+✗ The call was written before the release, and a change you ship usually leaves finished work alone. This work was not finished: it was waiting to run, and it ran on today's code. `approve` hands the saved 180 to the payment service as cents, and the saved call does not say it was meant in euros, so the customer gets 1.80 euros back.
 
 </details>
 
 <details><summary>B. No refund, and an error on approval</summary>
 
-✗ A tool with a typed definition invites the picture of a check that turns away a call written for the old one. Nothing checks the call when it is approved, and a check would pass it anyway: 180 is a whole number, which is all the definition asks of `amount`. The payment service gets a valid request and pays it.
+✗ Typed tool definitions exist so that calls can be checked, and this call was written for the old tool. Nothing checks the call when it is approved, and a check would pass it anyway: 180 is a whole number, which is all the definition asks of `amount`. The payment service gets a valid request and pays it.
 
 </details>
 
 <details><summary>C. The 180 paid out as cents</summary>
 
-✓ Right. The payment service refunds 180 cents, 1.80 euros. The saved call says `amount` is 180, written last night against a definition in euros, and this morning's code reads it as cents.
+✓ Right. The payment service refunds 180 cents, 1.80 euros. The saved call says `amount` is 180, written last night against a definition in euros, and this morning's code reads it as cents; every refund queued before the release and approved after it is short a hundredfold.
 
-The customer who was stranded on a motorway last night opens an email about a refund of 1.80 euros and calls back angrier than before. Every refund queued before the release and approved after it is short a hundredfold, and the queue gives no sign of which ones those are.
+A tool call is the model's reading of a tool's definition at the moment it wrote the call. Saved and run later, the call keeps that reading, and it records no version of the definition it was written against: the queue holds the name `refund` and the number 180, and this morning both mean something new. A release that changes what a tool's field means reaches every call written after it, and also every call written before it and run after it.
 
-A tool call is the model's reading of a tool's definition at the moment it wrote the call. Saved and run later, the call keeps that reading, and nothing in it records which definition it was written against: the queue holds the name `refund` and the number 180, and this morning both mean something new. A release that changes what a tool's field means reaches every call written after it, and also every call written before it and run after it. Store the definition's version with each saved call, and have the approval code run older calls under the meaning they were written for, or send them back to be written again. A changed meaning is safer under a new name, such as an `amount_cents` field, which an old call does not have. Approval runs in your code and calls no model, so where the model is served makes no difference.
+Store the definition's version with each saved call, and have the approval code run older calls under the meaning they were written for, or send them back to be written again. A changed meaning is safer under a new name, such as an `amount_cents` field, which an old call does not have.
 
 </details>
 
@@ -430,13 +430,13 @@ When does the late-applications question first get the current model's answer?
 
 <details><summary>B. A minute or two after noon</summary>
 
-✗ Flags you have flipped before took a minute to reach every server, and that lag is real. It never touches this question, whose answer comes out of the shared store; the code reads the flag only when the store has nothing.
+✗ Flags you have flipped before took a minute to reach every server, and that lag is real. It never touches this question, whose answer comes out of the shared store, and a lag in the flag changes which servers see it, not that answer.
 
 </details>
 
 <details><summary>C. Once the bot's servers restart</summary>
 
-✗ You have restarted a service before to make a config change stick, so a restart feels like the step that completes a switch. The store is shared by all the servers and sits outside them. A restart empties none of it, and the first ask afterwards finds the same answer.
+✗ A restart is the usual way to make a config change stick. The store is shared by all the servers and sits outside them. A restart empties none of it, and the first ask afterwards finds the same answer.
 
 </details>
 
@@ -444,9 +444,9 @@ When does the late-applications question first get the current model's answer?
 
 ✓ Right. Not until the stored answer expires, a week after the new model wrote it on Monday morning. Until then every ask of that question is served from the store before the code reaches the flag, and the current model is never called for it.
 
-Applicants who ask on Thursday and Friday still read the wrong deadline, and some post their forms a day late. When the admissions team tries the bot with the question worded afresh, the current model answers it, and the staff begin to wonder whether the applicants misread.
+A feature flag acts at the line that reads it, and in `answer` that line runs only when the store has nothing for the question. The key is built from the question alone, so it carries no trace of which model wrote the entry, and the entry the new model wrote on Monday satisfies every later ask until its week runs out. A question first asked after noon does reach the current model, so a test with the question worded afresh reaches it too and hides the stale entry, and a restart changes nothing, since the store lives outside the servers.
 
-A feature flag acts at the line that reads it, and in `answer` that line runs only when the store has nothing for the question. The key is built from the question alone, so it carries no trace of which model wrote the entry, and the entry the new model wrote on Monday satisfies every later ask until its week runs out. A question first asked after noon does reach the current model, and a restart changes nothing, since the store lives outside the servers. A key that names its author mends this: with the model version and the prompt version beside the question, the flag's move points every ask at a key the store has never filled. When you switch a model off, delete what it wrote as well, or those entries return the day the flag does. Saved summaries and any other stored text a model wrote behave the same: the flag stops new writes and leaves the old ones in place.
+Put the model version and the prompt version in the key beside the question, so the flag's move points every ask at a key the store has never filled. When you switch a model off, delete what it wrote as well, or those entries return the day the flag does.
 
 </details>
 
@@ -460,7 +460,7 @@ What should the team do next?
 
 <details><summary>A. Hold release 22 back until it scores 84%</summary>
 
-✗ The gate has worked this way for months, and a lower number has always meant a weaker release, but the set changed under it. The 79% is a share of 360 cases, 60 of them drawn from complaints, while the 84% was a share of the old 300, and a release ahead on every old case can still score lower once those cases join.
+✗ The gate has worked this way for months, and a lower number has always meant a weaker release, but the set changed under it. The 79% is a share of 360 cases, 60 of them drawn from complaints, while the 84% was a share of the old 300, and a release ahead on every old case can still score lower once those cases join, so holding it back can block a better release against a number it cannot be compared with.
 
 </details>
 
@@ -468,21 +468,21 @@ What should the team do next?
 
 ✓ Right. Score release 21 on the same 360 cases, then compare. The 84% and the 79% are shares of two different sets, and side by side they cannot say whether release 22 is better or worse.
 
-While the comparison stands, the release built to handle the complaint cases waits, two engineers spend the week hunting a regression that may not exist, and customers filing before the deadline keep meeting the answers that drew the complaints.
+A pass rate belongs to the eval set it was taken on, so a release gate compares like with like only while both scores come from the same cases. Say release 22 passes 86% of the old 300 cases and 45% of the 60 new ones: it scores 79%, and if release 21 passes 30% of the new cases, release 21 scores 75% on the 360 and loses on both parts. Say instead release 22 passes 80% of the old cases and 75% of the new: it scores 79% again, now worse on the old cases than release 21's 84%. A score belongs to its grader as well, so a swapped judge model or an edited rubric moves it too.
 
-A pass rate belongs to the eval set it was taken on, so a release gate compares like with like only while both scores come from the same cases. Say release 22 passes 86% of the old 300 cases and 45% of the 60 new ones: it scores 79%, and if release 21 passes 30% of the new cases, release 21 scores 75% on the 360 and loses on both parts. Say instead release 22 passes 80% of the old cases and 75% of the new: it scores 79% again, now worse on the old cases than release 21's 84%. Treat the eval set as versioned: write each score down with the set it was taken on, and when cases are added, rerun the last release before its number is compared with anything. A score belongs to its grader as well: swap the judge model or edit its rubric, and grade the last release again with the new grader before the two scores meet.
+Treat the eval set as versioned: write each score down with the set it was taken on, and when cases or the grader change, rerun the last release before its number is compared with anything.
 
 </details>
 
 <details><summary>C. Run release 22 again</summary>
 
-✗ At 360 cases a score does move from run to run, which makes a second run a fair instinct. It tells you how much the 79% wobbles; it is still a share of a different set from the 84%, and the two stay apart however many times release 22 runs.
+✗ At 360 cases a score moves from run to run, and rerunning is the standard check on a number that might be noise. It tells you how much the 79% wobbles; it is still a share of a different set from the 84%, and the two stay apart however many times release 22 runs.
 
 </details>
 
 <details><summary>D. Ship release 22 as it stands</summary>
 
-✗ The complaint cases were added because the bot failed them, so they could carry the whole drop. The scores fit that story and its opposite: release 22 can lead on the old cases and trail on the new, or the reverse, and both give 79%.
+✗ The complaint cases were added because the bot failed them. The scores fit a drop on those cases and its opposite: release 22 can lead on the old cases and trail on the new, or the reverse, and both give 79%.
 
 </details>
 
@@ -496,7 +496,7 @@ What should the gate run before release 32 goes out?
 
 <details><summary>A. The eval set on the main model, as before</summary>
 
-✗ Eleven releases have passed this gate on the main model, and that model answers almost every chat. Almost is where the gap sits: for three hours yesterday the backup answered all of them, with release 31's prompt, which no eval had ever sent it. Release 32 would reach the backup untried in the same way.
+✗ Eleven releases have passed this gate on the main model, and that model answers almost every chat. For three hours yesterday, though, the backup answered all of them, with release 31's prompt, which no eval had ever sent it. Release 32 would reach the backup untried in the same way.
 
 </details>
 
@@ -508,17 +508,17 @@ What should the gate run before release 32 goes out?
 
 <details><summary>C. The eval set on the backup, after each outage</summary>
 
-✗ Checking the backup once it has been needed sounds thrifty, since it matters only when the main provider fails. By the time you check, its answers have already gone out. An outage gives no notice, so the backup has to be checked with each release's prompt before the release, as the main model is.
+✗ Checking the backup only once it has been needed saves effort, since it matters only when the main provider fails. By the time you check, its answers have already gone out. An outage gives no notice, so the backup has to be checked with each release's prompt before the release, as the main model is.
 
 </details>
 
 <details><summary>D. The eval set on both models</summary>
 
-✓ Right. The gate has to run release 32's prompt and tools through the backup as well as the main model. The backup answers customers whenever the main provider fails, so it carries each release as surely as the main model does.
+✓ Right. The gate has to run release 32's prompt and tools through the backup as well as the main model. The backup answers customers whenever the main provider fails, as it did for three hours yesterday with a prompt eleven releases newer than the one it was tried with.
 
-For three hours yesterday, customers asking about late orders were answered by the backup reading a prompt eleven releases newer than the one it was tried with. If one of those releases added a refund rule the backup handles badly, the incident report blames the outage, and the refunds have already been promised.
+A release is whatever answers customers, and a backup model takes release 32's prompt and tools to a model the gate has never run them on. The main model's pass rate speaks for the main model with that prompt. The trial at release 20 spoke for the backup with release 20's prompt, and each of the eleven releases since changed what the backup would be asked.
 
-A release is whatever answers customers, and a backup model takes release 32's prompt and tools to a model the gate has never run them on. The main model's pass rate speaks for the main model with that prompt. The trial at release 20 spoke for the backup with release 20's prompt, and each of the eleven releases since changed what the backup would be asked. Put the backup inside the release gate: run the eval set through both models and hold the release back if either misses the bar. Treat a switch to the backup as a switch-over of the model, and send it a small share of chats from time to time, so its replies on the current prompt are read before an outage puts them in front of everyone.
+Put the backup inside the release gate: run the eval set through both models and hold the release back if either misses the bar. Treat a switch to the backup as a switch-over of the model, and send it a small share of chats from time to time, so its replies on the current prompt are read before an outage puts them in front of everyone.
 
 </details>
 
@@ -532,7 +532,7 @@ What does the eval set need before it can back what the release notes promise?
 
 <details><summary>A. More complaint chats, from earlier months</summary>
 
-✗ Complaints are the cases you already know how to collect, each one a failure worth having in the set. More complaints tell you more about the failures and still nothing about the chats that go well, which are most of the bot's traffic.
+✗ Complaints are the cases you already know how to collect, each one a failure worth having in the set. More complaints tell you more about the failures, while the chats that go well, most of the bot's traffic, stay out of the set however many complaints you add.
 
 </details>
 
@@ -546,15 +546,15 @@ What does the eval set need before it can back what the release notes promise?
 
 ✓ Right. A random sample of everyday chats from traffic, scored for both releases. Every chat in the set is one the bot once got wrong, so none of the everyday chats it gets right is there to show what the new prompt broke.
 
-The new prompt ships as an improvement. If it now fumbles a routine question it used to get right, such as how to report a burst pipe, every customer who asks that gets the fumble, and the eval still shows 96 of 150.
+Every case in this set is one the current release once got wrong. A new prompt changes every reply, not only the ones it was written to fix, so a case that passed before can fail after; such a case is often called a negative flip. Take a day of 2,000 chats in which the current release handles 1,900 well: a new prompt that fixes 64 of the 100 bad ones and turns 95 good ones bad handles 1,869 well, 93.5% against 95%, while passing far more of the complaint cases.
 
-The eval set and its pass rate speak only for the cases in it, and these are cases the current release once got wrong. A new prompt changes every reply, not only the ones it was written to fix, so a case that passed before can fail after; such a case is often called a negative flip. Take a day of 2,000 chats in which the current release handles 1,900 well: a new prompt that fixes 64 of the 100 bad ones and turns 95 good ones bad handles 1,869 well, 93.5% against 95%, while passing far more of the complaint cases. Keep the complaint cases as a set of their own, add a sample drawn at random from traffic, and compare the two releases case by case on that sample, so every flip from pass to fail shows up by name.
+Keep the complaint cases as a set of their own, add a sample drawn at random from traffic, and compare the two releases case by case on that sample, so every flip from pass to fail shows up by name.
 
 </details>
 
 <details><summary>D. A second reviewer grading the 150 chats</summary>
 
-✗ Two graders often split on the same reply, which makes a second pair of eyes the usual cure. Better grading makes the 96 a firmer score on complaint cases. It adds no case the bot handles well today, so whatever the new prompt broke stays out of sight.
+✗ Two graders often split on the same reply, which makes a second pair of eyes the usual cure. Better grading makes the 96 a firmer score on complaint cases. It adds no case the bot handles well today, so the 96 stays a score on one kind of chat, only more carefully graded.
 
 </details>
 
@@ -570,27 +570,27 @@ What can you conclude about Friday's March from Monday's May?
 
 ✓ Right. Monday's May says nothing about where Friday's March came from. Monday's request held her messages and the pages Monday's search found; Friday's request was never saved, and the same request sent twice can come back with two different answers.
 
-She has already given notice to move to another network in March, and an early-exit fee arrives on her next bill. The agent on the phone has only Monday's answer to go on and assures her the assistant now gives the right month.
+A reply comes from one whole request: the system prompt, the settings, the messages, the pages the search returned at that moment and the model version that answered. The chat log keeps one of those parts. Since Friday the index has been rebuilt every night, so Monday's search can return other pages. A retry built from the chat log is a new request, and its answer describes Monday.
 
-A reply comes from one whole request: the system prompt, the settings, the messages, the pages the search returned at that moment and the model version that answered. The chat log keeps one of those parts. Since Friday the index has been rebuilt every night, so Monday's search can return other pages, and even an identical request may not get the same answer twice. A retry built from the chat log is a new request, and its answer describes Monday. Log each request in full as it goes out, the pages included, with the prompt version and the model version the response reports. With Friday's pages in hand, the first question settles itself: either March was in what the search gave the model, and the pages need fixing, or the pages said May and the model wrote March anyway, and the fix belongs in the prompt or the model. Only with the whole request saved can a change be tried against the case that failed.
+Log each request in full as it goes out, the pages included, with the prompt version and the model version the response reports. With Friday's pages in hand, the cause settles itself: either March was in what the search gave the model, and the pages need fixing, or the pages said May and the model wrote March anyway, and the fix belongs in the prompt or the model.
 
 </details>
 
 <details><summary>B. Its cause has been fixed</summary>
 
-✗ When a bug stops showing up, someone has usually fixed it, and nothing on your side looks broken any more. Nobody changed anything here on purpose, though. Monday's search ran over an index rebuilt since Friday, and an answer that comes back right once can come back wrong when a request meets Friday's conditions again.
+✗ When a bug stops showing up, someone has usually fixed it, and Monday's answer is right. Nobody changed anything here on purpose, though. Monday's search ran over an index rebuilt since Friday, and an answer that comes back right once can come back wrong when a request meets Friday's conditions again.
 
 </details>
 
 <details><summary>C. It was a one-time slip</summary>
 
-✗ A model's answers vary from call to call, and an error that does not come back has the air of a fluke. One right answer cannot tell a fluke from a fault that returns one time in five, and Monday's request was not Friday's request to begin with.
+✗ A model's answers vary from call to call, and an error that does not come back is usually written off as one of those variations. One right answer cannot tell a fluke from a fault that returns one time in five, and Monday's request was not Friday's request to begin with.
 
 </details>
 
 <details><summary>D. Friday's pages were out of date</summary>
 
-✗ The nightly rebuild is the one change since Friday you can name, which makes it the natural suspect. Monday's answer cannot convict it, since nobody saved the pages Friday's search returned, and with those same pages the model could still have answered May on a second try.
+✗ The nightly rebuild is the one change since Friday you can name, and the first suspect is usually the last thing that changed. Monday's answer cannot convict it, since nobody saved the pages Friday's search returned, and with those same pages the model could still have answered May on a second try.
 
 </details>
 
@@ -602,4 +602,4 @@ A reply comes from one whole request: the system prompt, the settings, the messa
 - [MUSCLE](https://arxiv.org/abs/2407.09435), 2024: updating the base model under fine-tuned adapters turned some of their right answers wrong, and a training method cut those flips by up to 40% in its tests.
 - [Hidden Technical Debt in Machine Learning Systems](https://papers.nips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html), 2015: the costs that pile up around a system built on a model, among them entanglement, hidden feedback loops, configuration and changes in the outside world.
 
-Next: [Where models run](../where-models-run/README.md)
+Prev: [Testing and evals](../testing-and-evals/README.md) · Next: [Where models run](../where-models-run/README.md)

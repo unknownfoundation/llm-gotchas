@@ -1,6 +1,6 @@
 # Testing and evals
 
-Needs: [Generation parameters](../generation-parameters/README.md) · [Prompting](../prompting/README.md) · [Tool calling](../tool-calling/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · Reviewed October 2026
+Prev: [LLMs on your codebase](../llms-on-your-codebase/README.md) · Next: [Releasing LLM changes](../releasing-llm-changes/README.md) · Reviewed October 2026
 
 Testing an LLM feature checks the code around the model call and scores the replies the model gives, before release and on live traffic. What a check can show depends on what answers the model call and on what decides a pass.
 
@@ -9,11 +9,11 @@ Testing an LLM feature checks the code around the model call and scores the repl
 - **Grader**: what decides whether each reply passes: code that compares it with the answer, a person, or another model call, often called a judge model.
 - **Held-out set**: eval cases kept out of everything that shaped the feature, so that the score speaks for inputs the feature has not seen.
 - **Accuracy, precision and recall**: accuracy is the share of all items a check labels right; precision is the share of the items it flags that are real; recall is the share of the real items that it flags.
-- **Gold passages**: the passages a person marked as answering each question of a search eval.
+- **Gold passages**: the passages a person marked as holding the answer, or part of it, to each question of a search eval.
 - **Precision@k, recall@k and MRR**: three scores for a search, each worked out per question over its first k results and then averaged across the questions: precision@k is the share of those results that are gold, recall@k is the share of the question's gold passages found among them, and MRR is one divided by the rank of the first gold passage.
 - **Trace**: the record of every call made for one user request or one agent run: what each call sent, what came back and how long it took.
 
-Every live test and eval run on a provider's API is billed by the token, and once the provider retires a model version, you can no longer repeat a reference run made on it, the run you compare new scores with; on your own server the model's files are yours, so a reference run can be repeated for as long as you keep them, at the cost of time on your hardware. A check works the same way on every kind of system that allows it.
+Every live test and eval run on a provider's API is billed by the token, and once the provider retires a model version, you can no longer repeat a reference run made on it, the run you compare new scores with; on your own server the model's files are yours, so a reference run can be repeated for as long as you keep them, at the cost of time on your hardware.
 
 A feature is usually checked in five ways:
 
@@ -42,29 +42,29 @@ What has the passing test shown?
 
 <details><summary>A. That guests who write in Portuguese get Portuguese drafts</summary>
 
-✗ The test was written for the fix and feeds it a Portuguese message, so a pass reads as the fix at work. No model read that message on any run: the fake returns the Portuguese sentence you gave it, and would return it unchanged if the prompt demanded English.
+✗ The test was written for the fix, and a passing test is how a fix usually gets closed. No model read that message on any run: the fake returns the Portuguese sentence you gave it, and would return it unchanged if the prompt demanded English.
 
 </details>
 
 <details><summary>B. That your code turns the reply into the draft</summary>
 
-✓ Right. It has shown that your code passes on the text it gets back from the call, and nothing about how a model treats the prompt. The test goes green with the line, without it and with no system prompt at all, since the fake never reads what it is sent.
+✓ Right. It has shown that your code passes on the text it gets back from the call, and nothing about how a model treats the prompt. The test goes green with the line, without it and with no system prompt at all, since the fake never reads what it is sent, so a merge that drops the line leaves the build green.
 
-When a merge drops the line a week later, the build stays green and Portuguese guests start receiving English drafts again. The front-desk staff who approve each draft are back to rewriting replies by hand, and the green test sends the engineer who takes their complaint looking everywhere except the prompt.
+Faking the model puts a fake model where the call was, and this fake returns its fixed sentence whatever arrives, so the assertion looks for "quarto" in the very sentence you typed into the fake. Tests built on a fake can settle two things about your code: what it sends, and how it handles a reply. Whether a model obeys the line is for running an eval, across many guest messages in several languages.
 
-Faking the model puts a fake model where the call was, and this fake returns its fixed sentence whatever arrives, so the assertion looks for "quarto" in the very sentence you typed into the fake. Tests built on a fake can settle two things about your code: what it sends, and how it handles a reply. To protect the line, let the fake keep a copy of its request and assert that the system prompt includes it; that version goes red on the day of the merge. Whether a model obeys the line is for running an eval, across many guest messages in several languages. The fake stands in before any request leaves your code, whether the real call would go to a provider's API or to your own server.
+To protect the line, let the fake keep a copy of its request and assert that the system prompt includes it; that version goes red on the day a merge drops the line.
 
 </details>
 
 <details><summary>C. That the system prompt still carries the line</summary>
 
-✗ A fake sitting exactly where the call was seems well placed to notice what the call carries. This one never inspects it: the messages go in and the fixed sentence comes out. Only an assertion on the recorded request can catch a missing line, and this test makes its assertion on the draft alone.
+✗ A fake sits exactly where the call was, so the whole request the code sends goes through it. This one never inspects it: the messages go in and the fixed sentence comes out. Only an assertion on the recorded request can catch a missing line, and this test makes its assertion on the draft alone.
 
 </details>
 
 <details><summary>D. Nothing about your code or the drafts</summary>
 
-✗ After a green test has once hidden a real bug, writing off fakes entirely is an understandable reaction. This one does check something: that your code turns the reply into the draft unchanged. A broken return path, such as a draft cut to its first word, would turn it red.
+✗ A fake model that returns a fixed sentence whatever it is sent never runs a real model at all. This one checks something: that your code turns the reply into a draft that still contains "quarto", so a broken return path, such as a draft cut to its first word, would turn it red. What it cannot check is the new line, since the fake answers in Portuguese whatever the prompt says.
 
 </details>
 
@@ -84,23 +84,23 @@ Which of these changes turns one of the integration tests red?
 
 <details><summary>B. The provider renaming a field in its responses</summary>
 
-✗ A renamed field breaks parsing, and parsing is exactly what these tests exercise, which makes this the change they should catch. The reply they parse is the recorded one, in last month's format. The new field name exists only in the live API's responses, and the run never fetches one.
+✗ A renamed field breaks parsing, and parsing is exactly what these tests exercise. The reply they parse is the recorded one, in last month's format. The new field name exists only in the live API's responses, and the run never fetches one.
 
 </details>
 
 <details><summary>C. A timeout too short for the real API's replies</summary>
 
-✗ These tests go through the same client code as production, timeout included, so a tight timeout looks testable here. A replayed reply comes back from a file in a moment, nowhere near the limit. The timeout fails only against the real API, where a long reply takes seconds.
+✗ A timeout is part of the client code these tests exercise. A replayed reply comes back from a file in a moment, nowhere near the limit. The timeout fails only against the real API, where a long reply takes seconds.
 
 </details>
 
 <details><summary>D. A bug in your code that reads replies</summary>
 
-✓ Right. Only the bug turns a test red: the replay still hands over last month's reply, and code that now misreads it fails the check.
+✓ Right. Of these four changes, only the bug turns a test red: the replay still hands over last month's reply, and code that now misreads it fails the check. A field the provider renames next month would leave every recorded test passing.
 
-If the provider renames a field next month, every recorded test still passes, and the support lead finds the morning queue full of tickets with blank summaries before any build has gone red.
+Replaying recordings plays back replies saved from real calls earlier, so everything on the far side of the call is frozen on the day of recording: the model, the API's response format and how long a reply takes. A replayed reply arrives at once, a renamed field never appears in it, and an outage never reaches the run. What changes on your side of the call is still tested against it: the code that reads the reply, parses it and acts on it. A prompt edit depends on the tool: one that looks up a recording by the request's URL alone plays the old reply back for the new prompt, and one that matches the whole request finds no recording and fails; neither shows how a model answers the new prompt.
 
-Replaying recordings plays back replies saved from real calls earlier, so everything on the far side of the call is frozen on the day of recording: the model, the API's response format and how long a reply takes. A replayed reply arrives at once, a renamed field never appears in it, and an outage never reaches the run. What changes on your side of the call is still tested against it: the code that reads the reply, parses it and acts on it. A prompt edit depends on the tool: one that looks up a recording by the request's URL alone plays the old reply back for the new prompt, and one that matches the whole request finds no recording and fails; neither shows how a model answers the new prompt. Record again on a schedule and after every prompt change, and keep a few live tests for what the far side does today.
+Record again on a schedule and after every prompt change, and keep a few live tests for what the far side does today.
 
 </details>
 
@@ -114,29 +114,29 @@ What colour does the build come out from now on?
 
 <details><summary>A. Red on every build</summary>
 
-✗ A prompt change is code, and broken code fails every time, so you expect the build to turn red and stay red. This failure comes and goes: the test still passes 70% of its tries, and with three tries per build at least one passes on 97.3% of builds.
+✗ A prompt change is code, and broken code fails every time. This failure comes and goes: the test still passes 70% of its tries, and with three tries per build at least one passes on 97.3% of builds.
 
 </details>
 
 <details><summary>B. Red on most builds</summary>
 
-✗ Three tries give the fault three chances to show, the way three inspections give a defect three chances to be spotted. The build counts the other way round: it is red only when every try fails, and at 70% a try, three failures in a row come up on 2.7% of builds, about one in 37.
+✗ Three tries give the fault three chances to show, the way more test cases give a bug more chances to surface. The build counts the other way round: it is red only when every try fails, and at 70% a try, three failures in a row come up on 2.7% of builds, about one in 37.
 
 </details>
 
 <details><summary>C. Green on almost every build</summary>
 
-✓ Right. The build goes red only when all three tries fail, on about one build in 37; the other 97.3% stay green, though the refund test now fails three tries in ten.
+✓ Right. The build goes red only when all three tries fail, on about one build in 37; the other 97.3% stay green, though the refund test now fails three tries in ten, and customers, who get one try each, get a wrong refund answer as often.
 
-Customers get one try each, so a customer who asks what this test asks is now given a wrong refund answer three times in ten, and the build page stays green. The rare red build looks like the flakiness the reruns were added to absorb, and someone presses rerun.
+Calling the model live means each reply can differ from the last, and a rerun policy keeps the best of three tries. A try that fails 30% of the time fails three times running on 2.7% of builds; before the change, at 2% a try, a red build came about once in 125,000. A green build keeps no note of how many tries it needed, and a genuine regression is granted the same three chances as a dropped connection.
 
-Calling the model live means each reply can differ from the last, and a rerun policy keeps the best of three tries. A try that fails 30% of the time fails three times running on 2.7% of builds. Before the change, at 2% a try, a red build came about once in 125,000. A green build keeps no note of how many tries it needed, and a genuine regression is granted the same three chances as a dropped connection. Keep every try's result, and raise the alarm on each test's pass rate over its tries, whatever colour the build ends up.
+Keep every try's result, and raise the alarm on each test's pass rate over its tries, whatever colour the build ends up.
 
 </details>
 
 <details><summary>D. Red on about 30% of all builds</summary>
 
-✗ Before the reruns, a test that failed 30% of its tries turned about that share of builds red, and you carry that habit over. The reruns change the count: a build is red only when all three tries fail, which is far rarer than one failure.
+✗ Before the reruns, a test that failed 30% of its tries turned about that share of builds red. The reruns change the count: a build is red only when all three tries fail, which is far rarer than a single try failing.
 
 </details>
 
@@ -161,17 +161,17 @@ What do these scores tell the product manager?
 
 <details><summary>B. That it is still open which one is better</summary>
 
-✓ Right. Neither instruction has won. One run over 100 cases places each pass rate only within a 95% range about 18 points wide. That range is 51% to 70% for A and 59% to 77% for B, and the two share everything from 59% to 70%.
+✓ Right. Neither instruction has won. One run over 100 cases places each pass rate only within a 95% range about 18 points wide: 51% to 70% for A and 59% to 77% for B, and the two share everything from 59% to 70%.
 
-The product manager tells the team that B is eight points better. If next month's run puts A in front, nobody can say whether the helper got worse or the first gap was luck, and the switch has to be argued all over again.
+Running an eval gives a pass rate for one run over one sample of cases: draw another 100 cases from the same stream of requests, or run these again, and the rate lands somewhere else. Treat the two runs as separate samples and the true gap behind the 8 points could be anywhere from about −5 to 21; even if the two instructions were equally good at about 65%, 26.6% of pairs of runs would put them 8 or more points apart, one way or the other. Both instructions saw the same cases, though, so the cases where one passed and the other failed tell you more than the totals. Say the gap came from 8 cases that split, all won by B: chance alone would give a split that lopsided 0.8% of the time. Say instead 34 cases split, 21 to B and 13 to A: chance would give that 22.9% of the time.
 
-Running an eval gives a pass rate for one run over one sample of cases: draw another 100 cases from the same stream of requests, or run these again, and the rate lands somewhere else. Treat the two runs as separate samples and the true gap behind the 8 points could be anywhere from about −5 to 21. Even if the two instructions were equally good, 26.6% of pairs of runs would put them 8 or more points apart, one way or the other. Both instructions saw the same cases, though, so the cases where one passed and the other failed tell you more than the totals, which hide them. If B won all 8 of those, chance alone would give so lopsided a split 0.8% of the time; if B won 21 and A won 13, chance would give it 22.9% of the time. Read the case-by-case results, repeat each run a few times, and grow the set until the range is narrower than the smallest gap that would change your decision.
+Read the case-by-case results, repeat each run a few times, and grow the set until the range is narrower than the smallest gap that would change your decision.
 
 </details>
 
 <details><summary>C. That the two instructions are equally good</summary>
 
-✗ When a test fails to separate two things, the habit is to file them as the same. These counts leave both stories open: the gap of B over A could be anywhere from about −5 to 21 points, wide enough to hold a dead heat and a clear lead for B alike.
+✗ Two results a test cannot separate are filed as a tie. These counts leave both stories open: the gap of B over A could be anywhere from about −5 to 21 points, wide enough to hold a dead heat and a clear lead for B alike.
 
 </details>
 
@@ -200,29 +200,29 @@ What does the 96% measure?
 
 <details><summary>A. How well it copies a queue shown in its prompt</summary>
 
-✓ Right. Every one of the 400 prompts shows the model the email it is about to route, with the right queue written under it, ahead of two other examples. The file the search runs over is the file being scored, row for row.
+✓ Right. Every one of the 400 prompts shows the model the email it is about to route, with the right queue written under it, ahead of two other examples, so the 96% belongs to a task the router never faces: real emails never come with their queue beside them.
 
-Real emails never come with their queue written beside them, so the 96% belongs to a task the router never faces. The head of operations would publish a figure that next month's report on live emails cannot be lined up against.
+A held-out set stays out of everything that shaped the feature, and these eval cases are the very pool the examples are drawn from. Nothing is more alike to an email than the email itself, which scores the top of the similarity scale, so the first example is always the email being scored, with its queue, and the model is marked on copying a queue it read a few lines earlier. Tuning a prompt on the very cases you report leaks the same way, only more slowly: the cases mould the prompt, and the score no longer speaks for new emails.
 
-A held-out set stays out of everything that shaped the feature, and these eval cases are the very pool the examples are drawn from. Nothing is more alike to an email than the email itself, which scores the top of the similarity scale, so the first example is always the email being scored, with its queue, and the model is marked on copying a queue it read a few lines earlier. Keep the emails the examples are drawn from apart from the emails you score, with no email in both, or leave out the scored email itself when its examples are searched; then set the result beside the 79% measured on the same held-out set. Tuning a prompt on the very cases you report gets there more slowly: the cases mould the prompt, and the score no longer speaks for new emails.
+Keep the emails the examples are drawn from apart from the emails you score, with no email in both, or leave out the scored email itself when its examples are searched; then set the result beside the 79% measured on the same held-out set.
 
 </details>
 
 <details><summary>B. How well it routes emails it has never seen</summary>
 
-✗ The eval runs the production code end to end on real labelled emails, which is what a careful test is meant to do. The catch sits in the search: the email being scored is a row of the file it searches, so it comes back as its own first example, queue and all. A customer's email never arrives with its queue attached.
+✗ The eval runs the production code end to end on real labelled emails, with nothing mocked. The catch sits in the search: the email being scored is a row of the file it searches, so it comes back as its own first example, queue and all. A customer's email never arrives with its queue attached.
 
 </details>
 
 <details><summary>C. How well it routes new emails, a point or two high</summary>
 
-✗ Leaks you have met before were a few duplicated rows, worth a point or two, and this one gets filed with them. Here the leak is built into the search: nothing in the file matches an email as closely as the email itself, so all 400 prompts carry their own answer.
+✗ Leaks you have met before were a few duplicated rows, worth a point or two. Here the leak is built into the search: no row in the file matches an email as closely as the email itself, so all 400 prompts carry their own answer.
 
 </details>
 
 <details><summary>D. How much similar examples add over fixed ones</summary>
 
-✗ The 17-point rise came with the move to similar examples, so you credit the move. The two runs test different tasks: 79% with examples that never contain the case, 96% with prompts that hand over its answer. The difference blends the move with the leak.
+✗ The 17-point rise came with the move to similar examples. The two runs test different tasks: 79% with examples that never contain the case, 96% with prompts that hand over its answer. The difference blends the move with the leak.
 
 </details>
 
@@ -236,13 +236,13 @@ When the judge runs again, what should you expect from the new prompt's share of
 
 <details><summary>A. Stay near 70%</summary>
 
-✗ A judge is told to pick the better answer, and better means content to you, so you expect its verdict to ignore length. A 2024 study found the opposite: a judge's preference moved a long way with length alone, and matching the lengths takes away the head start the new answers had.
+✗ A judge is told to pick the better answer, and the better answer is the one with the better content, whatever its length. A 2024 study found the opposite: a judge's preference moved a long way with length alone, and matching the lengths takes away the head start the new answers had.
 
 </details>
 
 <details><summary>B. Rise above 70%</summary>
 
-✗ Padding is a known sin in writing, so a judge might be expected to punish answers stretched out on request. The 2024 study saw the reverse: when one model was told to give as much detail as possible, its answers won far more often against its own standard ones.
+✗ Padding is a known sin in writing, and graders are taught to mark it down. A 2024 study saw the reverse: when one model was told to give as much detail as possible, its answers won far more often against its own standard ones, so the detail you asked for helps the old prompt, and the new prompt's share falls below 70%.
 
 </details>
 
@@ -250,9 +250,9 @@ When the judge runs again, what should you expect from the new prompt's share of
 
 ✓ Right. Expect the share to fall. A 2024 study found an automatic judge favouring longer answers, and the old prompt's answers now come close to the new ones in length, so part of the new prompt's lead goes with that difference.
 
-Had the team shipped on the 70%, home cooks would scroll through answers twice as long on a phone propped by the stove, for a lead the judge may have handed out for length.
+A judge model is a grader that writes its verdict from the two answers it reads, and their length is part of that input like everything else. The study behind Length-Controlled AlpacaEval found an automatic judge of that time preferring longer outputs: one model, compared with its own standard answers, went from winning 22.9% of comparisons to winning 64.3% with nothing changed but an instruction to be brief or detailed. The study corrects scores for length, and the same idea works on your own judge.
 
-A judge model is a grader that writes its verdict from the two answers it reads, and their length is part of that input like everything else. The study behind Length-Controlled AlpacaEval found an automatic judge preferring longer outputs: one model, compared with its own standard answers, went from winning 22.9% of comparisons to winning 64.3% with nothing changed but an instruction to be brief or detailed. The study corrects scores for length, and the same idea works on your own judge: compare answers of matched length, and have a person check the judge's verdicts on a sample before you trust them. Those were the models of a 2024 study, so measure yours.
+Compare answers of matched length, and have a person check the judge's verdicts on a sample before you trust them.
 
 </details>
 
@@ -272,23 +272,23 @@ What can you tell the head of security from the 99.0%?
 
 <details><summary>B. That it stopped at least half of them</summary>
 
-✗ It is hard to picture a detector this close to perfect missing most of what it was built for. The 99.0% allows it: a detector that stays silent on every message lets all 50 injections through and still reaches the figure.
+✗ A detector at 99.0% is close to perfect, and catching injections is its whole job. The 99.0% still allows it to miss most of them: a detector that stays silent on every message lets all 50 injections through and still reaches the figure.
 
 </details>
 
 <details><summary>C. That it stopped none of them</summary>
 
-✗ The do-nothing detector is the textbook case of a misleading accuracy, so it is the first one that comes to mind. It is one of many that score 99.0% here: stopping all 50 injections at the cost of 50 false alarms also makes 50 mistakes and earns the identical score.
+✗ The do-nothing detector is the textbook case of a misleading accuracy. It is one of many that score 99.0% here: stopping all 50 injections at the cost of 50 false alarms also makes 50 mistakes and earns the identical score.
 
 </details>
 
 <details><summary>D. That it stopped anywhere from 0 to 50</summary>
 
-✓ Right. The 99.0% fits a detector that stops none of the 50, one that stops all of them, and every count between. Staying silent scores 99.0% on the 4,950 harmless messages alone; stopping every injection while flagging 50 harmless messages leaves 50 mistakes, the same count, and the same score.
+✓ Right. The 99.0%, 4,950 right out of 5,000, fits a detector that stops none of the 50, one that stops all of them, and every count between. Staying silent scores 99.0% on the 4,950 harmless messages alone; stopping every injection while flagging 50 harmless messages leaves 50 mistakes, the same count, and the same score.
 
-With 99% in the rollout note, the detector goes live. Should it be the one that never flags, every injection reaches the agent untouched, and the head of security first hears of it from a screenshot of the agent following a stranger's instructions.
+Here 99 messages in 100 are harmless, so they carry almost the whole score and the 50 injections can move it by a point at most. Precision and recall are built from the flags and the injections only, so the quiet majority cannot prop them up. The never-flagging detector has a recall of 0; stopping half with 25 false alarms gives a precision of 0.5 and a recall of 0.5; stopping all 50 with 50 false alarms gives a recall of 1.0 at a precision of 0.5. Each of the three scores 99.0% accuracy.
 
-Accuracy is the share of all items a check labels right, and here 99 messages in 100 are harmless, so they carry almost the whole score and the 50 injections can move it by a point at most. Precision and recall are built from the flags and the injections only, so the quiet majority cannot prop them up. The never-flagging detector has a recall of 0; stopping half with 25 false alarms gives a precision of 0.5 and a recall of 0.5; stopping all 50 with 50 false alarms gives a recall of 1.0 at a precision of 0.5. Each of the three scores 99.0% accuracy. Before signing off, ask how many of the injections were flagged and how many of the flags were injections, as counts.
+Before signing off, ask how many of the injections were flagged and how many of the flags were injections, as counts.
 
 </details>
 
@@ -302,23 +302,23 @@ What share of the 150 questions now have at least one gold passage in their top 
 
 <details><summary>A. At least last quarter's 84%</summary>
 
-✓ Right. At least 84%. The 126 questions that found their one gold passage last quarter still find it, since the search returns what it returned then, and the newly marked passages can only raise that count.
+✓ Right. At least 84%. The 126 questions that found their one gold passage last quarter still find it, since the search returns what it returned then, and the newly marked passages can only raise that count, so the 0.51 points to no fault in the search.
 
-The engineer who owns the search sees 0.51 on the quarterly report and spends a week looking for a fault that is not there. The figure now counts how much of each question's answer turns up in the top 5, a different matter from whether any of it does.
+Recall@k averages, over the questions, the fraction of each question's gold passages that appear in its top k. While every question had one gold passage, that fraction could only be 0 or 1, so the average was the share of questions that found gold. Once questions have several, a partial find counts as a fraction: a question that finds one of its three gold passages adds 0.33, though it did find one, and the average falls below the share with a hit.
 
-Recall@k averages, over the questions, the fraction of each question's gold passages that appear in its top k. While every question had one gold passage, that fraction could only be 0 or 1, so the average was the share of questions that found gold. Once questions have several, a partial find counts as a fraction: a question that finds one of its three gold passages adds 0.33, though it did find one, and the average falls below the share with a hit. Put the share with any gold passage beside recall@k, add the share that found every passage when an answer needs all of them, and when the gold set changes, score last quarter's search against the new set before comparing quarters.
+Put the share with any gold passage beside recall@k, add the share that found every passage when an answer needs all of them, and when the gold set changes, score last quarter's search against the new set before comparing quarters.
 
 </details>
 
 <details><summary>B. About 51%</summary>
 
-✗ For a whole quarter recall@5 was the share of questions that found their passage, each having only one, and the dashboard is still read that way. With two to four gold passages each, a question now adds the fraction of them it found: one passage out of three counts as 0.33, yet that question found gold.
+✗ For a whole quarter recall@5 was the share of questions that found their passage, each having only one, and the dashboard is still read that way. With two to four gold passages each, a question now adds the fraction of them it found: one passage out of three counts as 0.33, yet that question found gold, and the share of questions with a hit is still at least 84%.
 
 </details>
 
 <details><summary>C. Between 51% and last quarter's 84%</summary>
 
-✗ A drop that large reads like a search that kept some answers and lost others. The search returns what it returned last quarter, so every question that found its original passage still finds it, and a newly marked passage can only add questions with a hit.
+✗ A drop that large is what a search that lost answers would show. The search returns what it returned last quarter, so every question that found its original passage still finds it, and a newly marked passage can only add questions with a hit.
 
 </details>
 
@@ -332,29 +332,29 @@ Which of the dashboard's numbers change?
 
 <details><summary>A. No number on the dashboard moves</summary>
 
-✗ The reranker added nothing and removed nothing, and a change that only reorders a list should leave every number about it alone. Two of the numbers only count gold passages among the six and stay put. MRR is read off the first gold passage's rank, and falls from 1.00 to 0.33 when that passage moves from first to third.
+✗ The reranker added nothing and removed nothing; it only reordered the six. Two of the numbers only count gold passages among the six and stay put. MRR is read off the first gold passage's rank, and falls from 1.00 to 0.33 when that passage moves from first to third.
 
 </details>
 
 <details><summary>B. Each of the three numbers moves</summary>
 
-✗ The three numbers share one dashboard panel and have moved together whenever the search changed before, so a reshuffle this big should show in each. Precision@6 and recall@6 only count gold among the six: one in six gives 0.17 and 1.00, before the reranker and after it. MRR alone, from 1.00 to 0.33, sees the move.
+✗ The three numbers share one dashboard panel and have moved together whenever the search changed before. Precision@6 and recall@6 only count gold among the six: one in six gives 0.17 and 1.00, before the reranker and after it. Only the number that reads rank sees the move.
 
 </details>
 
 <details><summary>C. MRR falls, the other two stay put</summary>
 
-✓ Right. MRR drops from 1.00 to 0.33, while precision@6 stays at 0.17 and recall@6 at 1.00: the gold passage is still in the six, now third.
+✓ Right. MRR drops from 1.00 to 0.33, while precision@6 stays at 0.17 and recall@6 at 1.00: the gold passage is still in the six, now third. Only the top 2 reach the prompt, so every test question has lost its gold passage while two of the three lines stay flat.
 
-Only the top 2 reach the prompt, so every test question has lost its gold passage. Two of the dashboard's three lines stay flat that week, and the first complaint comes from a freelancer who was quoted the wrong deduction limit.
+Precision@k and recall@k count gold passages within the top k and pay no attention to their order inside it; MRR turns the first gold passage's rank into its reciprocal, 1/1 before the reranker and 1/3 after. A score taken at 6 judges the six passages returned, while the model only sees two.
 
-Precision@k and recall@k count gold passages within the top k and pay no attention to their order inside it; MRR turns the first gold passage's rank into its reciprocal, 1/1 before the reranker and 1/3 after. A score taken at 6 judges the six passages returned, while the model only sees two. Watch a number that cares about rank, such as MRR, and set k to the number of passages the prompt receives: here recall@2 falls from 1.00 to 0.
+Watch a number that cares about rank, such as MRR, and set k to the number of passages the prompt receives: here recall@2 falls from 1.00 to 0.
 
 </details>
 
 <details><summary>D. Recall@6 and MRR fall, while precision@6 stays put</summary>
 
-✗ The gold passage has dropped out of the prompt, and recall is where you would expect a lost answer to register. Recall@6 asks only whether the passage is among the six returned, and it is, in third place. The loss sits between the six a score inspects and the two the model is given.
+✗ The gold passage has dropped out of the prompt, and recall is the score built to count lost answers. Recall@6 asks only whether the passage is among the six returned, and it is, in third place. The loss sits between the six a score inspects and the two the model is given.
 
 </details>
 
@@ -368,29 +368,29 @@ What is the likeliest cause of the drop?
 
 <details><summary>A. Noise between runs of the eval</summary>
 
-✗ Every nightly chart wobbles, and with the config and the code untouched, luck is what remains to blame. Luck on 2,000 cases is small: on 2,000 cases a rate near 88% wanders by a point or so, and a fall to 81% by luck alone would practically never happen.
+✗ Every nightly chart wobbles, and with the config and the code untouched, luck is what remains to blame. Luck on 2,000 cases is small: a rate near 88% wanders by a point or so, and a fall to 81% by luck alone would practically never happen.
 
 </details>
 
 <details><summary>B. A change behind the model name</summary>
 
-✓ Right. Something on the provider's side changed behind the name your code sends: a newer release now answering to it, or a change in how the provider serves it. The log looks identical either way, as it records the name you asked for.
+✓ Right. Something on the provider's side changed behind the name your code sends: a newer release now answering to it, or a change in how the provider serves it. The log looks identical either way, as it records the name you asked for, so the log gives no reason to suspect the provider.
 
-The engineer on call spends Thursday combing a deploy history with nothing in it, then the eval's own code, then its cases. Every call log line, before and after the drop, names the model in the config, and that line is what keeps the provider off the list of suspects.
+A nightly eval is running an eval on a schedule, and its log, like any record of live traffic, holds what your code sent: the model name in a request is what you asked for, which need not be what answered. Some names stand for one fixed release; others are labels the provider moves to each new release, and even a fixed release runs on serving systems the provider updates, which one maker says can shift behaviour slightly. The drop is no accident of sampling: on 2,000 cases, 88% has a 95% range of 86.5% to 89.4%, and 81% one of 79.2% to 82.7%.
 
-A nightly eval is running an eval on a schedule, and its log, like any record of live traffic, holds what your code sent: the model name in a request is what you asked for, which need not be what answered. Some names stand for one fixed release; others are labels the provider moves to each new release, and even a fixed release runs on serving systems the provider updates, which one maker says can shift behaviour slightly. The drop is no accident of sampling: on 2,000 cases, 88% has a 95% range of 86.5% to 89.4%, and 81% one of 79.2% to 82.7%. Name a fixed release in the config where the provider offers one, log the release the response reports where the API returns it, and keep the provider's change notes beside your eval history. On your own server the files change only when you change them, so the same drop there points at your own change: new model files, a new server version or new settings.
+Name a fixed release in the config where the provider offers one, log the release the response reports where the API returns it, and keep the provider's change notes beside your eval history.
 
 </details>
 
 <details><summary>C. The model changing as it learns from the traffic it serves</summary>
 
-✗ Chat products are said to get worse the more people use them, and a nightly score seems to show it. A model's weights are fixed numbers while it serves requests: no call, yours or a customer's, writes to them. Served unchanged, they give tonight the same spread of replies as last month, so a change has to come from outside them.
+✗ Chat products are said to get worse the more people use them, and the nightly score fell. A model's weights are fixed numbers while it serves requests: no call, yours or a customer's, writes to them. Served unchanged, they give tonight the same spread of replies as last month, so a change has to come from outside them.
 
 </details>
 
 <details><summary>D. The fixed cases going stale</summary>
 
-✗ Eval sets do age as products and customers change, and this one has not been touched in months. Ageing makes a set less like real traffic without moving its score: each case has a fixed answer graded by code, so an unchanged model gives these cases the same spread of results year after year.
+✗ Eval sets age as products and customers change, and a set of fixed cases is the kind that ages. Ageing makes a set less like real traffic without moving its score: each case has a fixed answer graded by code, so an unchanged model gives these cases the same spread of results year after year.
 
 </details>
 
@@ -404,7 +404,7 @@ What does the mean say about how long that day's travellers waited?
 
 <details><summary>A. Most waited roughly the 6.2 seconds shown</summary>
 
-✗ An average is taught as the typical case, and for one kind of request it nearly is. This day mixes two kinds, and the slow one lifts the mean far above the quick one: picture quick answers at about two seconds and itineraries at about thirty, and the mean comes out at 6.2 seconds, where hardly any reply lands.
+✗ An average is taught as the typical case, and for one kind of request it nearly is. This day mixes two kinds, and the slow one lifts the mean far above the quick one: say quick answers take about two seconds and itineraries about thirty, and the mean comes out at 6.2 seconds, where hardly any reply lands.
 
 </details>
 
@@ -422,11 +422,11 @@ What does the mean say about how long that day's travellers waited?
 
 <details><summary>D. Most waited well under six seconds</summary>
 
-✓ Right. Most waited well under six seconds. The quick questions are 85 in 100, and the itineraries, many times slower, pull the mean above them. In a picture of 20,000 such replies, with quick answers near two seconds and itineraries near thirty, the median is 2.1 seconds and not one reply falls between 5.5 and 6.5 seconds.
+✓ Right. Most waited well under six seconds. The quick questions are 85 in 100, and the itineraries, many times slower, pull the mean above them. In a toy run of 20,000 such replies, with quick answers near two seconds and itineraries near thirty, the median is 2.1 seconds and not one reply falls between 5.5 and 6.5 seconds, while the trip planners wait several times longer than promised.
 
-Travellers with a quick question get their answer well inside the promise, while those planning a trip wait several times longer than promised. The one-star reviews come from the trip planners, and the support desk, holding a single figure of 6.2, cannot even tell them how long an itinerary usually takes.
+A mean adds up every reply time and shares the total out evenly, so a few long replies raise it for everyone: in that toy run, 15 itineraries in 100 at about thirty seconds lift it from two seconds to 6.2, while 85% of replies finish sooner and the 95th percentile is 31.7 seconds. A percentile tells you how long a given share of travellers waited: the median for the one in the middle, p95 for the slowest one in twenty.
 
-A mean adds up every reply time and shares the total out evenly, so a few long replies raise it for everyone: in the picture, 15 itineraries in 100 at about thirty seconds lift it from two seconds to 6.2, while 85% of replies finish sooner and the 95th percentile is 31.7 seconds. A percentile tells you how long a given share of travellers waited: the median for the one in the middle, p95 for the slowest one in twenty. When monitoring live traffic, chart the median and p95, or give each kind of request its own line, and promise a time per kind.
+When monitoring live traffic, chart the median and p95, or give each kind of request its own line, and promise a time per kind.
 
 </details>
 
@@ -456,29 +456,29 @@ What does the trace show under step 1?
 
 <details><summary>A. Every message of the run, final reply included</summary>
 
-✓ Right. Under step 1 the trace shows all nine messages of the run, the wrong answer at the end included, and so do steps 2, 3 and 4. The four entries hold one list, and it was saved after the run had finished growing it.
+✓ Right. Under step 1 the trace shows all nine messages of the run, the wrong answer at the end included, and so do steps 2, 3 and 4: the four entries hold one list, saved after the run had finished growing it, so the file cannot show what the model knew when it chose its first lookup.
 
-You set out to see what the model knew when it chose its first lookup, and the file cannot tell you: each step appears to have read the whole run, its own answer included, so the hunt for the wrong delivery day starts from a record of a request no step ever sent.
+A trace records what each call sent only if each entry is its own copy. `trace.append({"step": step, "sent": messages})` stores the `messages` list itself, and the loop keeps appending to that one list, so when `save_trace` writes the file, all four entries show it in its final state, nine messages long. The JSON writer writes one list out several times without complaint; only a list that contains itself would make it fail.
 
-A trace records what each call sent only if each entry is its own copy. `trace.append({"step": step, "sent": messages})` stores the `messages` list itself, and the loop keeps appending to that one list, so when `save_trace` writes the file, all four entries show it in its final state, nine messages long. The JSON writer writes one list out several times without complaint; only a list that contains itself would make it fail. Store a copy at each step, such as `copy.deepcopy(messages)`, and the entries come out at 2, 4, 6 and 8 messages, which is what the model read; better still, log the request as it leaves your wrapper.
+Store a copy at each step, such as `copy.deepcopy(messages)`, and the entries come out at 2, 4, 6 and 8 messages, which is what the model read; better still, log the request as it leaves your wrapper.
 
 </details>
 
 <details><summary>B. The system prompt and the customer's question</summary>
 
-✗ Appending at the top of each step feels like taking a snapshot of that moment, and a log entry is meant to be one. The entry holds the list itself, not its contents at that moment. The loop kept appending to that one list, and the file was written after the last reply.
+✗ Appending at the top of each step is how you log the moment, the way a log line records what was true when it was written. The entry holds the list itself, not its contents at that moment. The loop kept appending to that one list, and the file was written after the last reply, so step 1 shows the whole run, all nine messages.
 
 </details>
 
 <details><summary>C. Every message except the final reply</summary>
 
-✗ Once you see that the entries share one list, the last model call is the natural place to stop reading it. The list grew past that call: the final reply is appended before the loop breaks, and the file is written after that. So each entry, step 1 included, ends with the wrong answer.
+✗ Once you see that the entries share one list, the last model call is where the run ends. The list grew past that call: the final reply is appended before the loop breaks, and the file is written after that. So each entry, step 1 included, ends with the wrong answer.
 
 </details>
 
 <details><summary>D. No step 1 entry, only one for step 4</summary>
 
-✗ Writing the same object four times is how you would overwrite one record, leaving only the last. The trace is a list of four separate entries, each with its own step number. Each points at the same message list, so all four come out showing the whole run.
+✗ Writing the same object four times is how you would overwrite one record, leaving only the last. The trace is a list of four separate entries, each with its own step number. Each points at the same message list, so the file has four entries but one history.
 
 </details>
 
@@ -492,29 +492,29 @@ After a case that passes, what refund can the test copy hold?
 
 <details><summary>A. Only one refund, for the order in the customer's message</summary>
 
-✗ The FAQ chatbot's eval worked this way: its reply was the whole product, so a matching reply meant a right answer. An agent's reply only closes a run that acts, and the grader reads that close alone. A run that refunded another order, refunded twice or never refunded can end on the very same sentence.
+✗ The FAQ chatbot's eval worked this way: its reply was the whole product, so a matching reply meant a right answer. An agent's reply only closes a run that acts, and the grader reads that close alone. A run that refunded another order, refunded twice or never refunded passes the same check.
 
 </details>
 
 <details><summary>B. A right, wrong or double refund, or none</summary>
 
-✓ Right. A case passes with a right refund in the test copy, with a wrong one, with the right one twice and with none at all. The grader reads one message, the agent's last, and a sentence about order 1182 says nothing about which tools ran or what they did.
+✓ Right. A case passes with a right refund in the test copy, with a wrong one, with the right one twice and with none at all. The grader reads one message, the agent's last, and a sentence about order 1182 is the same whichever tools ran.
 
-Once the head of support has announced that the agent refunds correctly, a customer who was told her refund was issued writes in a month later with no money back. Support opens the eval report and finds 96 green cases, none of which says what the agent did to any order.
+Running an eval with code as the grader turns each reply into a pass or a fail by comparing it with the answer, and here the answer is one sentence. The agent's actions reach that sentence only through the conversation: each tool result goes into the list as a message, and the final reply is a new message the model writes, so no step in the loop makes "issued" agree with what the tool returned. Five runs can end on the same sentence: one refunded order 1182 once, one never asked for a refund, one refunded order 1281, one had its refund rejected by the order system, and one refunded 1182 twice. The test copy then holds, in turn, one refund of 1182, none, a refund of 1281, none and two refunds of 1182.
 
-Running an eval with code as the grader turns each reply into a pass or a fail by comparing it with the answer, and here the answer is one sentence. The agent's actions reach that sentence only through the conversation: each tool result goes into the list as a message, and the final reply is a new message the model writes, so nothing in the loop makes "issued" agree with what the tool returned. Take five runs that end on the same sentence. One looked up order 1182 and refunded it once. One looked it up and never asked for a refund. One refunded order 1281. One asked for the refund and the order system rejected the call. One refunded order 1182 twice. The reply check passes all five, and the test copy holds one refund of 1182, none, a refund of 1281, none and two refunds of 1182. To grade an agent, read its trace and the state it left: assert that the run's tool calls include one refund of the order, that none returned an error and that the test copy holds exactly that refund. Keep the reply check for what the customer reads. The grader and the loop are your code, so this holds on a provider's API and on your own server alike.
+To grade an agent, read its trace and the state it left: assert that the run's tool calls include one refund of the order, that none returned an error and that the test copy holds exactly that refund. Keep the reply check for what the customer reads.
 
 </details>
 
 <details><summary>C. One refund, for the right order or a wrong one</summary>
 
-✗ A fair guess, since an agent that writes "issued" ought to have called the refund tool first. Nothing enforces that order: the last message is text the model writes, and no step in the loop compares it with the calls made. A run that never asked for a refund ends on the same sentence, and so does one whose refund the order system rejected, a rejection that reaches the model as one more message.
+✗ The refund tool is how an agent issues a refund, and the reply says "issued". Nothing enforces that order: the last message is text the model writes, and the loop never compares it with the calls made, so a run that never asked for a refund ends on the same sentence. So does one whose refund the order system rejected: the rejection reaches the model as one more message.
 
 </details>
 
 <details><summary>D. One refund or more, all for order 1182</summary>
 
-✗ The sentence names order 1182, and a reply that quotes the order back reads as proof of which order the tools touched. The number is text the model writes, copied from the customer's message as readily as from a tool result: a run with a refund of order 1281 can end on a sentence about 1182, and so can a run with no refund at all.
+✗ The sentence names order 1182, and the tools work on the order number they are given. The number is text the model writes, copied from the customer's message as readily as from a tool result: a run with a refund of order 1281 can end on a sentence about 1182, and so can a run with no refund at all.
 
 </details>
 
@@ -528,13 +528,13 @@ With the rival's model as the judge, what should you expect of the share of pair
 
 <details><summary>A. About 66% again</summary>
 
-✗ A test script returns the same verdict whoever runs it, and a judge told to pick the better answer, with the names hidden, reads like one. It is a model reading text, though. A 2024 study found judges favouring summaries they had written themselves over others', and if either judge here leans that way, handing the verdict to the other side's model lowers the share.
+✗ A test script returns the same verdict whoever runs it, and here the judge gets the same instruction with the names hidden. It is a model reading text, though. A 2024 study found judges favouring summaries they had written themselves over others', and if either judge here leans that way, handing the verdict to the other side's model lowers the share.
 
 </details>
 
 <details><summary>B. More than 66%</summary>
 
-✗ Asked to review its own draft, a model readily lists faults in it, so you might expect the current model to judge its own answers harshest and the rival's model to go easier on them. The 2024 study measured the opposite: judges favoured what they had written themselves. A rival's judge that leans the same way takes pairs from the current model.
+✗ Asked to review its own draft, a model readily lists faults in it. A 2024 study measured the opposite: judges favoured what they had written themselves. A rival's judge that leans the same way takes pairs from the current model.
 
 </details>
 
@@ -542,15 +542,15 @@ With the rival's model as the judge, what should you expect of the share of pair
 
 ✓ Right. Expect the current model to win fewer than 66% of the pairs. If either judge leans toward its own side's answers, the swap takes pairs from the current model; if neither does, the share stays near 66%. All three judges in a 2024 study leaned that way, and two of three in a 2023 one, so a fall is what to expect.
 
-Reported as it stands, the 66% would tell the board that the current model beat the rival two times in three. When the support staff grade a sample of the answers themselves, the lead they find is much narrower, and nobody can say which figure to trust.
+A model used as a judge is not neutral between its own answers and another's. A 2024 study on two summarisation tasks found three models of that time, used as judges, favouring the summaries they had written over those of other models and of people. Some of them could pick their own text out from other sources with non-trivial accuracy, and in models fine-tuned to recognise their own text, the better the recognition, the stronger the preference. A 2023 study found the lean in some judges of its day and not in others: one judge gave itself a win rate 10% higher than people gave it, another 25% higher, and a third did not favour itself; the authors said too little data and too small a difference kept them from calling it a bias. Hiding the names leaves the judge the text, and the text is what some models recognise.
 
-A judge model is a grader that writes its verdict from the text it reads, and a model used as one is not neutral between its own answers and another's. A 2024 study on two summarisation tasks found three models used as judges favouring the summaries they had written over those of other models and of people. Out of the box, some of them could pick their own text out from other sources with non-trivial accuracy; after training for it, the better a model recognised its own text, the more strongly it preferred it. A 2023 study found the lean in some judges and not in others: one judge gave itself a win rate 10% higher than people gave it, another 25% higher, a third did not favour itself, and the authors said too little data and too small a difference kept them from calling it a bias. The request to the judge holds only the question and the two answers. Hiding the names leaves it the text, and in the 2024 study some models could pick out their own. Both studies measured models of their day, so the judge you use may lean more or less. Run the comparison under both judges: the gap between the two shares is how far the choice of judge moves the result. Check a sample against people's verdicts before you report it. The judge is a call your code makes, so this holds whether it goes to a provider's API or to your own server.
+Run the comparison under both judges, since the gap between the two shares is how far the choice of judge moves the result, and check a sample against people's verdicts before you report it.
 
 </details>
 
 <details><summary>D. Above or below 66%, with no direction to expect</summary>
 
-✗ Judge verdicts vary from run to run, so a shift either way can pass for ordinary noise. Noise moves a figure up or down by chance, and a lean moves it one way. A lean in either judge, which both published studies found in some judges, lowers the share the rival's judge gives the current model; with no lean the share stays near 66%.
+✗ Judge verdicts vary from run to run, and a share that moves a few points is usually noise. A lean is not noise: a lean in either judge, which both published studies found in some judges, lowers the share the rival's judge gives the current model, and with no lean the share stays near 66%.
 
 </details>
 
@@ -570,7 +570,7 @@ Which extra run answers support's question?
 
 <details><summary>B. Grow the set to 500 cases and run each case once, as before</summary>
 
-✗ A bigger set gives a surer number, and the 80% would come with a narrower range. It is still the share of cases passed on one try. An agent that always solves four cases in five and one that solves each case four times in five both read 80% on 500 cases, and a single run of each cannot tell them apart.
+✗ A bigger set gives a surer number. It is still the share of cases passed on one try. An agent that always solves four cases in five and one that solves each case four times in five both read 80% on 500 cases, and a single run of each cannot tell them apart.
 
 </details>
 
@@ -584,9 +584,9 @@ Which extra run answers support's question?
 
 ✓ Right. Run each case three times, or more, and report the share of cases that passed on every try. For three tries, that is how many customers get a right result each time they send the same request, and the rest are the ones who get a wrong result at least once, if their requests resemble the eval set's cases.
 
-Without that run, support starts telling customers to send a request again when it comes out wrong. A customer whose change the agent never gets right sends it three times and gets three wrong dates, and the 80% gave support no way to know such customers exist.
+The pass rate of an eval set run once per case is the average chance that a case passes on one try, and it hides how that chance is spread across the cases. Two agents can read the same 80%. One always solves 40 of the 50 cases and never the other 10, so 80% of its customers get a right result on all three tries. The other solves every case four times in five, and only 51.2% of its customers do. A run per case cannot tell them apart, however many cases it covers or however often it is averaged. A 2024 benchmark for customer-service agents proposed counting a case only when every try passes, written pass^k, and found the strongest agents it tested succeeding on fewer than half its tasks and, in its retail domain, solving under a quarter of them on all of eight tries.
 
-The pass rate of an eval set run once per case is the average chance that a case passes on one try, and it hides how that chance is spread across the cases. Two agents can read the same 80%. One always solves 40 of the 50 cases and never the other 10, so 80% of its customers get a right result on all three tries. The other solves every case four times in five, and only 51.2% of its customers do. A run per case cannot tell them apart, however many cases it covers or however often it is averaged. Running each case three times or more and counting it passed only when every try passes can. A 2024 benchmark for customer-service agents proposed that count, written pass^k, and found the strongest agents it tested succeeding on fewer than half its tasks and, in its retail domain, solving under a quarter of them on all of eight tries. Those were the agents of their day. The agent and the eval are your code, so this holds on a provider's API and on your own server.
+Give support that count, not the 80%.
 
 </details>
 
@@ -600,4 +600,4 @@ The pass rate of an eval set run once per case is the average chance that a case
 - [τ-bench](https://arxiv.org/abs/2406.12045), 2024: a benchmark of customer-service agents that counts a task as solved only if every one of several tries succeeds, and finds the strongest agents of its day solving under a quarter of its retail tasks on eight tries out of eight.
 - [A Careful Examination of Large Language Model Performance on Grade School Arithmetic](https://arxiv.org/abs/2405.00332), 2024: a new set of maths problems written to match a public benchmark, on which several model families lost up to 8% accuracy while many models, frontier ones especially, showed little sign of overfitting.
 
-Next: [Releasing LLM changes](../releasing-llm-changes/README.md)
+Prev: [LLMs on your codebase](../llms-on-your-codebase/README.md) · Next: [Releasing LLM changes](../releasing-llm-changes/README.md)

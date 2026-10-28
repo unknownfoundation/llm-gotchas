@@ -3,24 +3,26 @@
 ![A developer at a laptop blows a bubble-gum bubble full of chat and network icons, and it bursts in their face](images/banner.png)
 
 This repo is a collection of gotcha questions about LLM systems, the kind where the obvious answer
-turns out to be wrong. No term quizzes here: you trace a request step by step, from your code to
-the model and back, and find the spot where it quietly goes wrong.
+turns out to be wrong. You follow a request from your code to the model and back, and find the step
+that breaks.
 
-Each one drops you into a moment from building a product with a language model. Make your guess,
-then open the answers: every one, even the wrong ones, tells you why it seemed right and what
-really happens.
+Each question drops you into a moment from building a product with a language model. Make your
+guess, then open every answer, the ones you ruled out too. Each wrong one says why it seemed right
+and what really happens. The explanations matter more than the score.
 
 ## What's in it for you
 
-- **New to LLMs?** Start from the top: what a model actually reads, what it keeps between calls,
-  what a token costs. Each topic explains its words first.
-- **Built something already?** You'll recognise the scenes: a chat history trimmed to fit, a cache
-  of answers in front of a bot, an agent that waits for a manager's approval.
+- **New to LLMs?** Start from the top: what a model reads, what it keeps between calls, what a
+  token costs. Each topic explains its words first.
+- **Built something already?** You'll recognise the scenes from your own work, and find out which of
+  your assumptions still hold.
+- **Getting ready to talk shop?** Each question gives you a scene and a few plausible answers.
+  Explain why each wrong one fails, and you're ready for the follow-up.
 - **Designing or reviewing systems?** Head for the last topic, where things break between the
-  parts. The answers are short enough to paste into a review.
-
-The answers hold on any stack: a provider's API, your own server or a ready-made app. Defaults,
-limits and prices change, so each page says when it was last checked.
+  parts. Every right answer ends with what to do, ready to lift into a review.
+- **How deep does it go?** The topics run from tokens and prompts to retrieval, agents, security,
+  releases and system design. Each one starts with its definitions and goes down to the failures
+  you meet in production.
 
 ## Topics
 
@@ -29,7 +31,7 @@ From the basics to system design, in a suggested order:
 1. [Tokens and tokenizers](topics/tokens-and-tokenizers/README.md): what a model reads instead of your characters, and why the same text costs a different amount per language, format and model.
 2. [Context window](topics/context-window/README.md): what the model gets on one call, what takes room in it, and what happens to a request that does not fit.
 3. [Inside the model](topics/inside-the-model/README.md): what happens between the request and the first token, and what sets a model's speed and memory.
-4. [Generation parameters](topics/generation-parameters/README.md): what temperature, top_p, a seed and the generation cap do to the reply.
+4. [Generation parameters](topics/generation-parameters/README.md): what temperature, top-k and top-p, penalties, a logit bias, stop sequences and the generation cap do to the reply.
 5. [Prompting](topics/prompting/README.md): what the model reads on one call and how your code builds it: roles, examples, templates and the reasoning you ask for.
 6. [Structured outputs](topics/structured-outputs/README.md): which way of asking for JSON binds your fields, and what your code does with the object it gets back.
 7. [Tool calling](topics/tool-calling/README.md): the round trip from a model asking for a tool to its result: who runs the tool, what the next request must carry, and what trimming and retries do to it.

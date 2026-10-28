@@ -1,6 +1,6 @@
 # AI system design
 
-Needs: [Tool calling](../tool-calling/README.md) · [Cost and latency](../cost-and-latency/README.md) · [Streaming](../streaming/README.md) · [Retrieval and RAG](../retrieval-and-rag/README.md) · [Agents and workflows](../agents-and-workflows/README.md) · [Security](../security/README.md) · [Where models run](../where-models-run/README.md) · Reviewed October 2026
+Prev: [Fine-tuning](../fine-tuning/README.md) · Reviewed October 2026
 
 AI system design picks the parts that stand between a person's message and the model's reply, the order they run in, and what each one may do. Each part can pass its own tests while the system fails where one part's output becomes another's input.
 
@@ -16,8 +16,6 @@ The parts you build, and the capacity you plan for, change with who runs the mod
 - **A provider's API**: you build the parts around the call; how many requests the model can serve is the provider's to plan, and its rate limits cap what you can send each minute.
 - **Your own server**: you build the same parts and also run the model, so how many requests it can serve, its servers and the load balancer that spreads requests over them are yours to plan.
 - **A ready-made app**: it arrives with its parts built in, such as a chat app's memory or a coding assistant's tools, and you choose what it may reach and run.
-
-A part you write around the model, such as a retry loop or a queue, works the same way whoever runs the model; only the limits it runs into change.
 
 The parts a request can pass through, in the order it usually meets them:
 
@@ -49,29 +47,29 @@ When a reply ends with `Confidence: 85`, where does the 85 come from?
 
 <details><summary>A. The probability the model computed that its reply is right</summary>
 
-✗ A model does hold probabilities, one for each possible next token, so a number about its own answer reads like a readout of them, yet nothing in this setup reads them out. The line is written token by token like the words above it, and no step compares the answer with the fee pages before the number is chosen.
+✗ A model holds probabilities, one for each possible next token, and the line gives a probability. This setup never reads them out: the line is written token by token like the words above it, after the answer, with no step comparing the answer with the fee pages, so the 85 is text, not a measured probability.
 
 </details>
 
 <details><summary>B. The model's record of past right answers on fee questions</summary>
 
-✗ Training shows a model a great many questions with known answers, so a record of its own hits is a natural thing to picture behind the number. Nothing in this chat looks such a record up, and the pass that got a fee wrong is the same pass that writes the number beside it.
+✗ Training shows a model a great many questions with known answers. This chat looks up no record of past answers: the pass that writes the answer is the same pass that writes the number beside it, as more text after the answer.
 
 </details>
 
 <details><summary>C. Text the model writes the same way as the answer</summary>
 
-✓ Right. The 85 is part of the reply, written token by token after the answer, the way the answer itself was written. Nothing measured the answer against the fee pages before the number appeared.
+✓ Right. The 85 is part of the reply, written token by token after the answer, the way the answer itself was written, and no step measured the answer against the fee pages before the number appeared, so a wrong fee can arrive with a high number and the chat never reaches a person.
 
-A customer asks what a transfer abroad costs and is told it is free, with 95 under the answer, so the chat never reaches a person. The 2% fee shows up on their next statement, and their complaint is how the bank first hears of it.
+The hand-off joins two parts that disagree about the number: a model call that writes a number because the prompt asked for one, and code that treats it as a measurement. The same model wrote the wrong answer and the number beside it, so a wrong answer can carry a high one. A 2023 study that asked models to state their confidence, on five kinds of dataset such as commonsense and arithmetic questions, found that the models it tested tended to be overconfident.
 
-The hand-off joins two parts that disagree about the number: a model call that writes a number because the prompt asked for one, and code that treats it as a measurement. The same model wrote the wrong answer and the number beside it, so a wrong answer can carry a high one. A 2023 study that asked models to state their confidence, on five kinds of dataset such as commonsense and arithmetic questions, found that they tended to be overconfident; those were 2023 models, so measure yours. Hand off on signals your code can check, such as no fee page matching the question, a topic that always goes to a person, or the customer asking for one. If you keep the number, compare it with reviewed chats before you trust any threshold.
+Hand off on signals your code can check, such as no fee page matching the question, a topic that always goes to a person, or the customer asking for one. If you keep the number, compare it with reviewed chats before you trust any threshold.
 
 </details>
 
 <details><summary>D. A comparison of the reply with the fee pages</summary>
 
-✗ On a chat built on documents, the answer that strays from them is the risky one, so grading by agreement is what you would build yourself. No step in this chat compares the reply with the pages: the model writes the number after the answer, as text, whether the fee pages covered the question or not.
+✗ On a chat built on documents, the answer that strays from them is the risky one. This chat never compares the reply with the pages: the model writes the number after the answer, as text, whether the fee pages covered the question or not.
 
 </details>
 
@@ -91,23 +89,23 @@ What does the request for the intern's question carry from the budget sheet?
 
 <details><summary>B. The figures, inside the assistant's earlier reply</summary>
 
-✓ Right. The intern's request carries the manager's question and the assistant's answer, budget figures and all, as earlier messages of the thread. The search run for the intern finds nothing from the sheet, and the figures reach the model anyway.
+✓ Right. The intern's request carries the manager's question and the assistant's answer, budget figures and all, as earlier messages of the thread. The search run for the intern finds nothing from the sheet, and the figures reach the model anyway, so the assistant goes on discussing finance-only numbers with anyone who replies in the thread; the first answer, posted to the channel, had already shown them to all forty members.
 
-The intern gets an answer that weighs ad spending against the sheet's numbers, and so does anyone else in the channel who replies in that thread. All forty members could already read the first answer; now the assistant discusses it with each of them.
+Retrieval checks who may open a document at the moment it searches, and memory carries everything said in the thread into every later request, whoever sends it. The check applies only to the search; the thread reaches the model by another route.
 
-Retrieval checks who may open a document at the moment it searches, and memory carries everything said in the thread into every later request, whoever sends it. The check guards one door, and the thread is a second way in. Check access against everyone who will read the answer, not only the person asking: answer from restricted documents in a private message, or keep a shared thread's history to what every member may open. Your code builds the request, so this works the same on a provider's API and on your own server.
+Check access against everyone who will read the answer, not only the person asking: answer from restricted documents in a private message, or keep a shared thread's history to what every member may open.
 
 </details>
 
 <details><summary>C. The figures, marked as for finance only</summary>
 
-✗ Documents carry their access rules, so a label riding along with the figures would be the careful design. Once the assistant wrote the figures into a reply, they became plain words in a message. Nothing in the thread records where a sentence came from, and the model reads them like any other text.
+✗ Documents carry their access rules wherever they are shared, and the figures came from one such document. Once the assistant wrote the figures into a reply, they became plain words in a message, and the thread keeps no record of where a sentence came from, so the intern's request carries the figures with no label, and the model reads them like any other text.
 
 </details>
 
 <details><summary>D. The figures, blanked out</summary>
 
-✗ A reply built from a restricted sheet could fairly be expected to stay restricted when it is reused. No step looks at the thread before it is sent. The earlier reply goes out word for word, figures included, in the request your code builds for the intern.
+✗ Data-loss tools blank out sensitive values in outgoing mail, and the figures came from a sheet only finance may open. Your code runs no such step on the thread: the earlier reply goes out word for word, figures included, in the request it builds for the intern.
 
 </details>
 
@@ -127,23 +125,23 @@ Which check shows whether women and men are scored alike?
 
 <details><summary>B. The same applications scored again with the gender field put back, no score changing</summary>
 
-✗ Putting one input back and watching nothing move is how you would test whether that input matters. It tests the field, and the field was never the only carrier: the clubs, career breaks and pronouns stay in both runs, so a model that reads gender from them scores both runs alike. Only scores set beside each applicant's gender show whether women and men fare alike.
+✗ Putting one input back and watching nothing move tests whether that input matters. It tests the field, and the field was never the only carrier: the clubs, career breaks and pronouns stay in both runs, so a model that reads gender from them scores both runs alike. Only scores set beside each applicant's gender show whether women and men fare alike.
 
 </details>
 
 <details><summary>C. Ten test CVs with no hint of gender, all scoring alike</summary>
 
-✗ A small set of test cases you wrote yourself is how you would check most features before launch. These ten show how the model scores CVs with nothing to read gender from, and real CVs are full of it: clubs, career breaks, the wording of a reference. The scores that matter are those of real applicants.
+✗ Ten hand-written test cases are a normal pre-launch check for most features. These ten show how the model scores CVs with nothing to read gender from, and real CVs are full of it: clubs, career breaks, the wording of a reference. Ten equal scores say nothing about how real women's and men's CVs are scored.
 
 </details>
 
 <details><summary>D. Scores compared by gender, using the gender field in each application</summary>
 
-✓ Right. Comparing the scores of women and men, with the gender field each application still holds, measures what the client asked about: what the scores do. A clean log shows only what the requests did not carry by name.
+✓ Right. Comparing the scores of women and men, with the gender field each application still holds, measures what the client asked about: what the scores do. A clean log shows only what the requests did not carry by name, and if the comparison finds a gap between women and men with the same experience, every shortlist built from the top scores carried it.
 
-Run over a month of applications, the comparison can turn up a gap between women and men with the same experience, a gap a log of clean requests would never have shown. If it does, every shortlist the recruiters built from the top scores carried that gap.
+The removal step and the model call meet in the CV text. The step takes out three fields; the text it passes on can still name a women's football team, a career break or the pronoun in a quoted reference. A 2019 study of online biographies, Bias in Bios, found that a classifier guessing people's jobs from their biographies, not a language model, still treated women and men differently after names and pronouns were scrubbed, carried by other words that stood in for gender.
 
-The removal step and the model call meet in the CV text. The step takes out three fields; the text it passes on can still name a women's football team, a career break or the pronoun in a quoted reference. A 2019 study of online biographies, Bias in Bios, found that a classifier guessing people's jobs from their biographies still treated women and men differently after names and pronouns were scrubbed, carried by other words that stood in for gender; those were 2019 classifiers, not language models, so measure yours. Keep the fields you remove, store them apart from what the model sees, and compare outcomes by group on real applications, among applicants with similar experience, then look at what in the text moves the scores.
+Keep the fields you remove, store them apart from what the model sees, and compare outcomes by group on real applications, among applicants with similar experience, then look at what in the text moves the scores.
 
 </details>
 
@@ -167,29 +165,29 @@ When the caller has read the last digit, what does the request sent next carry?
 
 <details><summary>A. The first half, the agent's reply to it, then the rest</summary>
 
-✓ Right. The request carries "K 7 4" as a finished user turn, the agent's reply to it, and "9 2 1" as a new user turn. The silence ended the first turn, and your code had sent it to the model and stored the reply before the caller spoke again.
+✓ Right. The request carries "K 7 4" as a finished user turn, the agent's reply to it, and "9 2 1" as a new user turn. The silence ended the first turn, and your code had sent it to the model and stored the reply before the caller spoke again, so the agent starts answering a three-character reference while the caller is still searching, and the model has to piece the second half together on its own.
 
-A second into the caller's search, the agent starts answering a reference three characters long, and the caller may read the rest over its voice. The history now holds "K 7 4" as a complete answer with a reply to it, and "9 2 1" arrives as a new remark the model must piece together unaided.
+Speech-to-text decides where a turn ends, and your code and the model take that as the caller's finished thought. This speech-to-text ends a turn on silence alone, whatever the words so far, and three seconds of looking through an email is a long silence. The model call treats every turn it is given as something the caller has finished saying, and the request carries no sign that this one was cut short. Your code appends the turn, gets the reply and appends that too within about a second, so the reply sits between the two halves before the caller resumes.
 
-The app, here its speech-to-text, and memory meet where a turn ends, and each takes the other's word for where it falls. This speech-to-text ends a turn on silence alone, whatever the words so far, and three seconds of looking through an email is a long silence. The model call treats every turn it is given as something the caller has finished saying, and nothing in the request says this one was cut short. Your code appends the turn, gets the reply and appends that too within about a second, so the reply sits between the two halves before the caller resumes. When the agent asks for a reference, a card number or an address, wait longer before ending the turn, or use speech-to-text that also judges from the words whether the caller has finished, as some can. Your code can also check whether a turn holds a whole reference and, if it does not, hold it and join it to the next one before calling the model.
+When the agent asks for a reference, a card number or an address, wait longer before ending the turn, or use speech-to-text that also judges from the words whether the caller has finished, as some can. Your code can also check whether a turn holds a whole reference and, if it does not, hold it and join it to the next one before calling the model.
 
 </details>
 
 <details><summary>B. One turn holding the whole reference</summary>
 
-✗ Live captions on a video call rewrite their last line as more words come in, and a transcript could be expected to do the same. This one stopped at the turn's end: the first half went to your code as finished text, the code appended it and called the model, and nothing goes back to change a message already in the history.
+✗ Live captions on a video call rewrite their last line as more words come in. This transcript stopped at the turn's end: the first half went to your code as finished text, the code appended it and called the model, and nothing goes back to change a message already in the history.
 
 </details>
 
 <details><summary>C. The first half marked in the request as cut short, then the rest</summary>
 
-✗ Speech services can report words while someone is still talking, so the system plainly knows when a sentence is under way. That knowledge stays inside the speech-to-text service. Your code receives the text of a finished turn and appends it as a plain user message, so the model reads "K 7 4" with no sign that the caller meant to go on.
+✗ Speech services can report words while someone is still talking, so the system knows when a sentence is under way. That knowledge stays inside the speech-to-text service. Your code receives the text of a finished turn and appends it as a plain user message, so the model reads "K 7 4" with no sign that the caller meant to go on.
 
 </details>
 
 <details><summary>D. The two halves as two caller turns in a row, no reply between</summary>
 
-✗ On a call, a person who starts speaking again usually stops whatever the agent was about to say, so the second half might follow the first directly. Here the reply was written and stored about a second after the first half, while the caller was still searching, well before they spoke again, so it sits between the halves.
+✗ On a call, a person who starts speaking again usually stops whatever the agent was about to say. Here the reply was written and stored about a second after the first half, while the caller was still searching, well before they spoke again, so it sits between the halves.
 
 </details>
 
@@ -203,29 +201,29 @@ Which change keeps the other clients' chats answering through the next import?
 
 <details><summary>A. An API key for each client company</summary>
 
-✗ A key tells the provider who sent a request, which makes a key per client look like a way to split capacity. Rate limits are set for the account, and every key on it draws on the same limit. The import's requests still crowd out everyone else's, whatever key they carry.
+✗ A key tells the provider who sent a request, and usage dashboards break the bill down per key. Rate limits are set for the account, and keys alone all draw on the same limit. The import's requests still crowd out everyone else's, whatever key they carry.
 
 </details>
 
 <details><summary>B. A queue in front of the API, first come first served</summary>
 
-✗ A queue is the usual cure for refused requests, and it does stop the errors. First come first served puts the import's records ahead of every chat that arrives after them. Picture a limit of 600 requests a minute: a chat sent right after the import starts waits about half an hour for its turn.
+✗ A queue is the usual cure for refused requests, and it stops the errors. First come first served puts the import's records ahead of every chat that arrives after them. Say the account admits 600 requests a minute: a chat sent right after the import starts waits behind 20,000 records, about half an hour, for its turn.
 
 </details>
 
 <details><summary>C. A cap per client in your gateway</summary>
 
-✓ Right. With the importing client held to a share of the account's limit, the import runs more slowly, and the room it leaves under the limit is there for everyone else's chats.
+✓ Right. With the importing client held to a share of the account's limit, the import runs more slowly, and the room it leaves under the limit is there for everyone else's chats, so the other twenty-nine companies' staff get answers through the next import while the importing client waits longer for its summaries.
 
-On the next import day, the client running it waits nearly an hour for its summaries, and the staff of the other twenty-nine companies use the HR chat as on any Monday. Without the cap, they would spend an hour reading errors caused by a company they have never heard of.
+Every request your code sends draws on one account's rate limit, whichever client it serves, and the provider refuses what goes past it. Your gateway sees each request with its client attached, so it can enforce a share. Some provider APIs also let you put keys in a group inside the account and give the group a lower limit of its own, which caps a client whose keys sit in a group of their own; keys alone, with no such limit, all draw on the account's. Say the account admits 600 requests a minute and the import is held to 400: the chats, at 100 a minute, are never refused, and the import takes 50 minutes.
 
-Every request your code sends draws on one account's rate limit, whichever client it serves, and the provider refuses what goes past it. Your gateway sees each request with its client attached, so it can enforce a share: count each client's requests and tokens per minute, hold a bulk job to its share, and keep room for live chats. Some provider APIs also let you put keys in a group inside the account and give the group a lower limit of its own, which caps a client whose keys sit in a group of their own; keys alone, with no such limit, all draw on the account's. Picture an account that admits 600 requests a minute and an import held to 400: the chats, at 100 a minute, are never refused, and the import takes 50 minutes. On your own server, the same cap in front of the GPUs keeps one client's job from filling them.
+Count each client's requests and tokens per minute in the gateway, hold a bulk job to its share, and keep room for live chats.
 
 </details>
 
 <details><summary>D. Retrying each refused chat request after a short wait</summary>
 
-✗ Retrying after a pause is how a client rides out a brief burst of rate-limit errors. This burst lasts an hour, and each retry is one more request for the same limit, sent among thousands of import records. Picture the import's workers sending 2,000 requests a minute against 600 allowed: most retries are refused again.
+✗ Retrying after a pause is how a client rides out a brief burst of rate-limit errors. This burst lasts an hour, and each retry is one more request for the same limit, sent among thousands of import records, so most retries are refused again, and the chats keep failing for as long as the import fills the limit.
 
 </details>
 
@@ -239,7 +237,7 @@ During those ten minutes, how many calls reach the provider compared with a norm
 
 <details><summary>A. Higher by the gateway's retries alone</summary>
 
-✗ A diagram of the two services draws one arrow from the gateway to the provider and ends the app's arrow at the gateway. Each retry from the app is still a new request to the gateway, which makes its own calls to the provider, four of them when all are refused. The app's retries add no calls of their own and set off every one of the gateway's.
+✗ The app talks only to the gateway, and only the gateway talks to the provider. Each retry from the app is a new request to the gateway, which makes its own four calls to the provider when all are refused, so each of the app's retries adds four calls, not one.
 
 </details>
 
@@ -251,17 +249,17 @@ During those ten minutes, how many calls reach the provider compared with a norm
 
 <details><summary>C. Lower, with the waits spacing out the calls</summary>
 
-✗ Waiting between tries is the usual courtesy to a struggling service, so two layers of waits should leave it room. A wait delays one tap's next try and removes none. Cooks keep tapping, every tap starts its own run of tries, and each minute carries many times the usual calls, spread a little thinner within it.
+✗ Waiting between tries is how you give a struggling service room, and this code waits at two layers. A wait delays one tap's next try and removes none: cooks keep tapping, every tap starts its own run of up to sixteen calls, and the provider sees the extra calls for as long as cooks keep tapping.
 
 </details>
 
 <details><summary>D. Higher by the app's retries and the gateway's, multiplied</summary>
 
-✓ Right. For each tap the provider receives up to sixteen calls instead of one. The waits spread them over about fifteen seconds and cut none.
+✓ Right. For each tap the provider receives up to sixteen calls instead of one, and the waits, with refusals coming back at once, spread them over about fifteen seconds and cut none, so a provider that is already refusing gets many times the usual calls while each cook watches a spinner before an error. Say a hundred taps a minute: about 1,600 calls a minute reach the provider, for a site whose traffic has not grown.
 
-A cook with a hot pan taps for a substitute and watches a spinner for about fifteen seconds before an error appears. Picture a hundred taps a minute: the platform engineer sees about 1,600 calls a minute reach a provider that is already refusing, for a site whose traffic has not grown.
+The two layers meet at the error: the gateway reports one to the app only after its own four tries are used, and each retry from the app reaches a gateway that remembers nothing of the earlier ones and starts its four again. The retries of the two layers multiply, four times four and not seven.
 
-The two layers meet at the error: the gateway reports one to the app only after its own four tries are used, and each retry from the app reaches a gateway that remembers nothing of the earlier ones and starts its four again. The retries of the two layers multiply, four times four and not seven. Each layer's policy looks modest alone, and the product exists only in the system. Retry only in the layer nearest the provider, and let the layer above report the failure after a single try. Cap retries as a share of recent traffic, so a provider that is refusing most calls gets few of them. On your own server, the same sixteen calls land on your GPUs.
+Retry only in the layer nearest the provider, and let the layer above report the failure after a single try. Cap retries as a share of recent traffic, so a provider that is refusing most calls gets few of them.
 
 </details>
 
@@ -275,29 +273,29 @@ What happens to that evening's model bill?
 
 <details><summary>A. One call billed per request, the one whose reply you used</summary>
 
-✗ Your code reads one reply and drops the other, so the bill ought to follow the reply you used. The provider cannot see what your code ignores. Each call runs to the end, as your gateway lets it, and each one is billed for its tokens, so a copied request is paid for twice.
+✗ Your code reads one reply and drops the other, and you pay for what you use. The provider cannot see what your code ignores. Tonight every reply takes about 6 seconds, past the 4-second wait, so every request is copied, both calls run to the end, and each provider bills its call: two calls per question.
 
 </details>
 
 <details><summary>B. Two calls billed for every request</summary>
 
-✓ Right. Every request now passes the 4-second mark, so every one is copied, and both calls run to the end and are billed. That evening costs two calls per question instead of the usual one and a twentieth.
+✓ Right. Every request now passes the 4-second mark, so every one is copied, and both calls run to the end and are billed: that evening costs two calls per question instead of the usual one and a twentieth, and the second provider gets a copy of every request, against whatever rate limit your account has there.
 
-The finance team sees two charges for every question asked that evening, from both providers, with the number of questions unchanged. The second provider, which normally sees a twentieth of the requests, now gets a copy of every one, against whatever rate limit your account has there.
+Hedging is priced for the slow tail: it costs extra only on requests slower than its wait, and how many those are is set by the first model's speed, not by your gateway. When the whole model slows down, the tail is every request. Each provider bills the tokens of every call it completes, whether or not your code reads the reply.
 
-Hedging is priced for the slow tail: it costs extra only on requests slower than its wait, and how many those are is set by the first model's speed, not by your gateway. When the whole model slows down, the tail is every request. Each provider bills the tokens of every call it completes, whether or not your code reads the reply. Put a ceiling on the share of requests the gateway may copy, and when the first model is slow across the board, switch to a fallback that sends each request to one model only. On your own servers a copy adds no bill, and it doubles the load on the GPUs instead.
+Put a ceiling on the share of requests the gateway may copy, and when the first model is slow across the board, switch to a fallback that sends each request to one model only.
 
 </details>
 
 <details><summary>C. The usual one call, plus copies for the slowest few</summary>
 
-✗ One in twenty is the share you measured, and the copies were priced from it. That share belongs to a normal day. Tonight every reply takes about 6 seconds, past the 4-second wait, so every request gets a copy, not only the slowest few.
+✗ One in twenty is the share you measured, and the copies were priced from it. That share belongs to a normal day. With the first model slow across the board, every request gets a copy, not only the slowest few.
 
 </details>
 
 <details><summary>D. Lower, with the second model answering most requests</summary>
 
-✗ The second model can well answer first tonight, and it may be the cheaper of the two. The first model's calls do not stop when they lose: they run to the end and are billed as well. A cheaper copy adds its price to every request and replaces none of the first model's.
+✗ Tonight the second model can answer first, and backup models are often the cheaper ones. The first model's calls do not stop when they lose: they run to the end and are billed as well. A cheaper copy adds its price to every request and replaces none of the first model's.
 
 </details>
 
@@ -317,7 +315,7 @@ What does the fallback give those requests?
 
 <details><summary>B. Notes written from the part of each transcript that fits</summary>
 
-✗ Chat apps you have used drop the oldest turns of a long conversation and carry on, and you may expect a model to trim a transcript the same way. That trimming is something an app or a setting does. A provider's API with default settings cuts nothing: it refuses the oversized request, and the fallback writes no notes at all.
+✗ Chat apps you have used drop the oldest turns of a long conversation and carry on, and a transcript is one more long text. That trimming is something an app or a setting does. A provider's API with default settings cuts nothing: it refuses the oversized request, and the fallback writes no notes at all.
 
 </details>
 
@@ -329,11 +327,11 @@ What does the fallback give those requests?
 
 <details><summary>D. An error for each, refusing it as too long</summary>
 
-✓ Right. The fallback's API refuses each long transcript before its model reads a word, since the request is larger than its window. The rep behind each of those calls waits a minute for the timeout and then gets an error.
+✓ Right. The fallback's API refuses each long transcript before its model reads a word, since the request is larger than its window, so the rep behind each of those calls waits a minute for the timeout and then gets an error, though the gateway did send every timed-out request to the fallback.
 
-The reps who have finished the longest calls, the big negotiations among them, are the ones left without notes on the evening the fallback was there for. The gateway's dashboard shows the fallback working, since every timed-out request did reach the second model.
+The fallback's small window matters in exactly the requests that need it. The timeouts picked out the longest transcripts, and the fallback was chosen with a far smaller window than the first model's, so the requests it receives on a slow evening are the ones it cannot hold. A provider's API with default settings refuses a request larger than the model's window and cuts nothing. The fallback test passed because its transcripts fitted both windows.
 
-The fallback meets the context window in exactly the requests that need it. The timeouts picked out the longest transcripts, and the fallback was chosen with a far smaller window than the first model's, so the requests it receives on a slow evening are the ones it cannot hold. A provider's API with default settings refuses a request larger than the model's window and cuts nothing. The fallback test passed because its transcripts fitted both windows. Test a fallback with the largest requests the first model takes. Before sending a request to a fallback, check that it fits that model's window; if it does not, shorten it on purpose, for example by writing notes on the transcript in parts and joining them, or tell the rep the notes will follow. A server you run yourself can, on some servers, be set to cut an over-long input to fit, and then it writes notes on part of a call with nothing to say so.
+Test a fallback with the largest requests the first model takes. Before sending a request to a fallback, check that it fits that model's window; if it does not, shorten it on purpose, for example by writing notes on the transcript in parts and joining them, or tell the rep the notes will follow.
 
 </details>
 
@@ -353,23 +351,23 @@ How long do fans wait for a reply as that hour goes on?
 
 <details><summary>B. A few seconds longer than usual throughout</summary>
 
-✗ Spreading a peak over time sounds as if it costs each person a little. It costs each person their place in the line, and the line grows by the gap between arrivals and the limit in every minute of the hour. The first fans wait seconds; those who write later wait far longer.
+✗ A queue spreads a peak over time, so each fan loses only a little. It costs each person their place in the line, and the line grows by the gap between arrivals and the limit in every minute of the hour. The first fans wait seconds, and a fan who writes late in the hour waits behind everyone still in the line, far longer than a few seconds.
 
 </details>
 
 <details><summary>C. Long at first, then shorter as the queue catches up</summary>
 
-✗ A supermarket line shortens once the checkouts catch up, and a queue in software settles the same way when it drains faster than it fills. Here it drains slower for the whole hour, set by the account's limit, so the line only grows. It starts to shrink only once the rush ends.
+✗ Job queues you have run fill in a spike and drain soon after, and the opening minutes of a sale have the same shape. Here arrivals stay above the account's limit for the whole hour, so the line drains slower than it fills and only grows: a fan who writes forty minutes in waits longer than one who wrote at minute ten, and the line shrinks only once the rush ends.
 
 </details>
 
 <details><summary>D. Longer and longer, the latest fans waiting longest</summary>
 
-✓ Right. Every minute more messages join the queue than leave it, so the line grows all hour, and a fan who writes later waits behind everyone still in it. The errors are gone, and a wait has taken their place.
+✓ Right. Every minute more messages join the queue than leave it, so the line grows all hour, and a fan who writes later waits behind everyone still in it: the errors are gone, and a wait that grows by the minute has taken their place. Say the limit sends 100 messages a minute while 300 arrive: a fan who writes forty minutes in waits about 80 minutes for a reply, and that reply is still written and paid for when its turn comes.
 
-Picture a limit that sends 100 messages a minute while 300 arrive. A fan who writes forty minutes in waits about 80 minutes for a reply, long after they have bought their tickets or given up, and the reply is still written and paid for when its turn comes.
+A queue moves the waiting from the provider's refusals into your own line; it cannot raise the rate the line drains at, which is the account's limit. It smooths a burst that ends before the line gets long, and it grows without end while arrivals stay above the limit.
 
-A queue moves the waiting from the provider's refusals into your own line; it cannot raise the rate the line drains at, which is the account's limit. It smooths a burst that ends before the line gets long, and it grows without end while arrivals stay above the limit. In a chat a person waits behind each entry, so give each message a time limit and tell the fan when it runs out, drop messages whose chat was closed, and raise the limit, or answer the most common questions without the model, before the sale. On your own server the limit is what the GPUs can serve, and the queue grows the same way.
+In a chat a person waits behind each entry, so give each message a time limit and tell the fan when it runs out, drop messages whose chat was closed, and raise the limit, or answer the most common questions without the model, before the sale.
 
 </details>
 
@@ -383,7 +381,7 @@ Which copies of the model answer the requests that arrive during those three min
 
 <details><summary>A. New copies, answering at full speed within seconds</summary>
 
-✗ Your web servers scale out in seconds, and you would expect an autoscaler that reacts at once to cover any spike. Reacting is the quick step; the copy it starts serves only once a machine is up and 140 GB of weights are downloaded and loaded into GPU memory, and for a model of this size that takes minutes.
+✗ Your web servers scale out in seconds, and the autoscaler reacts at once. Reacting is the quick step; the copy it starts serves only once a machine is up and 140 GB of weights are downloaded and loaded into GPU memory, which takes minutes, so the two running copies answer the three-minute spike alone.
 
 </details>
 
@@ -395,17 +393,17 @@ Which copies of the model answer the requests that arrive during those three min
 
 <details><summary>C. The two that were already running</summary>
 
-✓ Right. The two copies that were already running answer the whole spike alone. The autoscaler starts new copies within seconds, and each spends minutes on its machine, its download and its load before it takes a single request.
+✓ Right. The two copies that were already running answer the whole spike alone. The autoscaler starts new copies within seconds, and each spends minutes on its machine, its download and its load before it takes a single request. For those three minutes requests queue behind the two copies, and the added ones come up after the spike, paid for while nearly idle.
 
-For those three minutes, people filing on the last evening wait in a queue that the two copies drain at their usual pace, and some close the chat. The added copies come up after the news item has passed, and the site pays for their GPUs while they sit nearly idle until the autoscaler removes them.
+The load balancer can spread requests only over copies that are ready, and a copy of a large model is ready only once its weights are in GPU memory. Starting one means a machine, a download and a load, and companies that run such servers in their clouds describe that start for large models as taking many minutes, up to tens of minutes. Say three minutes for the GPU machine, two for the download and two for the load: the first added copy takes requests at minute 7, four minutes after the spike ended.
 
-The load balancer can spread requests only over copies that are ready, and a copy of a large model is ready only once its weights are in GPU memory. Starting one means a machine, a download and a load, and companies that run such servers in their clouds describe that start for large models as taking many minutes, up to tens of minutes. Picture three minutes for the machine, two for the download and two for the load: the first added copy takes requests at minute 7, four minutes after the spike ended. For spikes shorter than a copy's start, keep spare copies loaded through the busy evenings or add them on a forecast before the deadline, load the weights from fast storage near the GPUs or stream them straight into GPU memory, and let a queue with a time limit, or shorter answers, carry the first minutes. On a provider's API you start no copies: the capacity is the provider's, and what a spike meets there is your rate limit.
+For spikes shorter than a copy's start, keep spare copies loaded through the busy evenings or add them on a forecast before the deadline, load the weights from fast storage near the GPUs or stream them straight into GPU memory, and let a queue with a time limit, or shorter answers, carry the first minutes.
 
 </details>
 
 <details><summary>D. New copies from the start, answering slowly at first</summary>
 
-✗ Services you have run often take requests at once and stay slow for a while, as caches fill and code warms up. A model copy cannot take a request at all until its weights are in GPU memory, so it has no slow start to speak of: it answers nothing for minutes, and by the time it can, the news item has passed.
+✗ Services you have run often take requests at once and stay slow for a while, as caches fill and code warms up. A model copy cannot take a request at all until its weights are in GPU memory, so it has no slow start to speak of: it answers nothing for minutes.
 
 </details>
 
@@ -419,11 +417,11 @@ Once all four servers take traffic, how fast do follow-ups start their replies?
 
 <details><summary>A. Slower than in the load test, on most turns</summary>
 
-✓ Right. On most turns a follow-up lands on a server that did not read this chat's previous turn, so it reads again whatever that server has not seen: the latest turns, or the whole chat if the server never had it. Only the system prompt, shared by every chat, is found on every server. About one turn in four lands where the previous turn was read and starts as quickly as in the test.
+✓ Right. On most turns a follow-up lands on a server that did not read this chat's previous turn, so it reads again whatever that server has not seen: the latest turns, or the whole chat if the server never had it. Only the system prompt, shared by every chat, is found on every server. About one turn in four lands where the previous turn was read and starts as quickly as in the test, so in a long chat most replies take longer to start than the load test promised.
 
-Developers deep in a long debugging session wait a little longer for most replies to start, since the server that takes a turn usually has to read again the turns it missed, and the server metrics that looked so good in the load test now show less of each request read from the cache.
+Prompt caching keeps the model's work on a request's opening in the memory of the server that did that work. The load balancer knows nothing of it: it sends each turn to the next server in line, so, with other chats' requests in between, the server that read a chat's last turn gets the next one only about a quarter of the time.
 
-Prompt caching keeps the model's work on a request's opening in the memory of the server that did that work. The load balancer knows nothing of it: it sends each turn to the next server in line, so the server that read a chat's last turn gets the next one only about a quarter of the time. Route by chat instead, so every turn of a chat goes to the same server, or use a balancer that routes on the request's opening. Each server then keeps the work for its own chats, and the system prompt stays cached on all four.
+Route by chat instead, so every turn of a chat goes to the same server, or use a balancer that routes on the request's opening. Each server then keeps the work for its own chats, and the system prompt stays cached on all four.
 
 </details>
 
@@ -435,13 +433,13 @@ Prompt caching keeps the model's work on a request's opening in the memory of th
 
 <details><summary>C. Slower on every turn than with no caching at all</summary>
 
-✗ Four caches holding scraps of the same chats can look like a recipe for conflicts that leave every turn worse off. Each server's cache works on its own, and a miss costs nothing extra: the request is read in full, as with caching off, and the shared system prompt is still found.
+✗ A cache that misses costs a lookup before the real work, and these four miss most of the time. Each server's cache works on its own, and a miss costs almost nothing extra: the request is read in full, as with caching off, and the shared system prompt is still found, so most follow-ups are slower than in the load test and faster than with caching off.
 
 </details>
 
 <details><summary>D. Faster than in the load test, with four caches to draw on</summary>
 
-✗ More servers usually means more of everything, cache included. The caches are not pooled: a server can use only the work in its own memory, so a turn that lands on a different server finds at most the parts of its chat that server read before, plus the shared system prompt.
+✗ Adding servers adds capacity: four servers hold four caches where the load test had one. The caches are not pooled: a server can use only the work in its own memory, so a turn that lands on a different server finds at most the parts of its chat that server read before, plus the shared system prompt.
 
 </details>
 
@@ -455,29 +453,29 @@ What has happened by the time the refusal appears?
 
 <details><summary>A. No rooms booked and nothing charged</summary>
 
-✗ Throwing away the reply can feel like throwing away everything the agent did. The reply is only the text at the end of its work. Its tools ran on the way there, half a second in, while the check still had half a second to go, and the booking they made is not part of the reply.
+✗ Your code throws away the agent's reply, and the reply is all the agent hands back. That reply is only the text at the end of its work. Its tools ran on the way there, half a second in, while the check still had half a second to go, and the booking they made is not part of the reply.
 
 </details>
 
 <details><summary>B. The agent stopped by the flag before the card was charged</summary>
 
-✗ A flag that arrives while the agent is working could be pictured pulling the plug on it. Here the flag is a value your code reads only when it decides what to show: nothing cancels the agent, which runs to the end of its task, and the tool that books and pays had already run, before the flag existed.
+✗ The flag arrives while the agent is still working, before its reply is shown. Here the flag is a value your code reads only when it decides what to show: nothing cancels the agent, which runs to the end of its task, and the tool that books and pays had already run, before the flag existed.
 
 </details>
 
 <details><summary>C. Rooms booked and paid for on the agency's card</summary>
 
-✓ Right. The agent's tool call ran about half a second in, before the verdict arrived, so the booking went through on the agency's card. The refusal throws away the agent's reply, and the booking stays.
+✓ Right. The agent's first tool call, the booking, ran about half a second in, before the verdict arrived, so the booking went through on the agency's card. The refusal throws away the agent's reply, and the ten rooms stay booked and paid for until someone cancels each one with the hotel.
 
-The agency's accounts team finds ten rooms charged in a city nobody is travelling to, and the chat log shows a refusal for that very message. Undoing it means cancelling each room with the hotel by hand.
+Running the guard check beside the agent takes it off the critical path, and with it goes its power to stop anything. A check can only prevent what has not happened yet: a tool call made before the verdict is already done, and discarding the reply cannot reach it.
 
-Running the guard check beside the agent takes it off the critical path, and with it goes its power to stop anything. A check can only prevent what has not happened yet: a tool call made before the verdict is already done, and discarding the reply cannot reach it. Run the check in parallel only where the other branch has no effects, such as drafting a reply; when the agent can act, put the check in front of it, or make each tool that spends money or changes a booking wait for the verdict. Your code runs both branches and the tools, so this holds on a provider's API and on your own server.
+Run the check in parallel only where the other branch has no effects, such as drafting a reply; when the agent can act, put the check in front of it, or make each tool that spends money or changes a booking wait for the verdict.
 
 </details>
 
 <details><summary>D. Rooms booked, then cancelled by the refusal</summary>
 
-✗ Writes to a database can be wrapped in a transaction and rolled back, and a refusal could be pictured doing the same. Nothing links the refusal to the booking: your code discards a reply, and the hotel has already charged the card. Undoing it is a new action, a cancellation that someone has to make.
+✗ Writes to a database can be wrapped in a transaction and rolled back, and a request that fails a check is usually undone, not left half done. The refusal is not linked to the booking: your code discards a reply, and the hotel has already charged the card, so the ten rooms stay booked until someone cancels them, a new action of its own.
 
 </details>
 
@@ -491,29 +489,29 @@ When do residents see the first words?
 
 <details><summary>A. Within half a second, as in the prototype</summary>
 
-✗ In the prototype, streaming turned a long wait into words within half a second, and that is the change you remember. There, the answer call was the only thing to run. Here it is the last of three steps, and it cannot start until the sorting, the rewrite and the search have finished.
+✗ In the prototype, streaming turned a long wait into words within half a second, and that is the change you remember. There, the answer call was the only thing to run. Here it is the last of four steps, and it cannot start until the sorting, the rewrite and the search have finished, so the first words come about three seconds in.
 
 </details>
 
 <details><summary>B. Once the steps before the answer are done</summary>
 
-✓ Right. The first words appear about three seconds after the resident sends the message: two seconds of sorting and rewriting, half a second of search, and the half second the answer takes to begin. Before streaming they came with the whole answer, at about eight and a half seconds.
+✓ Right. The first words appear about three seconds after the resident sends the message: two seconds of sorting and rewriting, half a second of search, and the half second the answer takes to begin. Before streaming they came with the whole answer, at about eight and a half seconds, so the wait is shorter but still six times the prototype's half second.
 
-The wait is shorter than it was, and the council's digital team, shown a prototype that answered in half a second, still gets complaints from residents that the chat sits silent before it says anything.
+Streaming changes when the answer call's words arrive; it cannot start that call before its input exists. The answer needs the search's passages, the search needs the rewritten query, and the rewrite needs the sorted message, so all three sit on the critical path, and the first word waits for every one of them.
 
-Streaming changes when the answer call's words arrive; it cannot start that call before its input exists. The answer needs the search's passages, the search needs the rewritten query, and the rewrite needs the sorted message, so all three sit on the critical path, and the first word waits for every one of them. To shorten the wait, take work off that path: merge the sorting and the rewrite into one model call, give the short steps a smaller and faster model, or show a line such as "Looking that up" while they run.
+To shorten the wait, take work off that path: merge the sorting and the rewrite into one model call, give the short steps a smaller and faster model, or show a line such as "Looking that up" while they run.
 
 </details>
 
 <details><summary>C. When the whole answer is ready, as before</summary>
 
-✗ A chain of calls can seem to defeat streaming altogether, since the answer still waits on the other steps. It waits on them only to start. Once it starts, its words stream as they are written, so residents see them about three seconds in, long before the answer is complete.
+✗ The answer still waits on the sorting, the rewrite and the search, and streaming applies only to the last of the four steps. It waits on them only to start. Once it starts, its words stream as they are written, so residents see them long before the answer is complete.
 
 </details>
 
 <details><summary>D. After the longest step before the answer, with those steps run at once</summary>
 
-✗ Your other services fetch several things at once, so a chain could be pictured running its steps side by side. These cannot: the rewrite reads the sorted message, the search reads the rewrite, and the answer reads the search. Each waits for the step before it, and the first words come only after all three.
+✗ Your other services fetch several things at once. The chain's steps cannot: the rewrite reads the sorted message, the search reads the rewrite, and the answer reads the search. Each waits for the step before it, and the first words come only after all three.
 
 </details>
 
@@ -527,23 +525,23 @@ What does the next request carry about the stores past the first 200?
 
 <details><summary>A. A line saying more rows exist</summary>
 
-✗ A search page tells you how many results it left off the page, and a capped tool result could be expected to say the same. This tool sends the rows and stops. The cut leaves no mark in the result, and the model reads 200 rows as the whole answer to its query.
+✗ A search page tells you how many results it left off the page, and paged APIs return a count or a next-page link with each page. This tool sends the rows and stops. The cut leaves no mark in the result, and the model reads 200 rows as the whole answer to its query.
 
 </details>
 
 <details><summary>B. No rows and no sign they exist</summary>
 
-✓ Right. The tool result holds 200 rows, the stores with the lowest numbers, and nothing else: no count, no note that rows were cut. To the model, those rows are what the query returned.
+✓ Right. The tool result holds 200 rows, the stores with the lowest numbers, and nothing else: no count, no note that rows were cut. To the model, those rows are what the query returned, so it names the lowest seller among the first 200 stores, while the store that sold least most likely sits among the rows it never saw.
 
-The model can name only a store it was shown, so the analyst hears of one among the first 200 by number, and its manager is called in to explain, while the store that sold least most likely sits among the rows that never reached the model.
+The tool sits between the database and the model call, and the cap makes it answer a different question from the one the query asked. The model can reason only about the rows in the tool result, and a list with no sign of being cut looks complete.
 
-The tool sits between the database and the model call, and the cap makes it answer a different question from the one the query asked. The model can reason only about the rows in the tool result, and a list with no sign of being cut looks complete. Let the database do the work a question needs, such as sorting by sales and returning the lowest, and when a result is cut, say so in the tool result, with the number of rows left out, so the model can ask again more narrowly.
+Let the database do the work a question needs, such as sorting by sales and returning the lowest, and when a result is cut, say so in the tool result, with the number of rows left out, so the model can ask again more narrowly.
 
 </details>
 
 <details><summary>C. Their totals, in a second tool result</summary>
 
-✗ Tools that fetch long lists often page through them, so a second result carrying the rest is a fair guess. This one sends the first 200 rows and returns. Nothing calls it again for the remainder, and the request that follows carries only the one result, with no trace of the other stores.
+✗ Tools that fetch long lists often page through them, one result per page. This one sends the first 200 rows and returns, and the model, seeing no sign of more, never asks again: the request that follows carries one result, and the stores past the first 200 appear nowhere in it.
 
 </details>
 
@@ -557,29 +555,29 @@ Once the rule is in place, what can the assistant run on the developer's machine
 
 <details><summary>A. Any code it writes into the Makefile or the tests</summary>
 
-✓ Right. The rule matches the command's text, `make test`, and that command runs whatever the Makefile's test target and the test files say at that moment. The assistant may edit both without asking, so anything it writes there runs on the next `make test`, approved by the rule.
+✓ Right. The rule matches the command's text, `make test`, and that command runs whatever the Makefile's test target and the test files say at that moment. The assistant may edit both without asking, so anything it writes there, a line that deletes a folder or sends a file out included, runs on the next `make test` with no prompt.
 
-A task goes sideways, and the assistant adds a line to a test helper that deletes a folder of local data, or one that sends a file to an address it read in an issue. The developer, who approved edits once that morning, watches `make test` go by without a prompt.
+The shell is one of the assistant's tools, and two permissions meet in it: one to edit files and one to run a command, each safe-looking on its own. A command's text names a program and its arguments; what it does is decided by files on disk, and an assistant that can write those files decides what an allowed command runs.
 
-The shell is one of the assistant's tools, and two permissions meet in it: one to edit files and one to run a command, each safe-looking on its own. A command's text names a program and its arguments; what it does is decided by files on disk, and an assistant that can write those files decides what an allowed command runs. Allow a command without asking only when the assistant cannot change what it runs: keep build files and tests out of its reach or ask before edits to them, or run the tests in a container with no secrets and no network. The same holds for an agent you build, whose allow list of commands is only as narrow as the files those commands read.
+Allow a command without asking only when the assistant cannot change what it runs: keep build files and tests out of its reach or ask before edits to them, or run the tests in a container with no secrets and no network.
 
 </details>
 
 <details><summary>B. The project's tests and nothing else</summary>
 
-✗ Tests are written to check code, not to change anything, which is why the rule seemed safe to add. The rule approves a command's text, and `make test` runs what the Makefile and the tests say. Those are files the assistant may edit, so what the rule allows grows with every edit.
+✗ Tests are written to check code, not to change anything, which is the team's reason for the rule. The rule approves a command's text, and `make test` runs what the Makefile and the tests say. Those are files the assistant may edit, so what the rule allows grows with every edit.
 
 </details>
 
 <details><summary>C. Any <code>make</code> target, not only <code>test</code></summary>
 
-✗ Your firewall asks once per program, so approving `make test` can feel like approving `make`. This rule matches the whole text `make test`, and any other target is different text that still asks. What widens the rule is what `make test` itself runs, and that is set by files the assistant may edit.
+✗ Your firewall asks once per program, and `make` is the program here. This rule matches the whole text `make test`, and any other target is different text that still asks. What widens the rule is what `make test` itself runs, and that is set by files the assistant may edit.
 
 </details>
 
 <details><summary>D. Only the tests as they were on the day the rule was added</summary>
 
-✗ A rule written on Monday reads as approval for what the tests did on Monday. Nothing in it records what the files held: it matches the words `make test`, and on Friday those words run Friday's Makefile and tests, edits included.
+✗ People approve a command after seeing what it does, and an approval covers what was seen. The rule records no file contents: it matches the words `make test`, and on Friday those words run Friday's Makefile and tests, with every edit the assistant made in between.
 
 </details>
 
@@ -591,4 +589,4 @@ The shell is one of the assistant's tools, and two permissions meet in it: one t
 - [Bias in Bios](https://arxiv.org/abs/1901.09451), 2019: how much of a classifier's gap between women and men remains once names and pronouns are scrubbed from biographies, and which other words carry it.
 - [The Tail at Scale](https://doi.org/10.1145/2408776.2408794), 2013: why the slowest responses come to dominate as a service grows, and ways to build quick systems from parts that are sometimes slow.
 
-Next: [llm-gotchas](../../README.md)
+Prev: [Fine-tuning](../fine-tuning/README.md)

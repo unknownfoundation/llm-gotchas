@@ -1,6 +1,6 @@
 # Images, PDFs and audio
 
-Needs: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · [Context window](../context-window/README.md) · Reviewed October 2026
+Prev: [Streaming](../streaming/README.md) · Next: [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Reviewed October 2026
 
 A model reads a picture, a PDF or a recording as tokens, and it gets only what the file was turned into on the way. A picture becomes image tokens or recognised text, a PDF its stored text or pictures of its pages, a recording a transcript or audio tokens.
 
@@ -11,13 +11,7 @@ A model reads a picture, a PDF or a recording as tokens, and it gets only what t
 - **Text layer**: the characters a PDF stores for its text, the ones a viewer lets you select and a PDF library reads out.
 - **Audio tokens**: what a recording becomes for a model that takes audio: the sound itself, turned into tokens with no text step between.
 
-Who turns a file into tokens, and by whose rules:
-
-- **A provider's API**: your code sends the file inside the request, by its address or by a file id, and the provider turns it into tokens by its own rules and bills them as input.
-- **Your own server**: the model decides which files can go in: pictures, and with some models sound or video. A server takes no documents, so turning a PDF into text or pictures is your code's job. The model's image processor, the step that resizes a picture and cuts it into squares, sets how many tokens a picture becomes.
-- **A ready-made app**: you attach a file and the app picks the way it reaches the model; one reads the pictures in a PDF of up to 100 pages and only the text of a longer one.
-
-Each way works the same wherever it runs.
+On a provider's API your code sends the file inside the request, by its address or by a file id, and the provider turns it into tokens by its own rules and bills them as input. On your own server the model decides which files can go in, pictures and with some models sound or video, turning a PDF into text or pictures is your code's job, and the model's image processor, the step that resizes a picture and cuts it into squares, sets how many tokens a picture becomes. A ready-made app picks the way a file reaches the model, and one reads the pictures in a PDF of up to 100 pages and only the text of a longer one.
 
 A file reaches the model in one of six ways:
 
@@ -48,29 +42,29 @@ What happens to the number of input tokens a photo costs?
 
 <details><summary>A. They drop to about a sixth, as the file size did</summary>
 
-✗ The obvious length of a photo is its file size, the measure you would use for text. The model never reads the file's bytes. The provider decodes the file back into pixels and counts squares of them, and the re-saved photo has the same 1,200 × 800 pixels as before.
+✗ The size a file manager shows for a photo is its file size, and the re-save cut that to a sixth. The model never reads the file's bytes. The provider decodes the file back into pixels and counts squares of them, and the re-saved photo has the same 1,200 × 800 pixels as before.
 
 </details>
 
 <details><summary>B. They fall to a small fixed amount per photo</summary>
 
-✗ Some APIs do charge a small fixed amount per image, and a file this much smaller could qualify for it. That amount comes from an option you choose on the request, and the file's size never selects it. This photo is counted by its pixels, the same as before the re-save.
+✗ Some APIs charge a small fixed amount per image, and this file is far smaller than before. That amount comes from an option you choose on the request, and the file's size never selects it. This photo is counted by its pixels, the same as before the re-save.
 
 </details>
 
 <details><summary>C. They drop somewhat, by less than the file size did</summary>
 
-✗ If heavy compression throws away fine detail, a count of detail should drop with it. The count never looks at what the pixels show. A rule that cuts the picture into squares gets the same number of squares from a sharp 1,200 × 800 photo as from a blurred one.
+✗ Heavy compression throws away fine detail, and the file shrinks with it. The count never looks at what the pixels show: a rule that cuts the picture into squares gets the same number of squares from a sharp 1,200 × 800 photo as from a blurred one, so each photo bills what it did before.
 
 </details>
 
 <details><summary>D. They stay the same</summary>
 
-✓ Right. Each photo bills exactly what it did before. The provider decodes the file into pixels and counts those, and the re-save changed the bytes, not the pixel size.
+✓ Right. Each photo bills exactly what it did before, while the model now reads rougher pictures, since heavy compression blurs fine detail.
 
-The finance lead sees the same cost per listing next month. The photos the model reads are rougher now: heavy compression blurs small text, and the energy label on an oven is harder to make out in every one of them.
+Image tokens are made from the picture's pixels: the provider decodes whatever file you send and cuts the pixels into small squares, and the re-save changed the bytes, not the pixel size. A published rule that counts squares of 28 pixels gives 1,247 for a 1,200 × 800 photo, and a rule that counts squares of 32 pixels gives 950, which some models then multiply. Neither takes the file size, the format or the quality as an input; where an API lets a resolution option set the tokens per image, the option decides the count. Smaller files help elsewhere: they travel faster and keep a request under its size limit.
 
-Image tokens are made from the picture's pixels: the provider decodes whatever file you send and cuts the pixels into small squares. A published rule that counts squares of 28 pixels gives 1,247 for a 1,200 × 800 photo, and a rule that counts squares of 32 pixels gives 950, which some models then multiply. Neither takes the file size, the format or the quality as an input. Smaller files do help elsewhere: they travel faster and keep a request under its size limit. Where tokens are counted by squares, fewer pixels is what lowers the count, so crop each photo to the part that matters. Where an API lets a resolution option set the tokens per image, the option decides the count, and the file size plays no part there either. On your own server there is no bill, and the same pixels take the same room in the window.
+Where tokens are counted by squares, fewer pixels is what lowers the count, so shrink each photo to the size a description needs.
 
 </details>
 
@@ -84,29 +78,29 @@ What does the model get from the claim form?
 
 <details><summary>A. The form's text, exactly as it reads on screen</summary>
 
-✗ The form reads perfectly in any viewer, and anything you can read on a screen is natural to take for stored text. What the viewer draws is a picture of the paper. A PDF library reads only the characters a file stores, and an ordinary scan stores none, so each page yields no text at all.
+✗ The form reads perfectly in any viewer, and the text you read in a PDF is usually text the file stores. What the viewer draws is a picture of the paper. A PDF library reads only the characters a file stores, and an ordinary scan stores none, so each page yields no text at all.
 
 </details>
 
 <details><summary>B. The question alone, with no text from the form</summary>
 
-✓ Right. Every page comes back from the library as empty text, with no error, and the request carries the customer's question with no form in front of it.
+✓ Right. Every page comes back from the library as empty text, with no error, and the request carries the customer's question with no form in front of it, so the reply is written from the question alone.
 
-The customer asks what excess applies to their claim and gets a reply written from the question alone. The portal's log shows a clean upload and a successful call, and the claims handler who picks up the complaint finds no trace of the copier anywhere in it.
+An ordinary scan saves each page as one picture of the paper, so the file has no text layer: no stored characters, only an image drawn across each page. A PDF library reads the text layer and returns what it holds, which here is nothing; reading characters off pixels gives recognised text, the work of a separate step the library does not run. A scan that went through that step before upload carries a text layer of recognised text, misreadings included. An API that takes the PDF whole sends the text layer and page images together, so a scan does reach the model there, as pictures.
 
-An ordinary scan saves each page as one picture of the paper, so the file has no text layer: no stored characters, only an image drawn across each page. A PDF library reads the text layer and returns what it holds, which here is nothing. Reading characters off pixels gives recognised text, the work of a separate step that the library does not run. A scan that went through that step before upload carries a text layer of recognised text, and the library returns it with any misreadings. Test every page: one that draws a picture and yields no characters goes to text recognition, or to a model that takes images, as a page image. An API that takes the PDF whole sends the text layer and page images together, so a scan does reach the model there, as pictures. A ready-made app picks the way for you, and one reads only the text of a long PDF.
+Test every page: one that draws a picture and yields no characters goes to text recognition, or to a model that takes images, as a page image.
 
 </details>
 
 <details><summary>C. Nonsense symbols where the form's words should be</summary>
 
-✗ Garbled symbols are the usual failure when you copy text out of a PDF whose fonts map their letters strangely, and a page with no real letters at all would be the worst case of it. Nonsense needs stored characters to start from. The library does not read a picture's bytes as letters, and a page that stores no characters yields no text.
+✗ Garbled symbols are the usual failure when you copy text out of a PDF whose fonts map their letters strangely. Nonsense needs stored characters to start from. The library does not read a picture's bytes as letters, and a page of pure picture gives it nothing to turn into symbols.
 
 </details>
 
 <details><summary>D. The form's text, with a few letters misread</summary>
 
-✗ Your phone can pick the text out of a photo, and a library built for PDFs could be expected to do as much. Reading characters off pixels is text recognition, a separate tool that you run yourself. At its default settings a PDF library returns only stored characters, and this file has none to return.
+✗ Your phone can pick the text out of a photo, and PDF libraries are built for documents like this form. Reading characters off pixels is text recognition, a separate tool that you run yourself; at its default settings a PDF library returns only stored characters, and this scan stores none.
 
 </details>
 
@@ -132,17 +126,17 @@ Which change lets the feedback point at the sounds a learner got wrong?
 
 <details><summary>C. The recording itself, given to a model that accepts audio</summary>
 
-✓ Right. Only the setup that sends the recording gives the model the sound to judge. Every other change still hands it a line of text.
+✓ Right. Only the setup that sends the recording gives the model the sound to judge; every other change still hands it a line of text, and the app keeps calling a drifting vowel perfect.
 
-A learner whose vowels drift hears from the app that each sentence was perfect, books the speaking exam on the strength of it, and then sits in front of an examiner who hears what the teachers heard.
+A transcript is text: the words the speech-to-text model settled on, spelled the usual way. An accent that leaves the words recognisable leaves no trace in it, and a learner with every word right and every vowel wrong produces the same line as a native speaker. Audio tokens carry the sound itself into the model, with no text step between, so stress, vowels and rhythm are there to be judged.
 
-A transcript is text: the words the speech-to-text model settled on, spelled the usual way. An accent that leaves the words recognisable leaves no trace in it, and a learner with every word right and every vowel wrong produces the same line as a native speaker. Audio tokens carry the sound itself into the model, with no text step between, so stress, vowels and rhythm are there to be judged. Test the new setup on recordings a teacher has marked before you trust its feedback. Models that take audio are offered on some provider APIs, and some models you run on your own server take it too.
+Test the new setup on recordings a teacher has marked before you trust its feedback.
 
 </details>
 
 <details><summary>D. Higher-quality recordings, from a better microphone</summary>
 
-✗ Better audio is the first thing a sound engineer reaches for, and a phone microphone is no studio. A cleaner recording helps the speech-to-text model hear the words, and it still writes down words. However good the recording, the feedback model receives the same line of text.
+✗ A cleaner recording is the first thing to try on a bad transcript. It helps the speech-to-text model hear the words, and it still writes down words: however good the recording, the feedback model receives the same line of text and goes on calling the reading perfect.
 
 </details>
 
@@ -174,29 +168,29 @@ What happens to this customer's request?
 
 <details><summary>A. The request is refused for its size</summary>
 
-✓ Right. The request is turned away before the model sees a single photo. Your check summed 31.25 MB, while the body that went out held the photos as base64 text, 41.67 MB of it, over the 32 MB limit.
+✓ Right. The request is turned away before the model sees a single photo. Your check summed 31.25 MB, while the body that went out held the photos as base64 text, 41.67 MB of it, over the 32 MB limit; every batch from about 24 MB up to the limit fails this way, and a test with a handful of photos never gets near it.
 
-The customers with the most rooms, the largest moves the company quotes for, are the ones shown a failure after your own check had cleared their photos. Every batch from about 24 MB up to the limit fails this way, and a test with a handful of photos never gets near it.
+Base64 spends 4 characters on every 3 bytes, so each photo is a third larger inside the request than on disk, plus a little for the JSON that wraps it. What the limit measures is the body your code sends, not the files it read. The context window, counted in tokens, is a second limit the same photos must fit as well.
 
-Base64 spends 4 characters on every 3 bytes, so each photo is a third larger inside the request than on disk, plus a little for the JSON that wraps it. What the limit measures is the body your code sends, not the files it read. Measure the body after encoding, or hold the raw total under about three quarters of the limit, 24 MB here. For many photos or large ones, upload each photo to the provider once and pass the file id it returns, which keeps the body small. The context window, counted in tokens, is a second limit the same photos must fit as well.
+Measure the body after encoding, or hold the raw total under about three quarters of the limit, 24 MB here. For many photos or large ones, upload each photo to the provider once and pass the file id it returns, which keeps the body small.
 
 </details>
 
 <details><summary>B. The request is accepted, and the customer gets an estimate</summary>
 
-✗ Base64 is an encoding of the same bytes, and nothing in the word encoding warns you of growth. Each base64 character holds only 6 bits, which makes 4 characters out of every 3 bytes. The 40 photos go out as 41.67 MB of text, and the 32 MB limit is measured on that body.
+✗ Your check summed the photos at 31.25 MB, under the 32 MB limit, and base64 is just another way of writing the same bytes. Each base64 character holds only 6 bits, which makes 4 characters out of every 3 bytes. The 40 photos go out as 41.67 MB of text, the 32 MB limit is measured on that body, and the request is refused.
 
 </details>
 
 <details><summary>C. The request is accepted, with the photos scaled down to fit</summary>
 
-✗ Scaling down an oversized picture is something some providers do. Scaling acts on a picture's pixels once the request has been taken in and decoded. The size limit is applied before that, to the request body, and a body over it is turned away whole.
+✗ Scaling down an oversized picture is something some providers do. Scaling acts on a picture's pixels once the request has been taken in and decoded. The size limit is applied before that, to the request body, and so it never reaches the stage where a picture could be scaled.
 
 </details>
 
 <details><summary>D. The request is refused for holding too many tokens</summary>
 
-✗ Paste a base64 string into a text prompt and it is read as words, costing tokens like any other text, so the model's window looks like the limit to hit. Here the string stands for a photo's bytes in an image entry, and the model reads image tokens made from the pixels they decode to. The size limit acts first, on the body's bytes: 41.67 MB against 32 MB, turned away before anything is decoded or counted.
+✗ Paste a base64 string into a text prompt and it is read as words, costing tokens like any other text, and the model's window is the limit text runs into. In an image entry the string stands for a photo's bytes, and the size limit acts first, on the body: 41.67 MB against 32 MB, turned away before anything is decoded or counted.
 
 </details>
 
@@ -216,23 +210,23 @@ What does the model have to go on when it judges a photo's age?
 
 <details><summary>B. The camera's date, with the place removed</summary>
 
-✗ Photos you have shared sometimes lost their location and kept their date, a privacy habit you might credit to a provider. Nothing is filtered field by field here. The model receives none of the file's metadata, the date included, only the picture's pixels.
+✗ Photos you have shared through apps often lost their location and kept their date. Nothing is filtered field by field here. The model receives none of the file's metadata, the date included, only the picture's pixels.
 
 </details>
 
 <details><summary>C. The picture alone</summary>
 
-✓ Right. The model gets the picture and nothing else from the file. The date and the place stay in the file's metadata, and none of it reaches the model.
+✓ Right. The model gets the picture and nothing else from the file; the date and the place stay in the file's metadata, so an old photo passes as recent unless the picture itself gives its age away.
 
-A photo of a dented door taken two winters ago looks as fresh as one taken this morning, and the model can judge only from what the picture shows. An old photo sent with a new claim passes as recent, and the insurer pays out on damage that may be years old.
+The camera's date and place are not pixels: they sit in a separate block of the file. Decoding the file into pixels leaves that block behind, and the model receives none of it.
 
-Image tokens come from the picture's pixels, and the camera's date and place are not pixels: they sit in a separate block of the file. Decoding the file into pixels leaves that block behind, and the model receives none of it. If the date matters, read it from the file in your own code and check it there or send it as text, and treat it as a claim, since camera data can be edited. A server you run yourself decodes the file into pixels in the same way.
+If the date matters, read it from the file in your own code and check it there or send it as text, and treat it as a claim, since camera data can be edited.
 
 </details>
 
 <details><summary>D. The picture, plus the date and place written out as text</summary>
 
-✗ A PDF's stored text does go to the model beside its page images on some APIs, which makes a photo's stored fields riding along as text a fair guess. A picture is decoded to its pixels, and those are what the provider passes on. The camera's fields are not written out for the model, as text or in any other form.
+✗ A PDF's stored text goes to the model beside its page images on some APIs, and a photo's stored fields are text too. A picture is decoded to its pixels, and those are what the provider passes on. The camera's fields are not written out for the model, as text or in any other form.
 
 </details>
 
@@ -246,29 +240,29 @@ What does the request give the model to tell which photo is garage.jpg?
 
 <details><summary>A. Each picture tagged with its own file name</summary>
 
-✗ Every file manager, mail client and upload form shows the name beside the file, so the name seems to travel wherever the file goes. It is a label that the folder keeps outside the file's bytes. The request holds the pictures' pixels and the text your code writes, and a name is neither unless your code writes it in.
+✗ Every file manager, mail client and upload form shows the name beside the file, wherever the file goes. It is a label that the folder keeps outside the file's bytes. The request holds the pictures' pixels and the text your code writes, and a name is neither unless your code writes it in.
 
 </details>
 
 <details><summary>B. Twelve pictures in order, with no names</summary>
 
-✓ Right. The model gets twelve pictures in the order your code put them, then the question as text, and no picture carries a name.
+✓ Right. The model gets twelve pictures in the order your code put them, then the question as text, and no picture carries a name, so an answer about the garage ceiling can describe a ceiling from any of the twelve.
 
-A manager reads an answer about a ceiling and takes it for the garage's. If it describes the kitchen, the surveyor sent out to look at damp goes to the wrong room, and the photo called garage.jpg was never the one described.
+A file name lives in the folder, not in the file: it is a label kept beside the bytes, so reading the bytes into the request never picks it up. The request holds the pictures, which the model reads as image tokens, and the text your code writes, and nothing else.
 
-A file name lives in the folder, not in the file: it is a label kept beside the bytes, so reading the bytes into the request never picks it up. The request holds the pictures, which the model reads as image tokens, and the text your code writes, and nothing else. To make the name usable, write it into the text yourself: put a line such as "Photo 3: garage.jpg" before each picture and let the question use those labels. A server you run yourself works the same way, since the model there reads only what the request holds.
+To make the name usable, write it into the text yourself: put a line such as "Photo 3: garage.jpg" before each picture and let the question use those labels.
 
 </details>
 
 <details><summary>C. One list of all twelve names, in the order of the photos</summary>
 
-✗ Anyone who has listed the files in a provider's file store has seen the names in a column, and expects the same column to reach the model. Here the photos travel inside the request, and a request holds only what your code put in it. It carries no list of names unless your code writes one.
+✗ Anyone who has listed the files in a provider's file store has seen the names in a column, next to each file. Here the photos travel inside the request, and a request holds only what your code put in it. It carries no list of names unless your code writes one.
 
 </details>
 
 <details><summary>D. An error for naming a file the request does not hold</summary>
 
-✗ Tell a shell to open a file that is not there and it stops with an error, so a question that names "garage.jpg" invites the same expectation. The manager's question is plain text to the model, and nothing checks it against file names. The request goes through as twelve pictures and a sentence that mentions one of them by a name.
+✗ Tell a shell to open a file that is not there and it stops with an error, and a question that names "garage.jpg" asks for that file. The manager's question is plain text to the model, and nothing checks it against file names. The request goes through as twelve pictures and a sentence that mentions one of them by a name.
 
 </details>
 
@@ -282,23 +276,23 @@ Which way up is the fern in the picture the model gets?
 
 <details><summary>A. Lying on its side</summary>
 
-✓ Right. The copy reaches the model on its side. Its pixels are the ones the phone's sensor read, in that order, and the copy holds nothing that says to turn them.
+✓ Right. The copy reaches the model on its side: its pixels are the ones the phone's sensor read, in that order, and the copy holds nothing that says to turn them.
 
-A customer who photographs a fern upright sees it fine in the gallery, while the copy in the app's upload folder lies on its side, and so does the picture the model is given. The adviser who opens that folder to check a bad identification finds the upright shots all lying down.
+A phone's sensor reads every picture wide, as if the phone were held sideways. A phone that saves the pixels as the sensor read them stores a photo taken upright lying on its side, with a note in the file's metadata that tells a viewer to give it a quarter turn; galleries and browsers apply the note, which is why every original looks upright. Your resize built a new picture from the pixels and left the note behind, so the copy has sideways pixels and no instruction: no viewer and no decoder can turn it upright, and the model reads image tokens made from those pixels.
 
-A phone's sensor reads every picture wide, as if the phone were held sideways. A phone that saves the pixels as the sensor read them stores a photo taken upright lying on its side, with a note in the file's metadata that tells a viewer to give it a quarter turn. Galleries and browsers apply the note, which is why every original looks upright. Your resize built a new picture from the pixels and left the note behind, so the copy has sideways pixels and no instruction. The model reads image tokens made from those pixels. Turn each photo upright by its note in your own code before shrinking and saving it, and open a few saved copies in a plain viewer before you ship. A server you run yourself is given the same sideways pixels.
+Turn each photo upright by its note in your own code before shrinking and saving it, and open a few saved copies in a plain viewer before you ship.
 
 </details>
 
 <details><summary>B. Upright, as in the gallery</summary>
 
-✗ The gallery shows the original upright, and the copy is a smaller version of the same photo, so it ought to be upright too. The gallery is applying a rotation note stored in the original's metadata, and the copy was saved without that metadata. What is left is the sensor's pixels, on their side.
+✗ The gallery shows the original upright, and the copy is a smaller version of the same photo. The gallery is applying a rotation note stored in the original's metadata, and the copy was saved without that metadata. What is left is whatever the sensor read.
 
 </details>
 
 <details><summary>C. Upside down</summary>
 
-✗ When a photo is turned the wrong way, upside down is the picture you reach for first, like a book held the wrong way up. The sensor reads in landscape, so a photo taken with the phone upright is stored a quarter turn from upright, not a half turn, and without the note the copy lies on its side.
+✗ "The wrong way up" is the usual name for this problem, and the wrong way up means upside down. The sensor reads in landscape, so a photo taken with the phone upright is stored a quarter turn from upright, not a half turn, and without the note the copy lies on its side.
 
 </details>
 
@@ -318,23 +312,23 @@ What does the model get from each card?
 
 <details><summary>A. The same full-size card, at a discount price</summary>
 
-✗ A cheaper option that leaves the work unchanged is what a discount tier means, and this option is named like one. It changes the picture, not the price list. A handful of tokens covers only a small copy of the card, and that copy is all the model reads.
+✗ A cheaper option that leaves the work unchanged is what a discount tier means, and this option is named like one. The option changes the picture instead: a small fixed number of tokens covers only a small copy of the 3,000 × 2,000 card, with its handwriting a few pixels tall, so the model reads less of the card, not the same card for less.
 
 </details>
 
 <details><summary>B. A small copy of the whole card</summary>
 
-✓ Right. The model gets a much smaller copy of the card, scaled down to fit the few tokens the option allows.
+✓ Right. The model gets a much smaller copy of the card, scaled down to fit the few tokens the option allows, and the handwriting reaches it a few pixels tall.
 
-The handwriting reaches the model a few pixels tall. Fractions and notes squeezed into the margin are the first things to blur away, and the person cooking from the typed recipe cannot see that the card said more.
+Image tokens are made from squares of the picture's pixels, so a fixed, small token count covers only as many squares, and the picture has to shrink to fit them. Say an option allows 256 squares of 28 pixels: a 3,000 × 2,000 card that would need 7,776 squares arrives as about 532 × 355 pixels, and handwriting 40 pixels tall shrinks to about 7.
 
-Image tokens are made from squares of the picture's pixels, so a fixed, small token count covers only as many squares, and the picture has to shrink to fit them. Picture an option that allows 256 squares of 28 pixels: a 3,000 × 2,000 card that would need 7,776 squares arrives as about 532 × 355 pixels, and handwriting 40 pixels tall shrinks to about 7. The saving is real, and it is paid for in detail. Keep the low option for pictures where the gist is enough, such as sorting photos by room, and send writing the model must read at a higher setting, or cropped. On your own server the same trade is the image processor's largest size, a setting you choose.
+Keep the low option for pictures where the gist is enough, such as sorting photos by room, and send writing the model must read at a higher setting, or cropped.
 
 </details>
 
 <details><summary>C. The same full-size card, read in a quick skim</summary>
 
-✗ For a person, a quick glance is the cheap way to read a page, and a setting called low detail hints at a skim. The model has no setting for attention on an image. It reads the image tokens it gets, and a fixed handful of them can only describe a small copy of the card.
+✗ For a person, a quick glance is the cheap way to read a page, and low detail is what a glance takes in. The model has no setting for attention on an image. It reads the image tokens it gets, and a small fixed number of them can only describe a small copy of the card.
 
 </details>
 
@@ -360,23 +354,23 @@ How does the screenshot's input cost compare with the same line pasted as text?
 
 <details><summary>B. Many times what the line costs</summary>
 
-✓ Right. The screenshot costs many times what the pasted line would: 1,196 image tokens under a published rule of 28-pixel squares, and 920 under a rule of 32-pixel squares before any multiplier, against about 11 tokens for the line.
+✓ Right. The screenshot costs many times what the pasted line would: 1,196 image tokens under a published rule of 28-pixel squares, and 920 under a rule of 32-pixel squares before any multiplier, against about 11 tokens for the line, 109 and 84 times as much.
 
-Most chats on a busy morning open with a screenshot, and the support manager watches the bill for the help chat grow while the conversations stay as short as ever. Each screenshot costs 109 times the typed line under one published rule, and 84 times under the other before any multiplier.
+Image tokens come from the picture's pixels, not from the words it shows: the provider cuts the whole 1,280 × 720 window into squares, the blank page around the error included, and counts them. The words drawn in the picture add nothing to the count, and a window full of dense text would cost the same. Where an API offers a low-detail option the count drops, at the price of a smaller copy that can blur the text.
 
-Image tokens come from the picture's pixels, not from the words it shows: the provider cuts the whole 1,280 × 720 window into squares, the blank page around the error included, and counts them. The words drawn in the picture add nothing to the count and save nothing, and a window full of dense text would cost the same. Ask customers to paste error messages as text, or crop the screenshot to the error before sending, since a smaller picture covers fewer squares. Where an API offers a low-detail option the count drops, at the price of a smaller copy that can blur the text. On your own server there is no bill, and the same screenshot takes the same room in the window.
+Ask customers to paste error messages as text, or crop the screenshot to the error before sending, since a smaller picture covers fewer squares.
 
 </details>
 
 <details><summary>C. Less than the pasted line</summary>
 
-✗ The chat shows the screenshot as a single attachment beside a whole line of words, and one item sounds like the smaller bill. The picture is billed by its pixels: a mostly empty browser window comes to 1,196 squares under one published rule, while the line it shows takes about 11 tokens as text.
+✗ The chat shows the screenshot as one attachment next to the customer's message, one item beside a whole line of text. The picture is billed by its pixels: a mostly empty browser window comes to 1,196 squares under one published rule, while the line it shows takes about 11 tokens as text.
 
 </details>
 
 <details><summary>D. Slightly more than the pasted line</summary>
 
-✗ You may expect the provider to read the text off the picture and bill those words, with something added for the image. Billing never looks at what the picture says. The count goes by squares of pixels across the whole window, blank space included.
+✗ The model reads the text off the picture, the same line you could have pasted. Billing never looks at what the picture says. The count goes by squares of pixels across the whole window, blank space included.
 
 </details>
 
@@ -396,23 +390,23 @@ On that turn, what is there for the model to read the label from?
 
 <details><summary>B. The whole photo resent at a higher detail setting</summary>
 
-✗ Detail is a setting some APIs take with each picture, the obvious thing for a closer look to raise. That setting is a field your code writes on the request, and the customer's words never change it. Your code sent the photo exactly as before, at the same setting and the same size.
+✗ Detail is a setting some APIs take with each picture, and a closer look is what it raises. That setting is a field your code writes on the request, and the customer's words never change it. Your code sent the photo exactly as before, at the same setting and the same size.
 
 </details>
 
 <details><summary>C. An enhanced copy with the label made sharp</summary>
 
-✗ Phone galleries offer a one-tap enhance that turns a soft photo crisp, and a service built around a model is where you would expect one. Nothing in the request asks for it, and no step can put back detail the shrunken copy never held: a label too small to read in 1,024 × 768 pixels stays too small in any copy made from those pixels.
+✗ Phone galleries offer a one-tap enhance that turns a soft photo crisp. The request asks for no enhancing, and no step can put back detail the shrunken copy never held: a label too small to read in 1,024 × 768 pixels stays too small in any copy made from those pixels.
 
 </details>
 
 <details><summary>D. The same picture as before</summary>
 
-✓ Right. The request carries the same 1,024 × 768 photo as before, the same 1,036 image tokens under a published rule of 28-pixel squares, and one new line of text asking for a zoom.
+✓ Right. The request carries the same 1,024 × 768 photo as before, the same 1,036 image tokens under a published rule of 28-pixel squares, and one new line of text asking for a zoom, so whatever the next reply says about the label rests on the pixels that were too small a turn earlier.
 
-Whatever the next reply says about the label rests on the very pixels that were too small a turn earlier. A customer choosing between two vintages of the same wine can take that reply at its word and walk out with the wrong bottle.
+Every image token the model reads was built from the pixels the request carries, and the model has no way to fetch more: with no tools, it reads the request and writes text, and "zoom in" reaches it as words.
 
-Every image token the model reads was built from the pixels the request carries, and the model has no way to fetch more: with no tools, it reads the request and writes text, and "zoom in" reaches it as words. A closer look has to come from your code. Crop the region around the bottle from the phone's full-size photo, 4,032 × 3,024 pixels here, and send the crop as a new picture: at the original's scale the label stands about four times as tall as in the shrunken copy, and it spreads across many more squares. A server you run yourself works the same way, since the model there also sees only the pixels your code sends.
+A closer look has to come from your code. Crop the region around the bottle from the phone's full-size photo, 4,032 × 3,024 pixels here, and send the crop as a new picture: at the original's scale the label stands about four times as tall as in the shrunken copy and spreads across many more squares.
 
 </details>
 
@@ -438,17 +432,17 @@ Which one change should most cut the misread answers on the next survey?
 
 <details><summary>C. Move to the most capable model on offer</summary>
 
-✗ A bigger, newer model is the usual answer to a hard task, and switching models is a change to one setting. In a 2025 study of such marks, the best of four leading models was right on about 78% of its simple tasks, while spacing the shapes apart brought accuracy close to 100%. The page layout moved the result further than the choice of model.
+✗ Switching models is a change to one setting, and a newer model often fixes a hard task. In a 2025 study of such marks, the best of four leading models was right on about 78% of its simple tasks, while spacing the shapes apart brought accuracy close to 100%, a bigger change than switching among those four models.
 
 </details>
 
 <details><summary>D. Print the five answers farther apart</summary>
 
-✓ Right. Spacing the answers apart is the change a study of such marks found to work: models that misread closely packed shapes read them almost perfectly once more space separated them.
+✓ Right. Spacing the answers apart is the change a study of such marks found to work: models that misread closely packed shapes read them almost perfectly once more space separated them. With the old layout, each misread mark records the neighbouring answer in place of the one the respondent circled.
 
-Keep the old layout and each misread mark moves a respondent one place along the scale, from agree to strongly agree. The client reads the shift as a change of opinion and presents it to its board as a trend.
+Image tokens can hold the circle and all five answers, and a model can still fail to say which answer the circle surrounds. In its 2025 version, the study Vision language models are blind tested leading models of that time on simple pictures, among them telling which letter in a word has a circle drawn around it. They struggled when shapes overlapped or sat close together, at every image resolution tried, and models that reason at length before answering struggled too; the best of the four was right about 78% of the time across the set. With more space between the shapes, accuracy rose to near 100%.
 
-Image tokens can hold the circle and all five answers, and a model can still fail to say which answer the circle surrounds. In its 2025 version, the study Vision language models are blind tested leading models on simple pictures, among them telling which letter in a word has a circle drawn around it. They struggled when shapes overlapped or sat close together, at every image resolution tried, and models that reason at length before answering struggled too; the best of the four was right about 78% of the time across the set. With more space between the shapes, accuracy rose to near 100%. Those were models of 2024 and 2025, so measure yours on a sample of real forms. Space the answers apart, give each its own box, and keep the spot checks going.
+Space the answers apart, give each its own box, and keep the spot checks going on a sample of real forms.
 
 </details>
 
@@ -462,11 +456,11 @@ What reaches the model from the lines under the rectangles?
 
 <details><summary>A. The tenant's name and address</summary>
 
-✓ Right. The name and address arrive as ordinary text among the rest of the letter, with nothing to show that anyone covered them.
+✓ Right. The name and address arrive as ordinary text among the rest of the letter, with nothing to show that anyone covered them: they go out inside the request, into any log your code keeps of its requests, and the summary can open with the tenant's name.
 
-The adviser believes the tenant's details never left the office. They went out to the provider inside the request, into any log your code keeps of its requests, and nothing stops the summary from opening with the tenant's name, the one detail the adviser meant to keep back.
+A PDF keeps its text layer and its drawings as separate instructions. The letter's characters are stored as text, and the rectangle is a shape painted after them: a viewer draws it over the letters, while text extraction takes every character the page stores and pays no attention to what is painted on top. Whether the editor writes the rectangle into the page or lays it over the page as a separate note, the characters stay in the file, and every route that reads the text layer passes them on, an API that takes the PDF whole and a ready-made app that reads a PDF's text included. Only a model given the page images alone misses the name; an API that takes the PDF whole sends the images beside the text, so the bars are visible there and the name arrives anyway.
 
-A PDF keeps its text layer and its drawings as separate instructions. The letter's characters are stored as text, and the rectangle is a shape painted after them: a viewer draws it over the letters, while text extraction takes every character the page stores and pays no attention to what is painted on top. Whether the editor writes the rectangle into the page or lays it over the page as a separate note, the characters stay in the file. To take them out, use a PDF tool that deletes the text under each box, or turn every page into a page image; either way, extract the text yourself before upload and check that the name is gone. An API that takes the PDF whole reads the same text layer beside its page images, and so does a ready-made app that reads a PDF's text, so the name reaches the model on every route that reads the text layer. Only a model given the page image alone sees the black bars.
+To take the characters out, use a PDF tool that deletes the text under each box, or turn every page into a page image; either way, check what will be sent, the extracted text or the page images, for the name before upload.
 
 </details>
 
@@ -484,7 +478,7 @@ A PDF keeps its text layer and its drawings as separate instructions. The letter
 
 <details><summary>D. The name and address, flagged as hidden</summary>
 
-✗ A program that can read the text under a box would surely know the box was there. Extraction takes the characters a page stores and ignores what is drawn over them. The covered name comes back with the same standing as every other line of the letter, with no flag or note beside it.
+✗ A program that can read the text under a box has the box in front of it too. Extraction takes the characters a page stores and ignores what is drawn over them. The covered name comes back with the same standing as every other line of the letter, with no flag or note beside it.
 
 </details>
 
@@ -516,11 +510,11 @@ What does the model get for a product sold only by the bag?
 
 <details><summary>D. The product name and one price, nothing more</summary>
 
-✓ Right. The line reads as the product name followed by one price, and nothing on it marks the empty cell or says which column the price came from.
+✓ Right. The line reads as the product name followed by one price, and nothing on it marks the empty cell or says which column the price came from, so nothing tells the model whether it is a bag price or a pallet price.
 
-A product sold only by the pallet comes out in the same shape, a name and one number. A plasterer who asks for the pallet price of building sand can be quoted the bag price as if it were per pallet, and the merchant then either honours forty pallets at that figure or argues with a trade customer.
+A PDF holds no table, only characters placed at positions on the page, with the grid lines drawn as shapes. Here extraction writes the characters out one row to a line; the gap where a cell is empty holds no character, so it leaves nothing behind. The model gets the text layer with the grid gone: a row with both prices ends in two numbers, a row with one price ends in one, and nothing says which column that one came from. An API that takes the PDF whole sends page images beside the text, so the columns are at least in front of the model there.
 
-A PDF holds no table, only characters placed at positions on the page, with the grid lines drawn as shapes. Here extraction writes the characters out one row to a line; the gap where a cell is empty holds no character, so it leaves nothing behind. The model gets the text layer with the grid gone: a row with both prices ends in two numbers, a row with one price ends in one, and nothing says which column that one came from. Use the library's layout mode if it has one, an extraction setting that keeps the horizontal gaps as spaces, or a tool built to read tables, and turn each row into labelled fields before sending; or send the page as a page image, where the columns stay visible. An API that takes the PDF whole sends page images beside the text, so the columns are at least in front of the model there.
+Use the library's layout mode if it has one, an extraction setting that keeps the horizontal gaps as spaces, or a tool built to read tables, and turn each row into labelled fields before sending; or send the page as a page image, where the columns stay visible.
 
 </details>
 
@@ -534,17 +528,17 @@ What can the transcript of such a message hold that the caller never said?
 
 <details><summary>A. Whole phrases and sentences</summary>
 
-✓ Right. A transcript can hold whole phrases or sentences that are not in the recording, and they turn up more often for callers who pause at length.
+✓ Right. A transcript can hold whole phrases or sentences that are not in the recording, and they turn up more often for callers who pause at length, so a note can tell the receptionist about a request the caller never made.
 
-A note can tell the receptionist that a caller asked for a repeat of a medicine they never named. The receptionist, with forty messages to clear before the doors open, acts on the note and not on the recording.
+A transcript is the speech-to-text model's text, and the model that drafts the note takes it as what the caller said. A 2024 study of a widely used speech-to-text model, in its 2023 version, found that roughly 1% of its transcripts held phrases or sentences no one had said, and more of them for speakers with longer silent stretches.
 
-A transcript is the speech-to-text model's text, and the model that drafts the note takes it as the call. A 2024 study of a widely used speech-to-text model found that roughly 1% of its transcripts held phrases or sentences no one had said, and more of them for speakers with longer silent stretches. The model it tested was the 2023 version of that service, so measure the one you use. Keep the recording one click from every note, and have staff check names, medicines and dates against it before acting.
+Keep the recording one click from every note, and have staff check names, medicines and dates against it before acting.
 
 </details>
 
 <details><summary>B. No extra words, only gaps where spoken words dropped out</summary>
 
-✗ Automatic captions you have watched drop a mumbled phrase now and then, and gaps are the error you have learned to expect. Gaps do happen, but a transcript can also gain text. In a 2024 study, roughly 1% of one widely used model's transcripts carried phrases or sentences nobody spoke, more often around long silences.
+✗ Automatic captions you have watched drop a mumbled phrase now and then, and gaps are the error you have learned to expect. Gaps happen, but a transcript can also gain text. In a 2024 study, roughly 1% of one widely used model's transcripts carried phrases or sentences nobody spoke, more often around long silences.
 
 </details>
 
@@ -556,7 +550,7 @@ A transcript is the speech-to-text model's text, and the model that drafts the n
 
 <details><summary>D. A wrong word here and there in place of a spoken one, and no more than that</summary>
 
-✗ Speech-to-text has grown good enough for meetings and captions that a stray misheard word is the worst you expect. Accuracy on clear speech says little about long silences. A study published in 2024 caught a widely used model writing whole sentences into about one transcript in a hundred, more often for callers who paused at length.
+✗ Speech-to-text has grown good enough for meetings and captions, and the errors people report are stray misheard words. Accuracy on clear speech says little about long silences. A study published in 2024 caught a widely used model writing whole sentences into about one transcript in a hundred, more often for callers who paused at length.
 
 </details>
 
@@ -570,7 +564,7 @@ What do the four minutes of hold music add to a call's input tokens?
 
 <details><summary>A. No tokens at all</summary>
 
-✗ Tokens are how text gets counted, and hold music has no words in it to count. Audio tokens are made from the sound, not from words, and they are counted by the second. Four minutes of music bill exactly what four minutes of a caller talking would.
+✗ Tokens are how text gets counted, and hold music has no words in it to count. Audio tokens are made from the sound, not from words, and they are counted by the second. Silence and music are sound like any other.
 
 </details>
 
@@ -582,17 +576,17 @@ What do the four minutes of hold music add to a call's input tokens?
 
 <details><summary>C. As much as four minutes of speech</summary>
 
-✓ Right. The music bills like any other four minutes of sound: audio tokens are counted by the length of the recording, whatever is in it.
+✓ Right. The music bills like any other four minutes of sound, so a call that opens with four minutes of hold music pays for those minutes in input tokens, whatever the summary says.
 
-On the busiest days the queue is longest, and every summary carries the longest stretch of music, so the audio bill climbs with the wait and not with the faults reported. The operations manager watches the cost per call rise in the very weeks the line is struggling.
+Audio tokens carry the sound itself into the model, and providers count them by the second. Two published rates, 25 tokens a second and one token for every 100 milliseconds, turn the four minutes into 6,000 and 2,400 tokens. Neither counts words, the sample rate or the file's size, and a provider that documents its processing first reduces every recording to a single channel at a low bit rate. A live voice session that listens for speech can leave empty stretches out of the count, while a finished recording sent as a file is counted whole.
 
-Audio tokens carry the sound itself into the model, and providers count them by the second. Two published rates, 25 tokens a second and one token for every 100 milliseconds, turn the four minutes into 6,000 and 2,400 tokens. Neither counts words, the sample rate or the file's size, and a provider that documents its processing first reduces every recording to a single channel at a low bit rate. Cut the hold music and long silences from the file before you send it. A live voice session that listens for speech can leave empty stretches out of the count, while a finished recording sent as a file is counted whole.
+Cut the hold music and long silences from the file before you send it.
 
 </details>
 
 <details><summary>D. More on a studio-quality file than on a phone-line recording</summary>
 
-✗ A studio file holds far more sound than a phone line, and more sound would mean more for the model to read. The count goes by length alone: before counting, a provider that documents its processing reduces every file to one channel at a low bit rate, and per-second rates ignore quality, so four minutes from either source bill the same.
+✗ A studio file holds far more sound than a phone line, and a bigger file usually costs more to process. The count goes by length alone. A per-second rate ignores quality, so the source's quality never reaches the bill.
 
 </details>
 
@@ -604,4 +598,4 @@ Audio tokens carry the sound itself into the model, and providers count them by 
 - [Vision language models are blind](https://arxiv.org/abs/2407.06581), 2025: leading models misread simple pictures, such as which letter in a word is circled, until the shapes are spaced apart.
 - [DocVQA](https://arxiv.org/abs/2007.00398), 2020: 50,000 questions on more than 12,000 document images, where models trailed people most on questions that rest on a page's structure.
 
-Next: [Embeddings and vector search](../embeddings-and-vector-search/README.md)
+Prev: [Streaming](../streaming/README.md) · Next: [Embeddings and vector search](../embeddings-and-vector-search/README.md)

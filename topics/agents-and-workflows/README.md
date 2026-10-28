@@ -1,6 +1,6 @@
 # Agents and workflows
 
-Needs: [Context window](../context-window/README.md) · [Tool calling](../tool-calling/README.md) · Reviewed October 2026
+Prev: [Memory](../memory/README.md) · Next: [Security](../security/README.md) · Reviewed October 2026
 
 An agent is a loop in which the model picks each next step, another tool call or the answer; a workflow runs steps your code fixes in advance, and the model does the work inside each. Either way a run is a series of separate model calls, and your code decides what each call is sent.
 
@@ -11,7 +11,7 @@ An agent is a loop in which the model picks each next step, another tool call or
 - **Checkpoint**: a saved copy of a run's state that the run can be resumed from: the messages so far and anything your code records beside them, such as an order number or a manager's answer; it lasts as long as the place your code keeps it, so one in a process's memory ends with that process and one in a file or a database outlives a restart.
 - **Approval**, often called human in the loop: a pause in which a run waits for a person's answer, then resumes once the answer arrives.
 
-A provider's API and your own server answer each call from the messages they are sent, so on both the loop, the state and the checkpoints live in your code; a ready-made app such as a coding assistant runs an agent loop of its own and can stop to ask you before it edits a file or runs a command. Loops, patterns and checkpoints work the same way everywhere.
+A provider's API and your own server answer each call from the messages they are sent, so on both the loop, the state and the checkpoints live in your code; a ready-made app such as a coding assistant runs an agent loop of its own and can stop to ask you before it edits a file or runs a command.
 
 Most systems combine a few ways of wiring calls together:
 
@@ -51,17 +51,17 @@ How should you build the two jobs?
 
 <details><summary>C. An agent for the invoices, a workflow for the research</summary>
 
-✗ The invoices carry money and touch three systems, and a weightier job tempts you toward the more capable build. Care with money points to the fixed build instead: the three steps are known in advance, and a workflow runs them the same way every time. An agent would let the model pick each step, and nothing in your code would stop it from skipping the match or posting twice.
+✗ The invoices carry money and touch three systems, and the job with the most at stake is the one teams give their most capable build. Care with money points to the fixed build instead: the three steps are known in advance, and a workflow runs them the same way every time, while an agent would let the model pick each step, and no line of your code would stop it from skipping the match or posting twice.
 
 </details>
 
 <details><summary>D. An agent for the research, a workflow for the invoices</summary>
 
-✓ Right. The research questions run as an agent and the invoices as a workflow. Only the research needs the model to decide its next step from what the last one found.
+✓ Right. The research questions run as an agent and the invoices as a workflow: only the research needs the model to decide its next step from what the last one found. Built as an agent, the invoice job could make a different number of calls on each invoice, with no way to price a month in advance or to show an auditor that every invoice was matched before it was posted.
 
-Built as an agent, the invoice job could make a different number of calls on each invoice. The accounts team could no longer say what a month of invoices will cost, or show an auditor that every invoice was matched before it was posted.
+In an agent loop the model chooses each next step, and that choice earns its cost when the number and order of steps depend on what the results show, as with a search that may or may not find the answer. A workflow fixes the steps and their order in your code. The model still does the reading inside each step, such as pulling the amounts out of an invoice, but it never decides what comes next, so every invoice takes the same calls in the same order and can be tested and priced in advance.
 
-In an agent loop the model chooses each next step, and that choice earns its cost when the number and order of steps depend on what the results show, as with a search that may or may not find the answer. A workflow fixes the steps and their order in your code. The model still does the reading inside each step, such as pulling the amounts out of an invoice, but it never decides what comes next, so every invoice takes the same calls in the same order and can be tested and priced in advance. A workflow can still hand a single open-ended step to an agent.
+Build the invoices as a workflow; a workflow can still hand a single open-ended step to an agent.
 
 </details>
 
@@ -81,11 +81,11 @@ Compared with the steps' own scores, how often should you expect a customer to g
 
 <details><summary>B. Less often than the weakest step is right</summary>
 
-✓ Right. About 86 customers in 100 get a right reply, while the weakest step alone, the one that finds the cause, is right on 95 in 100.
+✓ Right. About 86 customers in 100 get a right reply, while the weakest step alone, the one that finds the cause, is right on 95 in 100, so roughly one reply in seven goes out wrong with no single prompt to blame.
 
-Every step went live with a test score of 95 or better, yet roughly one reply in seven goes out wrong. The customer service lead reads a week of complaints and traces them to all five steps, a few emails each, with no single prompt to blame.
+A chain feeds each step's output to the next, so a reply is right only on emails where all five steps were right. With independent mistakes that share is the five rates multiplied: 0.99 × 0.98 × 0.95 × 0.97 × 0.96 comes to about 0.86. Each extra step multiplies in another number under 1, so a chain of five steps at 95 in 100 each lands near 77, and ten of them near 60. When mistakes cluster on the same hard emails the chain climbs back toward its weakest step, but it never passes it.
 
-A chain feeds each step's output to the next, so a reply is right only on emails where all five steps were right. With independent mistakes that share is the five rates multiplied: 0.99 × 0.98 × 0.95 × 0.97 × 0.96 comes to about 0.86. Each extra step multiplies in another number under 1, so a chain of five steps at 95 in 100 each lands near 77, and ten of them near 60. When mistakes cluster on the same hard emails the chain climbs back toward its weakest step, but it never passes it. Test the chain end to end on one set of emails, and have your code validate each step's output, retrying or stopping an email that fails.
+Test the chain end to end on one set of emails, and have your code validate each step's output, retrying or stopping an email that fails.
 
 </details>
 
@@ -117,29 +117,29 @@ The router answers `Billing`. Besides its own instructions, what does the billin
 
 <details><summary>A. The whole chat so far</summary>
 
-✗ In a chat app, whoever picks up a conversation can scroll back through everything above, and a hand-off between agents gets pictured the same way. This code makes a narrower choice of its own: `ask` receives `text` and nothing else, and the ten messages about the phone stay in `chat`, which only the router and the support model read.
+✗ In a chat app, whoever picks up a conversation can scroll back through everything above, and the billing agent picks up this conversation. This code makes a narrower choice of its own: `ask` receives `text` and nothing else, and the ten messages about the phone stay in `chat`, which only the router and the support model read.
 
 </details>
 
 <details><summary>B. The six messages the router read</summary>
 
-✗ The router has read the last six messages, so the agent it picks would seem to see what it saw. The router's reply is one word, and your code uses it only to choose the branch. Its six messages go nowhere else, and they would not have carried the order number anyway, since it sits in the chat's first message.
+✗ The router has read the last six messages, and the agent it picks gets the router's decision. The router's reply is one word, and your code uses it only to choose the branch. The six messages go nowhere else, and they would not have carried the order number anyway, since it sits in the chat's first message.
 
 </details>
 
 <details><summary>C. The refund message alone</summary>
 
-✓ Right. The billing agent's call carries its own instructions and "Then I want a refund.", and nothing else: no phone, no fault and no order number.
+✓ Right. The billing agent's call carries its own instructions and "Then I want a refund.", and nothing else: no phone, no fault and no order number, so whatever it replies starts from nothing ten messages into the chat.
 
-Ten messages into a chat that already named the phone and the order, the customer reaches a billing agent whose request names neither, so whatever it replies starts from nothing. To them it is one assistant that lost the thread halfway through.
+A router names a branch, and your code hands the work to that branch; what the chosen agent knows is whatever your code sends along. Each call reads only its own request, and the billing agent has never seen this chat, so it knows nothing of it unless your code passes it on.
 
-A router names a branch, and your code hands the work to that branch; what the chosen agent knows is whatever your code sends along. Each call reads only its own request, and this chat has never reached the billing side before, so the chat stays with the router and the support model unless your code passes it on. Send the billing agent what it needs: the chat itself, or the facts the chat settled, such as the order number and the fault, written into the message.
+Send the billing agent what it needs: the chat itself, or the facts the chat settled, such as the order number and the fault, written into the message.
 
 </details>
 
 <details><summary>D. The refund message with a short summary of the chat</summary>
 
-✗ A colleague handing over a case writes a short note on where things stand, and a hand-off between agents sounds as if it should do the same. Nothing in this code writes one: the router's only output is a label, and `ask` gets `text`, the refund message exactly as the customer typed it.
+✗ A colleague handing over a case writes a short note on where things stand, and the router hands the case over. No line of this code writes one: the router's only output is a label, and `ask` gets `text`, the refund message exactly as the customer typed it.
 
 </details>
 
@@ -153,29 +153,29 @@ When it writes the report, what can the merge call do about the 30 days and the 
 
 <details><summary>A. Flag the clash and leave the term open</summary>
 
-✓ Right. The merge call has both terms in front of it, 30 days in one note and 60 in another, and nothing that shows which one the contract says.
+✓ Right. The merge call can flag the clash and leave the term open: it has both terms in front of it, 30 days in one note and 60 in another, with no way to tell which one the contract says, so whatever term the report gives comes from one of the two notes, not from the contract.
 
-Whatever term the report gives comes from one of the two notes, not from the contract. The buyer who approves the supplier works from the report alone, and whichever figure it prints is the one the payment schedule gets built on.
+With parallel workers and a merge, the last step combines what the workers return, and it reads only its own request: here the four notes and the instruction, and not one line of the contract. It can line the notes up, drop repeats and notice where they disagree, since both figures sit in its input. It cannot check a note against a clause it never received, and each worker's call ended when its note came back, so there is no one left to ask.
 
-With parallel workers and a merge, the last step combines what the workers return, and it reads only its own request: here the four notes and the instruction, and not one line of the contract. It can line the notes up, drop repeats and notice where they disagree, since both figures sit in its input. It cannot check a note against a clause it never received, and each worker's call ended when its note came back, so there is no one left to ask. Have each worker quote the clause behind every figure, so the merge has the words to compare, or send a disagreement back to a call that reads the contract, or to a person.
+Have each worker quote the clause behind every figure, so the merge has the words to compare, or send a disagreement back to a call that reads the contract, or to a person.
 
 </details>
 
 <details><summary>B. Check both figures against the contract's clauses</summary>
 
-✗ The merge call writes the final report, and the final word on a document usually comes from someone holding it. This call holds the workers' notes and its instruction, nothing more. The contract went to the workers, and none of its text reaches the merge, which leaves no clause to check either figure against.
+✗ The merge call writes the final report, and a person who writes a report on a contract checks it against the contract. This call holds the workers' notes and its instruction, nothing more. The contract went to the workers, and none of its text reaches the merge, which leaves no clause to check either figure against.
 
 </details>
 
 <details><summary>C. Ask the two workers again which term is right</summary>
 
-✗ Talk of agents working as a team suggests workers who stay on hand for questions. Each worker was one call, and it ended when its note came back. The merge call can send nothing anywhere: it writes one reply, and only your code could start a new call to settle the point.
+✗ Agents are described as working in a team, and team members stay on hand for questions. Each worker was one call, and it ended when its note came back. The merge call can send nothing anywhere: it writes one reply, and only your code could start a new call to settle the point.
 
 </details>
 
 <details><summary>D. Settle it with the payment worker's 30 days</summary>
 
-✗ The payment worker is the specialist on payment terms, and specialists usually get the last word. Both notes are claims about the same contract, and who wrote a note says nothing about what the clause says. The termination worker may have read a later clause that the payment worker passed over, or the reverse.
+✗ The payment worker is the specialist on payment terms, and on payment terms the specialist's note is the one teams usually trust. Both notes are claims about the same contract, and who wrote a note says nothing about what the clause says: the termination worker cites a late-payment clause the payment worker may have passed over, so picking 30 would only hide the clash in the report.
 
 </details>
 
@@ -201,7 +201,7 @@ Which findings reach the report call?
 
 <details><summary>A. The findings of all three workers</summary>
 
-✗ Every worker saves what it found, so three saves would seem to leave three sets of findings in `state`. This `state` is an ordinary dictionary, and `state["result"]` holds one value at a time. Every worker assigns to that one key, each assignment overwrites the one before, and the report call reads whichever came last.
+✗ Every worker saves what it found, three saves in all. This `state` is an ordinary dictionary, and `state["result"]` holds one value at a time. Every worker assigns to that one key, each assignment overwrites the one before, and the report call reads whichever came last.
 
 </details>
 
@@ -213,17 +213,17 @@ Which findings reach the report call?
 
 <details><summary>C. An error about conflicting writes</summary>
 
-✗ A database guards a row that two writers touch at once, and shared state between workers gets credited with the same guard. Python's dictionary has none: three coroutines assigning to one key make three plain assignments in a row, and the last one stands.
+✗ A database guards a row that two writers touch at once, and these workers share one piece of state. Python's dictionary has none: three coroutines assigning to one key raise nothing and guard nothing.
 
 </details>
 
 <details><summary>D. The pricing findings only</summary>
 
-✓ Right. Only the pricing findings reach the report call. Legal's write at 2 seconds was replaced by tech's at 4, tech's by pricing's at 7, and no error was raised.
+✓ Right. Only the pricing findings reach the report call. Legal's write at 2 seconds was replaced by tech's at 4, tech's by pricing's at 7, and no error was raised. The report covers one topic of the three, and another run may keep a different one, depending on which worker is slowest.
 
-The report reads fluently and covers one topic of the three. A director who approves the market entry on it signs without the legal rules in view, and tomorrow's run may drop a different two, depending on which worker is slowest.
+Parallel workers split one task, and their results must all be gathered before the last step combines them. Here the three share one key of one dictionary, which keeps a single value per key, so every write replaces the one before it and the worker that finishes last decides what the report sees.
 
-Parallel workers split one task, and their results must all be gathered before the last step combines them. Here the three share one key of one dictionary, which keeps a single value per key, so every write replaces the one before it and the worker that finishes last decides what the report sees. Have each worker return its reply and pass the list from `gather` to the report call, since that list holds every result in the order the calls were passed, or write each worker's findings under a key of its own, such as `state["legal"]`.
+Have each worker return its reply and pass the list from `gather` to the report call, since that list holds every result in the order the calls were passed, or write each worker's findings under a key of its own, such as `state["legal"]`.
 
 </details>
 
@@ -248,29 +248,29 @@ When the lead writes the summary, what does it have on the bridge claim?
 
 <details><summary>A. The worker's verdict line alone</summary>
 
-✓ Right. The summary call reads its instructions and the verdict lines, and for the bridge that line is "Confirmed: the bridge opened in 1932." Nothing in the request shows that every search behind it failed.
+✓ Right. The summary call reads its instructions and the verdict lines, and for the bridge that line is "Confirmed: the bridge opened in 1932.", with no sign in the request that every search behind it failed, so the date can be listed among the confirmed claims.
 
-The editor reads a summary that lists the bridge date among the confirmed claims, and the date goes to print on the word of a worker that never reached a single page.
+With an orchestrator and workers, the lead decides at run time how to split the task and combines the workers' results, and here a result is whatever `run_worker` returns: the text of the worker's last message and nothing else. The searches, their errors and any pages a worker read stay in the list `run_agent` returned, which `run_worker` lets go as it returns. The summary is a fresh call whose request holds only what your code put in it, so it can weigh a verdict by its wording alone. A lead built as one agent loop that calls its workers as tools keeps the article in its own messages, yet it too gets from each worker only what that worker returns.
 
-With an orchestrator and workers, the lead decides at run time how to split the task and combines the workers' results, and here a result is whatever `run_worker` returns: the text of the worker's last message and nothing else. The searches, their errors and any pages a worker read stay in the list `run_agent` returned, which `run_worker` lets go as it returns. The summary is a fresh call whose request holds only what your code put in it, so it can weigh a verdict by its wording alone. A lead can also be built as one agent loop that calls its workers as tools. That lead keeps the article in its own messages, yet it too gets from each worker only what that worker returns. Have each worker return its sources along with its verdict, and let your code mark a verdict as unchecked when none of its searches succeeded, before the lead sees it.
+Have each worker return its sources along with its verdict, and let your code mark a verdict as unchecked when none of its searches succeeded, before the lead sees it.
 
 </details>
 
 <details><summary>B. The verdict line and the failed searches behind it</summary>
 
-✗ A lead that hands out the work brings to mind a manager who can look over each worker's shoulder. The searches and their errors lived in the worker's own messages, and `run_worker` hands back only the last reply. The summary call reads `LEAD_SUMMARY` and the verdict lines, and nothing of how any verdict was reached.
+✗ The lead hands out the work, as a manager does, and a manager can look over each worker's shoulder. The searches and their errors lived in the worker's own messages, and `run_worker` hands back only the last reply. The summary call reads `LEAD_SUMMARY` and the verdict lines, and nothing of how any verdict was reached.
 
 </details>
 
 <details><summary>C. The verdict line with a warning that it was never checked</summary>
 
-✗ The failed searches sit right there in your logs, and you would expect the result to carry a warning with it. The log stays with you, and the summary call never reads it. Nothing in this code compares a worker's searches with its verdict, so the bridge line reaches the lead as the worker wrote it, starting with "Confirmed".
+✗ The failed searches sit right there in your logs, and logged errors are what usually raise a warning. The log stays with you, and the summary call never reads it. This code compares no worker's searches with its verdict, so the bridge line reaches the lead as the worker wrote it, starting with "Confirmed".
 
 </details>
 
 <details><summary>D. The verdict line and a search the lead runs itself</summary>
 
-✗ A desk chief checks a doubtful date before passing it on, and the lead holds that place here, above workers who could search. The summary call is sent no tools, only `LEAD_SUMMARY` and the verdicts, so its one reply is text, and no search runs between the worker's verdict and the summary.
+✗ A desk chief checks a doubtful date before passing it on, and the lead holds that place here, above workers who can search. The summary call is sent no tools, only `LEAD_SUMMARY` and the verdicts, so its one reply is text, and no search runs between the worker's verdict and the summary.
 
 </details>
 
@@ -284,23 +284,23 @@ What should you expect the check pass to do to the share of right answers?
 
 <details><summary>A. The share goes up</summary>
 
-✗ Proofreading your own work catches slips, so a second read by the model sounds like cheap insurance. For reasoning, a 2023 study found the opposite: when nothing outside the model checked the work, every model it tested scored lower after reviewing its own answers. On maths problems, one model's changes turned right answers wrong more often than they fixed wrong ones.
+✗ Proofreading your own work catches slips, and a second read by the model costs one call. For reasoning, a 2023 study found the opposite: when nothing outside the model checked the work, every model it tested scored lower after reviewing its own answers. On maths problems, one model's changes turned right answers wrong more often than they fixed wrong ones, and this app's second call has no key or calculator either.
 
 </details>
 
 <details><summary>B. The share stays the same</summary>
 
-✗ A model reading its own answer might be expected to approve every one and change nothing. It does change some, and in a 2023 study one model rewrote about one maths answer in four, and those changes cost more right answers than they won, so the share went down.
+✗ A model asked to check its own answer has already given the answer it thinks is right. Asked again, it changes some: in a 2023 study one model rewrote about one maths answer in four, and those changes cost more right answers than they won. The app's check pass, reading only the problem and the first answer, has no more to go on, so expect the share to fall.
 
 </details>
 
 <details><summary>C. The share goes down</summary>
 
-✓ Right. Expect fewer right answers with the check pass than without it. A 2023 study of this kind of pass, a model reviewing its own reasoning with nothing from outside to check it against, found accuracy lower after the review for every model and every test set it tried, maths word problems among them.
+✓ Right. Expect fewer right answers with the check pass than without it, at twice the calls per problem. A 2023 study of this kind of pass, a model reviewing its own reasoning with nothing from outside to check it against, found accuracy lower after the review for every model it tried, all of them models of that time, and every test set, maths word problems among them.
 
-Some learners whose first answer was right now get a wrong one, handed over after a pass that was meant to catch mistakes. Each problem also takes two calls instead of one, so the app pays twice for answers that got worse.
+A check pass helps only when the review brings in something the first call lacked. Here the reviewer is the same model reading its own work, with no key and no tool, so nothing new enters the second call. In the study, one model kept its first answer to a maths problem about three times in four, and among the answers it changed, it turned a right one wrong more often than a wrong one right. The same study traced the gains reported for such checks elsewhere to the use of the known right answers.
 
-A check pass helps only when the review brings in something the first call lacked. Here the reviewer is the same model reading its own work, with no key and no tool, so nothing new enters the second call. In the study, one model kept its first answer to a maths problem about three times in four, and among the answers it changed, it turned a right one wrong more often than a wrong one right. The same study traced the gains reported for such checks elsewhere to the use of the known right answers, and advised using real outside feedback where it exists: give the check pass a calculator's result, or a test the answer must pass, and it has something to go on. Those were 2023 models, so measure the pass on your own problems before you ship it.
+Give the check pass real outside feedback, such as a calculator's result or a test the answer must pass, and measure the pass on your own problems before you ship it.
 
 </details>
 
@@ -324,13 +324,13 @@ What in this code can end this loop for the sofa?
 
 <details><summary>A. Scores that stop rising</summary>
 
-✗ Stopping once a score stops improving is a habit from training models, and three 8s in a row fit that picture. This loop compares each score with 9 and nothing else. Another 8 means another rewrite and another review, and nothing counts how many 8s came before.
+✗ Stopping once a score stops improving is a habit from training models, and here the score has stalled at 8 three times in a row. This loop compares each score with 9 and nothing else. Another 8 means another rewrite and another review, and nothing counts how many 8s came before.
 
 </details>
 
 <details><summary>B. Requests that outgrow the context window</summary>
 
-✗ An agent that appends every step to its history does run out of context window in the end. This loop appends nothing: the review request holds the rubric and the newest draft, and the rewrite request holds the brief, the newest draft and the newest review. Older drafts are dropped, so the requests stay about the same size from round to round and never build up toward the context window.
+✗ An agent that appends every step to its history runs out of context window in the end. This loop appends nothing: each review request holds the rubric and the newest draft, and each rewrite the brief, the newest draft and the newest review, so the requests stay about the same size from round to round.
 
 </details>
 
@@ -342,11 +342,11 @@ What in this code can end this loop for the sofa?
 
 <details><summary>D. A 9 for an invented warranty</summary>
 
-✓ Right. The loop ends only on a review that scores 9 or more, whatever the draft says to earn it. A draft that writes in a warranty of its own invention can earn that 9: the review request holds the rubric and the draft, and none of the sofa's data.
+✓ Right. The loop ends only on a review that scores 9 or more, whatever the draft says to earn it. A draft that writes in a warranty of its own invention can earn that 9, since the review request holds the rubric and the draft and none of the sofa's data, and the sofa then goes live promising cover the supplier never offered. If the 8s keep coming instead, the job runs until someone stops it.
 
-If the writer gives in, the sofa goes live promising cover the supplier never offered, and the first customer who claims it reaches a support desk with nothing to honour. If the 8s keep coming, the job is still running in the morning until someone notices it never finished.
+In an evaluator loop the writer revises and the reviewer judges, and the loop stops only where your code stops it: here the single test `if score_of(review) >= 9`. Nothing compares one score with the last, the requests carry only the latest draft and review, so they never build up toward the context window, and no counter runs anywhere. The reviewer judges the text it is sent, and the sofa's data is not in that text, so it cannot tell a warranty copied from the data from one the writer made up.
 
-In an evaluator loop the writer revises and the reviewer judges, and the loop stops only where your code stops it: here the single test `if score_of(review) >= 9`. Nothing compares one score with the last, the requests carry only the latest draft and review, so they never build up toward the context window, and no counter runs anywhere. The reviewer judges the text it is sent, and the sofa's data is not in that text, so it cannot tell a warranty copied from the data from one the writer made up. Send the reviewer the product data along with the draft, tell it that a fact missing from the data stays missing, and set a step cap: count the rounds, stop at a number you choose, and hand the best-scored draft and its last review to a person.
+Send the reviewer the product data along with the draft, tell it that a fact missing from the data stays missing, and set a step cap: count the rounds, stop at a number you choose, and hand the best-scored draft and its last review to a person.
 
 </details>
 
@@ -366,23 +366,23 @@ On the sarcastic reviews, how often does the vote land on the right label?
 
 <details><summary>B. Less often than one run</summary>
 
-✓ Right. On the sarcastic reviews the vote picks the right label about 10 times in 100, half the 20 of a single run.
+✓ Right. On the sarcastic reviews the vote picks the right label about 10 times in 100, half the 20 of a single run, so on this kind of review the vote added to cut mistakes makes more of them.
 
-The vote was added to cut mistakes, yet on sarcastic reviews it makes more of them than a single run did. A guest who called the room a lovely surprise for anyone fond of cold showers now gets a thank-you for the kind words instead of an apology.
+Voting keeps the answer that most of the runs return, so it sharpens what most runs already do. A vote of three is right when two or three runs are: with the runs independent, as the lack of a pattern suggests, and each run right 2 times in 10 that comes to 10.4 times in 100, and with each run right 95 times in 100, to more than 99. The tests showed no pattern in which runs miss a given sarcastic review, and every run misses most of them, so the mistakes gather on one kind of review rather than on one run. So the vote fixes the slips the model makes now and then on plain reviews, and on sarcastic ones it settles on the wrong label more often than a single run does.
 
-Voting keeps the answer that most of the runs return, so it sharpens what most runs already do. A vote of three is right when two or three runs are: with each run right 2 times in 10 that comes to 10.4 times in 100, and with each run right 95 times in 100, to more than 99. Which runs miss a given sarcastic review is random, as the tests showed, yet every run misses most of them: the mistakes gather on one kind of review, not on one run. So the vote fixes the slips the model makes now and then on plain reviews, and on sarcastic ones it settles on the wrong label more often than a single run does. Score the vote separately on each kind of review, and route the kinds most runs get wrong to a person, or to a different prompt or model.
+Score the vote separately on each kind of review, and route the kinds most runs get wrong to a person, or to a different prompt or model.
 
 </details>
 
 <details><summary>C. About as often as one run</summary>
 
-✗ A vote can pass for an average of the runs, and averaging three runs that are each right 20 times in 100 gives 20 again. The vote is right only when two runs are right together, and since each run is right one time in five, that pairing is rarer than a single right run: about 10 times in 100.
+✗ A vote is a kind of average of the runs, and averaging three runs that are each right 20 times in 100 gives 20 again. The vote is right only when two runs are right together, and since each run is right one time in five, that pairing is rarer than a single right run.
 
 </details>
 
 <details><summary>D. Almost as often as on plain reviews</summary>
 
-✗ A panel of three outvotes one member's slip, and on plain reviews it does: the vote comes out right more than 99 times in 100. A panel helps only while each member is right more often than wrong. On sarcastic reviews a run is right once in five, so the two wrong runs usually carry the vote, which lands on the right label about 10 times in 100.
+✗ A panel of three outvotes one member's slip, and on plain reviews it does: the vote comes out right more than 99 times in 100. A panel helps only while each member is right more often than wrong. On sarcastic reviews a run is right once in five, so the two wrong runs usually carry the vote.
 
 </details>
 
@@ -409,7 +409,7 @@ What does the member of staff get back?
 
 <details><summary>A. The model's best answer from what it found so far</summary>
 
-✗ A person stopped at a deadline hands in what they have, and a run that hits its cap would do the same if it worked like a person. The model is never told about the cap. It answers only on a reply with no tool call, and all twelve of its replies asked for a tool, so the list holds no answer to return.
+✗ A person stopped at a deadline hands in what they have. The model is never told about the cap. It answers only on a reply with no tool call, and all twelve of its replies asked for a tool, so the list holds no answer to return.
 
 </details>
 
@@ -421,17 +421,17 @@ What does the member of staff get back?
 
 <details><summary>C. The note the model wrote with its last tool request</summary>
 
-✗ Every step appends the model's reply, so `messages[-1]` passes at a glance for the model's latest message. In a step that asks for tools, the results are appended after the reply. On the twelfth step the reply asked for a tool, so the last item in the list is a tool's result, not the model's note.
+✗ Every step appends the model's reply, and `messages[-1]` is the newest item. In a step that asks for tools, the results are appended after the reply. On the twelfth step the reply asked for a tool, so the last item in the list is a tool's result, not the model's note.
 
 </details>
 
 <details><summary>D. The output of the last tool that ran</summary>
 
-✓ Right. The staff member gets the raw output of the twelfth step's last tool call, such as a line from the mail server's log, returned as if it were the answer.
+✓ Right. The staff member gets the raw output of the twelfth step's last tool call, such as a line from the mail server's log, returned as if it were the answer, and the ticket shows as answered with no sign that the run hit the cap.
 
-A lecturer who asked why their mailbox stopped syncing finds a line of server log in the reply, and the ticket shows as answered. The helpdesk has no sign that this run hit the cap instead of finishing.
+In an agent loop the run ends when the model decides it is done: a reply with no tool call is the answer, and every other reply asks for more. A step cap stops the loop between steps, and what the run hands back is whatever your code does next. Here that is the last item of the list, and after a step that called tools the last item is a tool result. The model never wrote an answer on this run, so there is none to return.
 
-In an agent loop the run ends when the model decides it is done: a reply with no tool call is the answer, and every other reply asks for more. A step cap stops the loop between steps, and what the run hands back is whatever your code does next. Here that is the last item of the list, and after a step that called tools the last item is a tool result. The model never wrote an answer on this run, so there is none to return. After the loop, look at the last reply: if it still asks for tools, the run stopped at the cap without an answer, so return a message that says so and put the ticket in a person's queue, with the steps the run took attached. Your code runs this loop, so it behaves the same on a provider's API and on your own server.
+After the loop, look at the last reply: if it still asks for tools, the run stopped at the cap without an answer, so return a message that says so and put the ticket in a person's queue, with the steps the run took attached.
 
 </details>
 
@@ -452,29 +452,29 @@ Once the run is resumed, how many notices does the team channel show for this re
 
 <details><summary>A. Two, one before the pause and another after the resume</summary>
 
-✓ Right. Two identical notices sit in the channel: the first went out before the pause, the second when the run resumed. The refund itself is paid only once, by the step after the review.
+✓ Right. Two identical notices sit in the channel: the first went out before the pause, the second when the run resumed, so the channel shows two refunds waiting where there is one. The refund itself is paid only once, by the step after the review, but a step that charged a card in place of the post would charge it twice.
 
-Moments after approving, the manager watches the same request arrive a second time, and a colleague reading the channel later counts two refunds waiting where there is one. Had the step charged a card instead of posting, the customer would see two charges.
+Here a checkpoint is written only when a step finishes. `review_step` never finished at the pause, so the latest checkpoint is the one from the step before it, and resuming from it calls `review_step` again from its first line. This time `ask_manager` returns the approval, and everything above it, the notice included, has run twice. The checkpoint holds what the steps returned, not how far into a function the code had got.
 
-Here a checkpoint is written only when a step finishes. `review_step` never finished at the pause, so the latest checkpoint is the one from the step before it, and resuming from it calls `review_step` again from its first line. This time `ask_manager` returns the approval, and everything above it, the notice included, has run twice. The checkpoint holds what the steps returned, not how far into a function the code had got. Put the post in a step of its own before the review, so the checkpoint written after it records that the notice went out; a side effect that has to stay in the same step must be safe to repeat. Agent libraries differ here. One documents that a resumed step starts again from its beginning, as yours does. Another stops as soon as the model asks for a tool that needs approval, before that tool has run.
+Put the post in a step of its own before the review, so the checkpoint written after it records that the notice went out; a side effect that has to stay in the same step must be safe to repeat.
 
 </details>
 
 <details><summary>B. One, posted before the pause</summary>
 
-✗ `ask_manager` sits in the code where `input()` would, a call that blocks until the answer comes and hands it to the next line. Nothing here keeps the paused function waiting. The run stopped, and a resume starts from the latest checkpoint, written after the step before `review_step`, so `review_step` runs again from its first line and posts a second notice.
+✗ `ask_manager` sits in the code where `input()` would, a call that blocks until the answer comes and hands it to the next line. The paused function is not kept waiting anywhere. The run stopped, and a resume starts from the latest checkpoint, written after the step before `review_step`, so `review_step` runs again from its first line and posts a second notice.
 
 </details>
 
 <details><summary>C. One, and the resume fails with an error</summary>
 
-✗ A careful runner might refuse to start a step that already ran once, and a resume could be expected to carry that guard. Your runner has no such guard: it loads the latest checkpoint and calls the next step, `review_step`, which posts again, gets the approval from `ask_manager` and returns without an error.
+✗ Some workflow engines refuse to run a step that has already finished. Your runner has no such guard: it loads the latest checkpoint and calls the next step, `review_step`, which posts again, gets the approval from `ask_manager` and returns without an error.
 
 </details>
 
 <details><summary>D. Two, but only if the process restarted while waiting</summary>
 
-✗ A process that stays up seems to keep the paused step alive, ready to carry on where it stopped. The stopped run is held nowhere in memory: resuming always goes through the latest checkpoint in the database, whether or not the process restarted, and that checkpoint comes from before `review_step`.
+✗ The process stays up, and a running process keeps its functions in memory. The stopped run is held nowhere in memory: resuming always goes through the latest checkpoint in the database, whether or not the process restarted, and that checkpoint comes from before `review_step`.
 
 </details>
 
@@ -496,7 +496,7 @@ Which reply reaches the passenger?
 
 <details><summary>A. The draft the supervisor approved</summary>
 
-✗ The supervisor read a draft and said yes, and an approval feels tied to the text that was read. Here it is tied to the run. The checkpoint the run resumes from was written before `draft_step` and holds no draft, so the step starts over from the top, the model writes a new draft, and `ask_supervisor` returns the yes it already has.
+✗ The supervisor read a draft and said yes, and approvals are given to the text a person read. Here the approval is tied to the run. The checkpoint the run resumes from was written before `draft_step` and holds no draft, so the step starts over from the top, the model writes a new draft, and `ask_supervisor` returns the yes it already has.
 
 </details>
 
@@ -508,17 +508,17 @@ Which reply reaches the passenger?
 
 <details><summary>C. A draft written after the approval</summary>
 
-✓ Right. The passenger gets the draft the model wrote when the run resumed, which no supervisor read, and the yes given to the first draft lets it through.
+✓ Right. The passenger gets the draft the model wrote when the run resumed, which the supervisor was never shown, and the yes given to the first draft lets it through, so a new draft with another amount than the approved 50 euros, or other promises, goes out with an approval on record beside it.
 
-The supervisor signed off on 50 euros. Say the new draft offers 80, or promises a refund the airline does not give: that is what the passenger reads, with a supervisor's approval on record beside it.
+An approval pauses a run until a person answers, and here a checkpoint is written only when a step finishes. `draft_step` stopped partway, so the resume loads the checkpoint from before it and runs the step again from the top, model call included. That call is a new request, and the model's reply can differ from one call to the next even on the same input. Moving side effects into steps of their own does not cover this: the call posts nothing, but running it again can change what goes out.
 
-An approval pauses a run until a person answers, and here a checkpoint is written only when a step finishes. `draft_step` stopped partway, so the resume loads the checkpoint from before it and runs the step again from the top, model call included. That call is a new request, and the model's reply can differ from one call to the next even on the same input, so the second draft can offer another voucher or other words. Moving side effects into steps of their own does not cover this: the call changes nothing outside, yet running it again changes what goes out. Write the draft in a step of its own, so the checkpoint holds it, show the supervisor that stored draft, and send exactly the text that was approved.
+Write the draft in a step of its own, so the checkpoint holds it, show the supervisor that stored draft, and send exactly the text that was approved.
 
 </details>
 
 <details><summary>D. No reply until the supervisor approves again</summary>
 
-✗ A careful system would ask again once the text it approved had changed, and no line here compares one draft with another. `ask_supervisor` already holds the supervisor's answer for this run, so on resume it returns it at once, and the new draft goes out under the old approval.
+✗ The supervisor approved one draft, and the draft that goes out on resume is a different one. `ask_supervisor` already holds the supervisor's answer for this run, so on resume it returns it at once, and the new draft goes out under the old approval.
 
 </details>
 
@@ -530,4 +530,4 @@ An approval pauses a run until a person answers, and here a checkpoint is writte
 - [Self-Consistency Improves Chain of Thought Reasoning in Language Models](https://arxiv.org/abs/2203.11171), 2022: sampling several reasoning paths and keeping the answer most of them reach, and the gains it brought on maths and common-sense benchmarks.
 - [ReAct](https://arxiv.org/abs/2210.03629), 2022: the agent loop in which a model alternates reasoning with actions such as searching, tested on question answering and interactive tasks.
 
-Next: [Security](../security/README.md)
+Prev: [Memory](../memory/README.md) · Next: [Security](../security/README.md)

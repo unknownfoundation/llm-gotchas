@@ -1,6 +1,6 @@
 # Tool calling
 
-Needs: [Context window](../context-window/README.md) · [Structured outputs](../structured-outputs/README.md) · Reviewed October 2026
+Prev: [Structured outputs](../structured-outputs/README.md) · Next: [Cost and latency](../cost-and-latency/README.md) · Reviewed October 2026
 
 Tool calling lets a model ask for an action it cannot take itself: the request describes the functions your code offers, and the reply can name one with the arguments to pass. Whatever code receives the reply runs the call and sends the result back on the next request.
 
@@ -16,13 +16,7 @@ Tool calling lets a model ask for an action it cannot take itself: the request d
 - **Tool result**: a message your code adds after running a tool, carrying the tool's output and the call's id, so each result can be matched to its call; on your own server, some server programs give calls no id and match a result by the tool's name instead. Some APIs take each result as a message of its own with the role `tool`; others take it as a block, a separate part inside a user message.
 - **Step**: one round of tool calling: a request goes out, the reply holds tool calls, and your code runs them and adds the reply and the results to the messages for the next request. An agent repeats steps until a reply holds text and no call. A turn is a user's message and everything up to the reply that answers it, however many steps that takes.
 
-Who runs a tool, and who finds the call in the model's text:
-
-- **A provider's API**: your code runs the functions you define; some providers also offer built-in tools of their own, such as web search, and run them on their side.
-- **Your own server**: the server writes the definitions into the prompt through the model's chat template and finds the calls in the model's text with its tool-call parser.
-- **A ready-made app**: it runs its own tools in its own loop, and a coding assistant can ask you before a tool edits a file or runs a command.
-
-On all three, the model writes each call as text and reads each result as part of its input.
+On a provider's API your code runs the functions you define, and some providers also run built-in tools of their own, such as web search; on your own server the chat template writes the definitions into the prompt and a tool-call parser finds the calls in the model's text; a ready-made app runs its own tools in its own loop, and a coding assistant can ask you before a tool edits a file or runs a command.
 
 Tool choice is a request setting for whether the model calls a tool, and it takes one of four values:
 
@@ -49,13 +43,13 @@ What happens to the customer's $30?
 
 <details><summary>A. The money is refunded before the reply reaches your code</summary>
 
-✗ The reply names the tool, the order and the amount, all the details a refund needs, and a request that complete passes for the refund itself. The model writes text, and the call is text: a tool's name and its arguments. The definition you sent holds no code, so neither the model nor the provider has anything to run, and `refund_order` has not been called.
+✗ The reply names the tool, the order and the amount, all the details a refund needs. The call is text, a tool's name and its arguments, and the definition you sent holds no code, so neither the model nor the provider has anything to run.
 
 </details>
 
 <details><summary>B. The money is refunded when your next request goes out</summary>
 
-✗ The second request is where the model hears how things went, which makes it the natural moment to credit with the refund. What it carries is a result your code produced after running the tool itself. Sending the call back with no result runs nothing, since the request has no code in it to run.
+✗ The second request is where the model hears how things went. What a second request carries is a result your code produced after running the tool itself, and this code runs nothing, so no request it sends moves the $30.
 
 </details>
 
@@ -67,13 +61,11 @@ What happens to the customer's $30?
 
 <details><summary>D. The customer gets no refund</summary>
 
-✓ Right. The customer gets no refund. The reply holds a tool call, which is a request: the name `refund_order`, the order and the amount. Your code shows the text around it, if there is any, and nothing calls `refund_order`.
+✓ Right. The customer gets no refund. The reply holds a tool call, which is a request: the name `refund_order`, the order and the amount. Your code shows the text around it and nothing calls `refund_order`, so no refund runs.
 
-The customer may read "I'll process your refund now" above a call that nothing runs, and the $30 never arrives. A week later the order comes back to a person as a complaint, with a log showing a refund that was asked for and never done.
+A tool definition is data: a name, a description and a schema, with no code behind it that the model or the provider could run. The model answers in text, and a tool call is text in a fixed shape that asks your code to act. Some provider APIs offer built-in tools, such as web search, that run on the provider's side, but a function you define is never one of them; on your own server a parser finds the call in the model's text and leaves running it to the code that sent the request.
 
-A tool definition is data: a name, a description and a schema, with no code behind it that the model or the provider could run. The model answers in text, and a tool call is text in a fixed shape that asks your code to act. Your code has to read the call, run the function it names with those arguments and send the output back as a tool result for that call; only then does the model learn what happened and tell the customer. That makes your code the one place a refund runs, and the place for a refund limit or a check by a person.
-
-Some provider APIs also offer built-in tools, such as web search, that run on the provider's side and come back with their results in the same reply; a function you define is never one of them. Your own server parses the call out of the model's text, hands it back the same way and leaves running it to the code that sent the request.
+So your code reads the call, runs the function it names with those arguments and sends the output back as a tool result for that call; only then does the model learn what happened and tell the customer. That makes your code the one place a refund runs, and the place for a refund limit or a check by a person.
 
 </details>
 
@@ -87,31 +79,29 @@ Which change gives the model a reason to pick `track_return` for questions about
 
 <details><summary>A. Temperature 0 on every request</summary>
 
-✗ A split near half and half is what a coin toss would give, and temperature 0 is the setting you reach for to take chance out of a model's answers. At temperature 0 the likelier tool wins every time, but which tool is likelier for a refund question still rests on the two descriptions, and neither says that refunds belong to `track_return`.
+✗ A split near half and half is what chance gives, and temperature 0 is the setting that takes chance out. At temperature 0 the likelier tool wins every time, but which tool is likelier still rests on the two descriptions, and neither says that refunds belong to `track_return`.
 
 </details>
 
 <details><summary>B. Descriptions that say when to use each tool</summary>
 
-✓ Right. Descriptions that say which questions each tool answers are the one change that gives the model a reason to choose. Once `get_order` says it covers an order's items, payment and delivery, and `track_return` says it covers where a return and its refund stand, a question about a refund fits one tool and not the other.
+✓ Right. Descriptions that say which questions each tool answers are the one change that gives the model a reason to choose. Once `get_order` says it covers an order's items, payment and delivery, and `track_return` says it covers where a return and its refund stand, a question about a refund fits one tool and not the other; until then about half the customers who ask where their refund is get an answer about the order instead of the return.
 
-Until then, about half the customers who ask where their refund is get the delivery status of the parcel they sent back, and the chat's weekly report counts their questions as order lookups.
+The model knows a tool only by its definition in the request: the name, the description and the schema for the arguments. Both descriptions say what each tool looks up by an order number, and neither says which questions it answers, so a refund question fits both and the model splits them. Schema mode changes how arguments are written, not which tool fits.
 
-The model knows a tool only by its tool definition in the request: the name, the description and the schema for the arguments. Your function's code and the database it reads stay on your side. Both descriptions say what each tool looks up by an order number, and neither says which questions it answers, so a refund question fits both and the model splits them. Schema mode changes how arguments are written, not which tool fits, and a good result reaches the model only after it has picked the tool. Write each description to say what the tool does, when to use it and when to use the other one, and give tools names that cannot be confused.
-
-A provider's API turns the definitions into text the model reads, and your own server writes them into the prompt with the model's chat template, so the descriptions decide on both.
+Write each description to say what the tool does, when to use it and when to use the other one, and give tools names that cannot be confused.
 
 </details>
 
 <details><summary>C. Schema mode on both tools</summary>
 
-✗ Schema mode is documented as the way to make tool calls reliable, which makes it the first switch to reach for. It holds each call's arguments to its tool's schema while the model writes them. Which tool fits a question is settled from the descriptions, and those still leave a refund question between the two.
+✗ Schema mode is documented as the way to make tool calls reliable. It holds each call's arguments to its tool's schema while the model writes them. Which tool fits a question is settled from the descriptions, and those still leave a refund question between the two.
 
 </details>
 
 <details><summary>D. More useful output from <code>track_return</code> each time it is called</summary>
 
-✗ A new colleague learns who handles returns by asking around and remembering what worked. The model remembers nothing from one call to the next. A good result from `track_return` reaches it only after it has picked that tool, inside that one chat, and the next customer's question starts again from the same two descriptions.
+✗ Models learn from examples of good tool use in training, and every call to `track_return` is one more example. Nothing learns at run time: a good result reaches the model only after it has picked that tool, inside that one chat, and the next customer's question starts again from the same two descriptions.
 
 </details>
 
@@ -125,13 +115,11 @@ On the tenth request of a chat, which of the 40 definitions add to that request'
 
 <details><summary>A. All 40 definitions</summary>
 
-✓ Right. All 40 definitions count as input on the tenth request, as on the first. At about 150 tokens each, that is about 6,000 input tokens on every request and about 60,000 over a ten-request chat, whether the model calls a tool or not.
+✓ Right. All 40 definitions count as input on the tenth request, as on the first: at about 150 tokens each, about 6,000 input tokens on every request and about 60,000 over a ten-request chat, whether the model calls a tool or not.
 
-The week the integration goes live, input per request jumps for every chat, including chats about nothing but a delivery date. The engineer who reads the usage graph finds no message that grew, and has to trace the jump to a list of tools.
+Before the request reaches the model, the definitions become text it reads in full, and it has to read all of them to know whether any tool fits. Some APIs also add a few hundred tokens of their own instructions for using tools. On a provider's API that text is billed as input and takes room in the context window; on your own server it costs memory and time.
 
-The model reads tool definitions the way it reads messages. Before the request reaches it, they become text it reads in full, and it has to read all of them to know whether any tool fits. Some APIs also add a few hundred tokens of their own instructions for using tools. Send each request only the tools it can use, keep each description as long as it needs to be to tell the tools apart and no longer, and where your system can load definitions on demand, use that for a large tool set.
-
-On a provider's API that text is billed as input and takes room in the context window. Your own server renders the definitions into every prompt with the chat template, and pays for them in memory and time.
+Send each request only the tools it can use, keep each description as long as it needs to be to tell the tools apart and no longer, and where your system can load definitions on demand, use that for a large tool set.
 
 </details>
 
@@ -143,13 +131,13 @@ On a provider's API that text is billed as input and takes room in the context w
 
 <details><summary>C. Only the definitions of tools called on that request</summary>
 
-✗ A phone bill lists only the calls you made, and a bill for tools could work the same way. Before any call, the model reads every definition to decide whether any tool fits, so all 40 are input on every request, called or not.
+✗ The response lists only the tools the model called, and a bill counts what was used. Before any call, the model reads every definition to decide whether any tool fits, so all 40 are input on every request, called or not, about 6,000 tokens.
 
 </details>
 
 <details><summary>D. Only the 40 tool names</summary>
 
-✗ A person can pick a tool from a list of names, and the schemas belong with your code. The model needs each description to choose and each schema to write the arguments, and the request carries every definition whole.
+✗ A name like `create_event` already says what a tool does. The model needs each description to choose and each schema to write the arguments, so the request carries every definition whole, about 150 tokens each, not just 40 names.
 
 </details>
 
@@ -169,25 +157,23 @@ What does the student see?
 
 <details><summary>B. An error from the server, and no reply</summary>
 
-✗ You would expect a server that cannot read what the model wrote to say so, the way a JSON parser raises on bad input. A tool-call parser treats text with no call it recognises as an ordinary reply: it reports no calls and hands the text back. The request succeeds, and nothing in the response marks a problem.
+✗ A JSON parser raises on bad input, and the server here parses what the model wrote. A tool-call parser treats text with no call it recognises as an ordinary reply: it reports no calls and hands the text back. The request succeeds, and the response looks like any other.
 
 </details>
 
 <details><summary>C. The model's call, shown as plain text</summary>
 
-✓ Right. The student sees the call itself: the tool's name and the student's details, written in the new model's call format, where an answer should be, and the password stays as it was.
+✓ Right. The student sees the call itself, the tool's name and the student's details in the new model's call format, where an answer should be, and the password stays as it was. Chats that need no tool read as normal, so a quick check of greetings passes while every request that needs a tool fails the same way.
 
-The student pastes the strange line into a ticket, and the help desk hears about the swap from students. Chats that need no tool read as normal, so a quick check of greetings and opening hours passes while every request that needs a tool fails the same way.
+On your own server the model writes each call as text, and the tool-call parser turns that text into a call. A parser reads the format of the models it was written for; text in another format holds nothing it recognises, so it reports no calls and hands the whole text back as the reply. Your loop sees a reply with no calls, treats it as the last reply of the turn and shows it. A server that works out the call format from the model's chat template follows the swap on its own.
 
-On your own server the model writes each call as text, and the tool-call parser is what turns that text into a call. A parser reads the format of the models it was written for. Text in another format holds nothing it recognises, so it reports no calls and hands the whole text back as the reply's text. Your loop sees a reply with no calls, treats it as the last reply of the turn and shows it. When you change the model on a server that takes the parser as a start-up setting, change the parser to the one for its format, and keep a test that sends a request needing a tool and fails if no call comes back.
-
-A provider's API reads its own models' calls on its side and returns them as calls, so the mismatch cannot happen there. On your own server it depends on where the parser comes from. A server that works out the call format from the model's chat template follows the swap on its own; a server that takes the parser as a start-up setting, as this one does, keeps reading the old format.
+When you change the model on a server that takes the parser as a start-up setting, change the parser to the one for its format, and keep a test that sends a request needing a tool and fails if no call comes back.
 
 </details>
 
 <details><summary>D. A blank message with the call removed</summary>
 
-✗ When a parser works, the call is lifted out of the text and the reply keeps only what is left, often nothing, and it is easy to assume a parser always takes call-shaped text out. This one lifts out only a call it recognises. The new format holds none, so the parser returns the whole text unchanged and the student reads every character of it.
+✗ A working parser lifts the call out of the text and leaves only what remains, often nothing, and the new model's reply is a call too. It lifts out only a call it recognises; the new format holds none, so the whole text comes back unchanged and the student reads every character of it.
 
 </details>
 
@@ -218,25 +204,23 @@ What must the second request carry for the model to answer?
 
 <details><summary>B. A single result giving both counts, in place of the one for <code>call_1</code></summary>
 
-✗ Some APIs want all of a reply's results sent in one message, and a single result for both mugs is a short step from there. Sent together or not, each result answers one call by its id. A single result for both answers `call_1` or `call_2` and leaves the other call without its pair.
+✗ Some APIs want all of a reply's results sent in one message, and both mugs come from one question. Sent together or not, each result answers one call by its id. A single result for both answers `call_1` or `call_2` and leaves the other call without its pair.
 
 </details>
 
 <details><summary>C. The red mug's count, added as text in a user message</summary>
 
-✗ The model reads text either way, and a line saying how many red mugs are left holds the same number a result would. `call_2` waits for a result under its id, and a user message does not give one. Even where the model reads the count, `call_2` stays unanswered in the history of every turn after, and some APIs forbid any message between a call and its result.
+✗ The model reads text either way, and a line saying how many red mugs are left holds the same number a result would. But `call_2` waits for a result under its id: even where the model reads the count, the call stays unanswered in every later turn, and some APIs forbid any message between a call and its result.
 
 </details>
 
 <details><summary>D. A second result, for <code>call_2</code></summary>
 
-✓ Right. The second request needs a result for `call_2` too, under that id. As written it holds the assistant message with both calls and one result, for `call_1`.
+✓ Right. The second request needs a result for `call_2` too, under that id; as written it holds the assistant message with both calls and one result, for `call_1`. The customers who compare two mugs get an error or half an answer.
 
-Your tests ask about one product at a time and pass. In production the customers who compare two mugs are the ones who get an error or half an answer, and the on-call engineer watches the failures rise and fall with how often people compare.
+Parallel calls are several tool calls in one reply, each with its own id, and every one of them needs its tool result in the next request, matched by id. The results may travel together, a separate `tool` message for each or blocks in one user message depending on the API, but each answers exactly one call. Some APIs refuse a request with an unanswered call; where one goes through, the model has no count for the red mug and can only guess or ask again.
 
-Parallel calls are several tool calls in one reply, each with its own id, and every one of them needs its tool result in the next request, matched by id. The results may travel together, but each answers exactly one call. Loop over every call in `reply.calls` and append one result per call; if you decide not to run a call, still send a result that says it did not run. Some APIs refuse a request with an unanswered call; where one goes through, the model has no count for the red mug and can only guess or ask again.
-
-The shape differs between APIs, a separate `tool` message for each result or blocks in one user message, and the matching by id is the same in both.
+Loop over every call in `reply.calls` and append one result per call; if you decide not to run a call, still send a result that says it did not run.
 
 </details>
 
@@ -250,31 +234,29 @@ Which change fixes this?
 
 <details><summary>A. A line in <code>send_receipt</code>'s description saying never to repeat a call</summary>
 
-✗ A description is where you tell the model when to use a tool and when not to, so a rule against repeats has an obvious home there. A description is text the model reads, and nothing checks a call against it. It may make repeats rarer, but a reply can still hold two identical calls, and your loop still runs both.
+✗ A description is where you tell the model when to use a tool and when not to. It is text the model reads, and nothing checks a call against it: repeats may get rarer, and your loop still runs any that come.
 
 </details>
 
 <details><summary>B. Running each distinct call once</summary>
 
-✓ Right. The student gets one receipt per payment, and all three calls are answered. Group the calls by tool name and arguments, run each group once and send its output as the result for every id in the group.
+✓ Right. Running each distinct call once gives the student one receipt per payment while all three calls are answered: group the calls by tool name and arguments, run each group once and send its output as the result for every id in the group.
 
-At the end of the month the school's bookkeeper finds two receipts for A-1042 in the sent mail and has to check that the payment was taken only once. Around a tool that books a classroom or orders course books, the same loop would book the room twice or order every book twice over.
+Each call is a separate request to your code, told apart by its id, and nothing between the model and your loop merges calls whose arguments match. A repeat is as well formed as the first call, with a name, arguments and an id of its own, so a check on ids alone never catches it.
 
-Parallel calls are separate requests to your code, each told apart by its id, and nothing between the model and your loop merges calls whose arguments match. A repeat is as well formed as the first call, with a name, arguments and an id of its own, so the loop has to expect one, and a check on ids alone never catches it. Make the action safe to repeat as well: send the email service an idempotency key with each email, a value it remembers so it can refuse a second send under the same key. Build the key from the student's message and the payment, so a retry of that one request is caught there, while a request to resend in a later message goes through.
-
-The loop is your code, so the grouping works the same whether the model runs behind a provider's API or on your own server.
+Make the action safe to repeat as well: send the email service an idempotency key with each email, a value it remembers so it can refuse a second send under the same key. Build the key from the student's message and the payment, so a second send for the same payment in the same message is refused, while a request to resend in a later message goes through.
 
 </details>
 
 <details><summary>C. Skipping any call whose id has already run</summary>
 
-✗ Skipping an event whose id you have already handled is how a webhook handler survives a delivery that arrives twice, and the habit carries over. Where calls carry ids, each call in a reply has its own, repeats included, so the two calls for A-1042 carry different ids. A check on ids runs all three, and the student still gets A-1042 twice.
+✗ Skipping an event whose id you have already handled is how a webhook handler survives a double delivery. Each call in a reply has its own id, repeats included, so the two calls for A-1042 carry different ids, a check on ids runs all three, and the student still gets A-1042 twice.
 
 </details>
 
 <details><summary>D. Running the calls one after another instead of at once</summary>
 
-✗ Two sends racing each other are the usual picture of a duplicate, and running the calls in order removes the race. Order changes when each send runs, not how many run. One after the other, the two calls for A-1042 each send it, and the student still gets it twice.
+✗ Two sends racing each other are the usual picture of a duplicate, and running the calls in order removes the race. Order changes when each send runs, not how many run. One after the other, the two calls for A-1042 each still send their email.
 
 </details>
 
@@ -306,25 +288,23 @@ What does the user get on that turn?
 
 <details><summary>B. A forecast, after the model retries <code>get_weather</code></summary>
 
-✗ The model chose to call `get_weather`, so picturing it noticing the failure and calling again comes naturally. The model never learns the call failed. The exception travels up through your loop, and no request carries a failure the model could react to.
+✗ The model chose to call `get_weather`, and agents retry a tool that fails. The model never learns the call failed. The exception travels up through your loop, and no request carries a failure the model could react to.
 
 </details>
 
 <details><summary>C. A forecast the model writes from what it already knows</summary>
 
-✗ Models answer plenty of questions from what they learned in training, so a general forecast is a fair guess at a fallback. That fallback would take another call to the model, and the exception ends `answer` before one is made. The user gets nothing from the model at all.
+✗ Models answer plenty of questions from what they learned in training, weather in general among them. That fallback would take another call to the model, and the exception ends `answer` before one is made. The user gets nothing from the model at all.
 
 </details>
 
 <details><summary>D. No reply from the model, only the error your app shows</summary>
 
-✓ Right. The user gets no reply from the model. `TimeoutError` leaves `answer` before the call's result is appended, and whatever your app shows for an uncaught error is the whole turn.
+✓ Right. The user gets no reply from the model: `TimeoutError` leaves `answer` before the call's result is appended, and whatever your app shows for an uncaught error is the whole turn. The messages now end with a call that has no result, and if your app keeps this list for the chat, every later request carries it.
 
-The messages now end with an assistant message whose call has no result. When the user asks again, the new message lands after that unanswered call, and every later request in that chat carries a call that was never answered.
+A tool result is how a tool's outcome reaches the model, whether the tool worked or failed. Catch the exception around each call and send its text back as the result for that call, such as "Error: TimeoutError: weather service did not answer. Try again in a minute." The model reads it on the next request and can tell the user the forecast is unavailable. The same catch covers a call your function cannot take as written, such as one whose arguments break the schema without schema mode.
 
-A tool result is how a tool's outcome reaches the model, whether the tool worked or failed. Catch the exception around each call and send its text back as the result for that call, such as "Error: TimeoutError: weather service did not answer. Try again in a minute." The model reads it on the next request and can tell the user the forecast is unavailable. Write the error so the model can act on it: what failed and what to try next. The same catch covers a call your function cannot take as written, such as one whose arguments break the schema, which can happen without schema mode. Some APIs have a flag on the result that marks it as an error; others leave the result's format to you.
-
-The loop is your code on a provider's API and on your own server alike, and so is the fix.
+Write the error so the model can act on it: what failed and what to try next. Some APIs have a flag on the result that marks it as an error; others leave the result's format to you.
 
 </details>
 
@@ -338,25 +318,23 @@ Which trimmer keeps every request in the message format the API documents?
 
 <details><summary>A. The task plus the last 20 other messages</summary>
 
-✗ Pinning the task fixes the trimming bug you have heard about, and with one call per step every step is two messages, so an even count cuts between steps. A step with two calls adds three. Once one sits in the kept part, the steps behind it start an odd number of messages back, and a cut at 20 lands inside a step, keeping a result whose call is gone.
+✗ Pinning the task keeps the instructions a plain slice would drop, and with one call per step every step is two messages, so an even count cuts between steps. Once an odd number of two-call steps, three messages each, sit in the kept part, a count of 20 lands inside a step and keeps a result whose call is gone.
 
 </details>
 
 <details><summary>B. The task plus as many of the newest messages as fit a token budget</summary>
 
-✗ Counting tokens instead of messages is the fix for a slice that ignores size, and it does keep each request under the size you set. The budget, though, runs out at whatever message it reaches, and nothing moves that point to the edge of a step. When it falls between a call and its results, or between two results of one step, the request opens on a result that answers nothing in it.
+✗ Counting tokens instead of messages is the fix for a slice that ignores size, and it keeps each request under budget. The budget runs out at whatever message it reaches, though, and when that falls between a call and its results, or between two results of one step, the request opens on a result that answers nothing in it.
 
 </details>
 
 <details><summary>C. The task plus as many of the newest steps as fit a token budget</summary>
 
-✓ Right. Every request then holds the task and a run of whole steps: each assistant message with calls comes with every result that answers it, and no result comes without its call.
+✓ Right. Every request then holds the task and a run of whole steps: each assistant message with calls comes with every result that answers it, and no result comes without its call. A trimmer that cuts single messages, by count or by tokens, passes every short test and, on the first long trip, sends a request that opens on hotel prices for a search no longer in it.
 
-A trimmer that cuts by count or by tokens passes every test, since a short task never reaches the cut. On the first long trip, a request carries hotel prices for a search that is no longer in it, and the traveller's plan stalls on a history that starts in the middle of a step.
+A tool result answers the tool call with the same id, and that call sits in the assistant message before it. Provider APIs document this pairing as part of the format, and some refuse a request with a call left unanswered. A count of 20 cuts cleanly while every step holds one call and slips inside a step once a two-call step is in the kept part, so no fixed count survives every mix of steps; a token budget over single messages stops wherever the tokens run out, which is why this trimmer counts whole steps.
 
-A tool result is half of a pair: it answers the tool call with the same id, and that call sits in the assistant message before it. Provider APIs document the pairing as part of the format: a result follows the call it answers, and every call gets a result. Some refuse a request with a call left unanswered. A trimmer that ignores steps can cut inside one. A count of 20 cuts cleanly while every step holds one call, and slips inside a step once a step with two calls is in the kept part; no fixed count survives every mix of steps. A token budget stops wherever the tokens run out, with no regard for where a step begins. Trim in whole steps: start from the newest step and add older steps one at a time while they fit, so every cut falls before an assistant message with calls and the history after the task begins on a call. When the history must shrink further, replace the oldest steps with one short summary message instead of slicing through them.
-
-Whether an API takes each result as a message of its own or as a block inside a user message, the pairing rule is the same, and a cut between whole steps keeps it on both.
+Trim in whole steps: start from the newest step and add older steps one at a time while they fit, so every cut falls before an assistant message with calls. When the history must shrink further, replace the oldest steps with one short summary message instead of slicing through them.
 
 </details>
 
@@ -390,31 +368,29 @@ How does a run end now?
 
 <details><summary>A. At the step cap, with a RuntimeError, on every run</summary>
 
-✓ Right. Every run makes 50 model calls and ends in `RuntimeError`. No reply comes back without a tool call, so `return reply.text` is never reached.
+✓ Right. Every run makes 50 model calls and ends in `RuntimeError`, since no reply comes back without a tool call and `return reply.text` is never reached. The research may be done by step 3, and each question still costs 50 calls and ends in an error.
 
-Each question now costs 50 calls, each resending a longer history, and the user waits the longest time your agent allows only to get an error. The research may be done by step 3, and the agent goes on searching to the end anyway.
+Tool choice applies to each reply on its own: a forced choice leaves the model no reply without a call, and your loop ends only on a reply without one.
 
-Tool choice applies to each reply on its own: a forced choice leaves the model no reply without a call, and your loop ends only on a reply without one. Force a tool on the first request only, then leave the choice to the model. Or give the model a `final_answer` tool and end the loop when it calls that one; this needs the choice forced to any tool, since a choice forced to one named tool, such as `search`, makes every reply call that tool. At the step cap you can also send one last request with tool choice turned off, so the run ends with an answer from what it found rather than an error.
-
-A provider's API holds a forced reply to a tool call. Your own server does the same where it supports the setting, by limiting what the model can write, and some servers do not support it at all. Not every model accepts a forced choice: some refuse the request with an error, so check that yours accepts one.
+Force a tool on the first request only, then leave the choice to the model. Or give the model a `final_answer` tool and end the loop when it calls that tool. Forcing one named tool such as `search` is no way out: every reply would call `search`. At the step cap you can also send one last request with tool choice turned off, so the run ends with an answer from what it found.
 
 </details>
 
 <details><summary>B. With the model's answer, once it has searched enough</summary>
 
-✗ The change was meant to make the agent search more, and a push it can drop once it has enough would do that job. A forced choice is a rule on every reply this wrapper asks for: each must hold a tool call. Your loop returns only on a reply without one, so it never returns.
+✗ The change was meant to make the agent search more, and forcing a tool call pushes it to search. A forced choice is a rule on every reply this wrapper asks for: each must hold a tool call. Your loop returns only on a reply without one, so it never returns.
 
 </details>
 
 <details><summary>C. With an error from the API, once nothing is left to search</summary>
 
-✗ A model told to call a tool with nothing left to find is in a bind, and you would expect a bind to end in an error. Where a model accepts a forced choice, every reply is held to a tool call. The model calls some tool, however little is left to find, and the API answers normally.
+✗ An API refuses a request it cannot carry out, and a forced tool call is one it cannot carry out once nothing is left to find. Where a model accepts a forced choice, every reply is held to a tool call: the model calls some tool, however little is left to find, and the API answers normally, so every run goes on to the step cap and ends in `RuntimeError`.
 
 </details>
 
 <details><summary>D. With the model's answer, after its first search</summary>
 
-✗ Some agent libraries reset a forced choice after the first tool call to stop endless loops, and if you have used one, a forced search followed by an answer is what you have seen. Your wrapper resets nothing: each request carries the forced choice, and the API applies it to that request alone. The second reply must hold a call as surely as the first, and so must the fiftieth.
+✗ Some agent libraries reset a forced choice after the first tool call to stop endless loops, and with them a forced search is followed by an answer. Your wrapper resets nothing: each request carries the forced choice, and the second reply must hold a call as surely as the fiftieth.
 
 </details>
 
@@ -426,4 +402,4 @@ A provider's API holds a forced reply to a tool call. Your own server does the s
 - [Gorilla](https://arxiv.org/abs/2305.15334), 2023: a model trained to write calls to real machine-learning APIs, which made up fewer calls than prompted models and, given a document retriever, kept up with changed documentation.
 - [The Berkeley Function Calling Leaderboard (BFCL)](https://proceedings.mlr.press/v267/patil25a.html), 2025: a benchmark of the calls models write, single and parallel, of when they hold back, and of multi-step agent tasks, where memory and long-horizon reasoning remain open.
 
-Next: [Cost and latency](../cost-and-latency/README.md)
+Prev: [Structured outputs](../structured-outputs/README.md) · Next: [Cost and latency](../cost-and-latency/README.md)

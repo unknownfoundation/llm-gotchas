@@ -1,6 +1,6 @@
 # Retrieval and RAG
 
-Needs: [Context window](../context-window/README.md) · [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Reviewed October 2026
+Prev: [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Next: [Memory](../memory/README.md) · Reviewed October 2026
 
 Retrieval-augmented generation, or RAG, answers from documents the model never saw in training: before each call, your code searches them and pastes the best matches into the request. The model reads that request and nothing else of your documents.
 
@@ -16,7 +16,7 @@ The work runs in five steps: split each document into chunks, embed the chunks, 
 - **Grounded reply**: a reply whose every claim comes from the chunks in its request.
 - **Reranker**: a second model that reads the query and one chunk together and scores how well the chunk answers it, so the chunks can be put in a better order.
 
-With a provider's API, your code can run every step itself. Where the provider offers one, you can instead upload files to a built-in file search, which splits, embeds and searches them and passes what it finds to the model. On your own server, every step from splitting to search is code you run next to the model. Retrieval works the same wherever the model runs.
+With a provider's API, your code can run every step itself. Where the provider offers one, you can instead upload files to a built-in file search, which splits, embeds and searches them and passes what it finds to the model. On your own server, every step from splitting to search is code you run next to the model.
 
 A search can find chunks in three ways:
 
@@ -42,29 +42,29 @@ Which change makes sure the exception reaches the model whenever the rule does?
 
 <details><summary>A. Cut chunks of 100 tokens instead</summary>
 
-✗ Smaller chunks promise sharper hits, each one closer to a single point. They also add cuts, and every boundary at 200 tokens is still a boundary at 100, since 100 divides 200. The rule still closes one chunk and the exception still opens the next, so a search that finds the rule can still send it alone.
+✗ Smaller chunks promise sharper hits, each one closer to a single point. They also add cuts, and every boundary at 200 tokens is still a boundary at 100, since 100 divides 200. The rule still closes one chunk and the exception still opens the next.
 
 </details>
 
 <details><summary>B. Add an overlap of 50 tokens between chunks</summary>
 
-✗ Overlap is the standard advice for a fact that straddles a cut, and here it half works. Each chunk now repeats the last 50 tokens of the one before, so one chunk carries the rule and the exception together. The cuts still fall wherever the count runs out, and whenever one lands between the two sentences, the chunk that ends there sends the rule alone, which the search can rank first.
+✗ Overlap is the standard advice for a fact that straddles a cut, and with 50 tokens one chunk carries the rule and the exception together. The cuts still fall wherever the count runs out, and any chunk that ends between the two sentences sends the rule alone, which the search can rank first.
 
 </details>
 
 <details><summary>C. Send the top five chunks instead of three</summary>
 
-✗ More hits feel like a wider net, and chunk 8 is the very next piece of the document. Its place in the results is another matter: the search ranks chunk 8 by its own words, and nothing ties it to chunk 7. It comes along only when its own words earn it one of the five places.
+✗ More hits widen the net, and chunk 8 is the very next piece of the document. Its place in the results is another matter: the search ranks chunk 8 by its own words, and nothing ties it to chunk 7. It comes along only when its own words earn it one of the five places.
 
 </details>
 
 <details><summary>D. Cut at the policy's headings, one section per chunk</summary>
 
-✓ Right. Cut at the headings, and the Returns section becomes one chunk with the rule and its exception inside it. Whenever the search finds the rule, the request carries the exception too.
+✓ Right. Cut at the headings, and the Returns section becomes one chunk with the rule and its exception inside it, so whenever the search finds the rule, the request carries the exception too.
 
-With the 200-token cuts, a customer brings a worn swimsuit from the sale back to the till, the cashier asks the assistant, and the request holds the 30-day rule with no word about swimwear. The refund goes through, and the store manager finds the worn swimsuit in the returns bin at closing.
+A chunk is all the model sees of its document, and the splitter decides what travels together. A cut by size falls wherever the count runs out, here between a rule and its exception. Smaller chunks only add cuts. An overlap copies the end of each chunk into the start of the next, so one chunk holds both sentences, while any chunk that ends between them still sends the rule alone. More results bring chunk 8 only when it ranks on its own.
 
-A chunk is all the model sees of its document, and the splitter decides what travels together. A cut by size falls wherever the count runs out, here between a rule and its exception. Smaller chunks only add cuts. An overlap copies the end of each chunk into the start of the next, so one chunk holds both sentences, while any chunk that ends between them still sends the rule alone. More results bring chunk 8 only when it ranks on its own. Splitting at the document's headings keeps each section whole, as long as a section fits the embedding model's input limit; cut a longer one at its paragraphs and repeat the heading on each part. Another way keeps each chunk's position in its document and pastes its neighbours in with it.
+Split at the document's headings, so each section stays whole, as long as a section fits the embedding model's input limit; cut a longer one at its paragraphs and repeat the heading on each part. Another way keeps each chunk's position in its document and pastes its neighbours in with it.
 
 </details>
 
@@ -78,23 +78,23 @@ Which chunks does the request for the Sunday question carry?
 
 <details><summary>A. No chunks, only the customer's question</summary>
 
-✗ A database query whose condition no row meets returns nothing, and a search over an index feels like the same kind of lookup. A vector search has no such condition: every chunk has a distance to the query, however large. It ranks them all and hands back the five nearest, and your code pastes all five above a question about Sunday.
+✗ A database query whose condition no row meets returns nothing, and a search over an index is a lookup too. A vector search has no such condition: every chunk has a distance to the query, however large. It ranks them all and hands back the five nearest.
 
 </details>
 
 <details><summary>B. Five chunks from the manuals</summary>
 
-✓ Right. The request carries five chunks from the manuals, the five closest to a question about Sunday, about batteries, brakes or whatever else lands nearest. They sit in the request exactly where an answering chunk would, above the customer's question.
+✓ Right. The request carries five chunks from the manuals, the five closest to a question about Sunday, about batteries, brakes or whatever else lands nearest, sitting exactly where an answering chunk would, above the customer's question.
 
-The customer's question about Sunday arrives in a request built around brake pads and battery care, with nothing in it about opening hours. If the reply guesses, the customer cycles over on Sunday and finds the shutters down.
+Top-k is a ranking: a vector search orders every chunk by its distance to the query and hands back the first k, with no test of whether any of them answers. A question no chunk answers still gets five.
 
-Top-k is a ranking: the search orders every chunk by its distance to the query and hands back the first k, with no test of whether any of them answers. A question no chunk answers still gets five. Read the score that comes back with each hit, drop the hits past a line you chose on your own data, and when nothing is left, reply that the manuals do not cover it without calling the model.
+Read the score that comes back with each hit, drop the hits past a line you chose on your own data, and when nothing is left, reply that the manuals do not cover it without calling the model.
 
 </details>
 
 <details><summary>C. Only the one or two chunks that match the question well</summary>
 
-✗ Each hit carries a score, and it is natural to read a score as a pass mark the store applies. The store returns the scores and applies no cutoff of its own, so a search for five returns five. A cutoff exists only where your code reads the scores and drops the far hits, and this code pastes every hit.
+✗ Each hit carries a score, and a score is what a pass mark is set on. The store returns the scores and applies no cutoff of its own, so a search for five returns five. A cutoff exists only where your code reads the scores and drops the far hits, and this code pastes every hit.
 
 </details>
 
@@ -108,23 +108,23 @@ What does the request for that question carry now?
 
 <details><summary>A. Ten copies of the bike section</summary>
 
-✓ Right. Ten copies of the bike section fill the request, one from each of ten timetables, and nothing from the fare table comes with them.
+✓ Right. Ten copies of the bike section fill the request, one from each of ten timetables, and nothing from the fare table comes with them. Every question about bikes now sends twice the text it did, all of it one paragraph.
 
-A cyclist boards at a country station without a bike ticket, the conductor checks the assistant, and the reply talks about folding bikes and rush hours and says nothing about a fare. Every question about bikes now also sends twice the text it did, all of it one paragraph.
+Top-k ranks each chunk on its own and never checks whether two of them say the same thing. Forty identical chunks get forty identical embeddings and forty identical scores, so they hold the first 40 places, and no other chunk can rank above 41st; raising k to 10, or to 40, sends more copies. With the repeats removed, the bike ticket comes second in a run of these documents. Near copies that differ by a word score almost alike and crowd the list the same way.
 
-Top-k ranks each chunk on its own and never checks whether two of them say the same thing. Forty identical chunks get forty identical embeddings and forty identical scores, so they hold the first 40 places, and any other chunk starts at 41st. Raising k to 10, or to 40, sends more copies. Remove the repeats before they take the places: index a shared section once, with the timetables it belongs to listed in its metadata, or keep one chunk per distinct text when you take the top results, comparing each text's hash, a short code computed from its exact characters. Picture these documents with the repeats removed: the bike ticket then comes second. Near copies that differ by a word score almost alike and crowd the list the same way, so a step that skips any result too close to one already picked spreads the places across different texts.
+Remove the repeats before they take the places: index a shared section once, with the timetables it belongs to listed in its metadata, or keep one chunk per distinct text when you take the top results, comparing each text's hash, a short code computed from its exact characters. For near copies, skip any result too close to one already picked, so the places spread across different texts.
 
 </details>
 
 <details><summary>B. The bike section once, then nine other chunks with the bike ticket among them</summary>
 
-✗ To a conductor, forty copies of one paragraph are one fact, and you expect the search to treat them as one. The index keeps each copy under its own id and scores every one of them, and identical text gets an identical score. With the bike section nearest, its 40 copies take the first 40 places, and the bike ticket comes after them.
+✗ To a conductor, forty copies of one paragraph are one fact, and a conductor wants each fact once. The index keeps each copy under its own id and scores every one of them, and identical text gets an identical score. With the bike section nearest, its 40 copies take the first 40 places, and the bike ticket comes after them.
 
 </details>
 
 <details><summary>C. The bike section five times, then five other chunks with the bike ticket among them</summary>
 
-✗ Doubling the places for a two-part question leaves room, you reason, for the half the first five missed. The next places go to the next-best chunks, and those are 35 more copies of that section, scoring exactly as the first five do. Places six to ten hold copies, and the bike ticket waits behind all 40.
+✗ Doubling the places for a two-part question leaves five more for the half the first five missed. The next places go to the next-best chunks, and those are 35 more copies of that section, scoring exactly as the first five do. Places six to ten hold copies too, so the fare table is nowhere in the ten.
 
 </details>
 
@@ -138,7 +138,7 @@ For the renter's follow-up, which chunks does the search return?
 
 <details><summary>A. The second flat's pet rules</summary>
 
-✗ The chat names the second flat and the model will read the chat, so you credit the search with the same view. The search reads one text, the renter's new message, and "the second one" names no flat. It returns the chunks closest to a question about cats, from any flat, and the second flat's rules make the three only if they outrank every other flat's.
+✗ The chat names the second flat, and the model reads the chat. The search reads one text, the renter's new message, and "the second one" names no flat. It returns the chunks closest to a question about cats, from any flat, and the second flat's rules make the three only if they rank in the top three for a question about cats.
 
 </details>
 
@@ -150,17 +150,17 @@ For the renter's follow-up, which chunks does the search return?
 
 <details><summary>C. Pet rules of flats from anywhere in the listings</summary>
 
-✓ Right. The search returns the pet rules of whichever flats best match a question about cats. The second flat is among them only by chance, and nothing in the query ties any of them to it.
+✓ Right. The search returns the pet rules of whichever flats best match a question about cats. The second flat is among them only by chance, and the model then reads the chat, where the second flat is named, next to cat rules that can belong to other flats.
 
-The model reads the chat, where the second flat is named, next to cat rules that can belong to other flats. A renter who trusts the reply turns up to the viewing with a cat carrier and hears at the door that the building allows no pets.
+The query is whatever text your code hands the search, and here that is the renter's latest message alone. "The second one" points at a reply the query does not hold, so the only words left to match are about cats. In a toy run with six listings, four of them with a cat rule, the message as typed ranks another flat's rule first, and the flat the renter meant is not among the three.
 
-The query is whatever text your code hands the search, and here that is the renter's latest message alone. "The second one" points at a reply the query does not hold, so the only words left to match are about cats. Picture six listings, four of them with a cat rule: the message as typed ranks another flat's rule first, and the flat the renter meant is not among the three. Rewrite a follow-up before searching: one extra model call reads the chat and the new message and writes a question that stands alone and names the flat, and the search runs on that. Joining the last few turns to the new message is a cheaper step in the same direction.
+Rewrite a follow-up before searching: one extra model call reads the chat and the new message and writes a question that stands alone and names the flat, and the search runs on that. Joining the last few turns to the new message is a cheaper step in the same direction.
 
 </details>
 
 <details><summary>D. The chunks of the three flats from the first answer</summary>
 
-✗ Between two people, "the second one" narrows the talk to the three already named, and a follow-up feels like a question about those three. Each search here starts fresh from the text it is given and keeps no list from the turn before. The three flats of the first answer come back only if their descriptions rank highest for a message about cats.
+✗ Between two people, "the second one" narrows the talk to the three already named, and the chat shows those three just above. Each search here starts fresh from the text it is given and keeps no list from the turn before. The three flats of the first answer come back only if their descriptions rank highest for a message about cats.
 
 </details>
 
@@ -185,23 +185,23 @@ What does the index hold for the travel policy the next morning?
 
 <details><summary>A. The three new chunks</summary>
 
-✗ Saving a file to its path replaces the whole file, and the function is called with the document's name, so a full replacement is what you expect. The store sees only the ids it is given. The new version wrote ids 0 to 2 and never named ids 3 and 4, which stay as they were, and the old rule on first-class rail is still there to be found.
+✗ Saving a file to its path replaces the whole file, and this function takes the document's name the way a save takes a path. The store sees only the ids it is given. The new version wrote ids 0 to 2 and never named ids 3 and 4, which stay as they were, and whatever those two chunks held is still there to be found.
 
 </details>
 
 <details><summary>B. The three new chunks, and the old fourth and fifth</summary>
 
-✓ Right. The index holds five chunks for the travel policy: `travel-policy-0` to `travel-policy-2` from the new version, and `travel-policy-3` and `travel-policy-4` from the old one. The old fifth chunk still allows first-class rail on trips over four hours.
+✓ Right. The index holds five chunks for the travel policy: `travel-policy-0` to `travel-policy-2` from the new version, and `travel-policy-3` and `travel-policy-4` from the old one. Say the rail rule sat in the old fifth chunk: a question about first-class rail brings it back with the travel policy named as its source.
 
-An employee asks the bot about first-class rail, and the old rule comes back with the travel policy named as its source. Finance rejects the expense claim weeks later, and the employee pays for the ticket out of pocket.
+An upsert writes the records whose ids you pass and touches no other. The new version produced ids 0 to 2, which replaced the old ones in place; ids 3 and 4 were never named, so they keep their old text, embedding and `doc` field, and the count stays at 5. A filter on the document cannot tell them from the new ones.
 
-An upsert writes the records whose ids you pass and touches no other. The new version produced ids 0 to 2, which replaced the old ones in place; ids 3 and 4 were never named, so they keep their old text, embedding and `doc` field, and the count stays at 5. A filter on the document cannot tell them from the new ones. Before writing a new version, delete the document's chunks, by the `doc` field where your store deletes by a metadata filter, or keep the list of ids each document wrote and delete the ones the new version no longer produces. Either way the count goes back to 3.
+Before writing a new version, delete the document's chunks, by the `doc` field where your store deletes by a metadata filter, or keep the list of ids each document wrote and delete the ones the new version no longer produces. Either way the count goes back to 3.
 
 </details>
 
 <details><summary>C. The old five chunks, until the whole index is rebuilt</summary>
 
-✗ A library index built once from a folder of vectors, then searched, teaches you that new writes wait for the next build. An upsert goes into the index the searches read, with no build step between them; a store that applies writes in the background shows them after a slight delay. By morning every search sees ids 0 to 2 from the new version beside the old 3 and 4.
+✗ A library index is built once from a folder of vectors and then searched, and new writes wait for the next build. An upsert goes into the index the searches read, with no build step between them; a store that applies writes in the background shows them after a slight delay. By morning every search sees ids 0 to 2 from the new version beside the old 3 and 4.
 
 </details>
 
@@ -228,29 +228,29 @@ What does the bakery customer's search return?
 
 <details><summary>A. Both of the bakery's entries</summary>
 
-✗ The filter runs on every search, so it reads as the wall between customers. A filter only chooses among the records that exist. Both imports wrote the id `faq-0`, an id names one record in the index, and the gym's import replaced the bakery's hours. The bakery's filter then finds one record, not two.
+✗ The filter runs on every search, and keeping customers apart is what it was added for. A filter only chooses among the records that exist. Both imports wrote the id `faq-0`, an id names one record in the index, and the gym's import replaced the bakery's hours. The bakery's filter then finds one record, not two.
 
 </details>
 
 <details><summary>B. An empty list</summary>
 
-✗ A seed script for a test database empties its tables before it loads, and you may expect a second import to wipe the first the same way. An upsert removes nothing it is not told to touch: the gym's import wrote one record, `faq-0`, over the bakery's hours and never named `faq-1`, so the refunds entry is still in the index and the bakery's filter finds it.
+✗ A seed script for a test database empties its tables before it loads, and the gym's import is the second load into this index. An upsert removes nothing it is not told to touch: the gym's import wrote one record, `faq-0`, over the bakery's hours and never named `faq-1`, so the refunds entry is still in the index and the bakery's filter finds it.
 
 </details>
 
 <details><summary>C. The gym's round-the-clock hours under the bakery's tenant, and the bakery's refunds entry</summary>
 
-✗ When you edit a record in most apps, the fields you leave alone stay as they were, and a write named after update invites the same picture. This upsert passes the whole record, `tenant` included, and each field it passes replaces the old one. The gym's hours now carry `"tenant": "gym"`, and the bakery's filter skips them.
+✗ When you edit a record in most apps, the fields you leave alone stay as they were, and the write here is named after update. This upsert passes the whole record, `tenant` included, and each field it passes replaces the old one. The gym's hours now carry `"tenant": "gym"`, and the bakery's filter skips them.
 
 </details>
 
 <details><summary>D. The bakery's refunds entry alone</summary>
 
-✓ Right. The search returns one chunk, `faq-1`, which reads "Refunds take 5 days." The bakery's hours are no longer in the index.
+✓ Right. The search returns one chunk, `faq-1`, which reads "Refunds take 5 days." The bakery's hours are no longer in the index, and neither import raised an error.
 
-The bakery's bot stops knowing its own support hours on the day another business signs up. The bakery's support lead files a bug saying the bot forgot their hours, while the import log shows a clean run for the gym.
+An id names one record in the whole index, whatever its metadata says. Both businesses built ids from position alone, `faq-0` and `faq-1`, so the gym's upsert met an existing id and replaced that record: text, embedding and `tenant` field. After both imports the index holds two records, and the metadata filter did its job on what was left.
 
-An id names one record in the whole index, whatever its metadata says. Both businesses built ids from position alone, `faq-0` and `faq-1`, so the gym's upsert met an existing id and replaced that record: text, embedding and `tenant` field. After both imports the index holds two records. The metadata filter did its job on what was left, and nothing of the bakery's hours was left. Put the tenant into the id, such as `bakery:faq-0`, which keeps all three records apart, or give each business its own collection, so `faq-0` in one and `faq-0` in the other are two records.
+Put the tenant into the id, such as `bakery:faq-0`, which keeps all three records apart, or give each business its own collection, so `faq-0` in one and `faq-0` in the other are two records.
 
 </details>
 
@@ -282,17 +282,17 @@ What does the request for her question carry?
 
 <details><summary>B. Fewer than three chunks, the HR one held back</summary>
 
-✗ On a file share, a department label comes with permissions, so you picture the store holding back the HR chunk from the three it found. The `dept` field is stored with every chunk, and this search passes no condition on it. The index returns the three nearest chunks of any department, the salary bands first.
+✗ On a file share, a department label comes with permissions, and the HR chunk here is labelled HR. The `dept` field is stored with every chunk, and this search passes no condition on it. The index returns the three nearest chunks of any department.
 
 </details>
 
 <details><summary>C. The HR salary bands chunk among the three</summary>
 
-✓ Right. The request carries the HR chunk with this year's salary bands, ranked first, beside two other chunks, under a system prompt that says not to use HR documents. The text she must not see is in the request the model reads.
+✓ Right. The request carries the HR chunk with this year's salary bands, ranked first, beside two other chunks, under a system prompt that says not to use HR documents. From here, keeping the bands from a salesperson rests on how the model treats one sentence, and the bands also sit in any copy of the request your code logs.
 
-From here, keeping the salary bands from a salesperson rests on how the model treats one sentence of its prompt. The bands also sit in every copy of that request your logging keeps, filed under her name, for anyone who reads the logs.
+The search ranks chunks by distance to the query and knows nothing about who asked. The system prompt is assembled after the search has run, so it cannot change which chunks were fetched; it can only ask the model not to use one it already has.
 
-The search ranks chunks by distance to the query and knows nothing about who asked. The system prompt is assembled after the search has run, so it cannot change which chunks were fetched; it can only ask the model not to use one it already has. Put the permission in the search as a metadata filter, here a condition that `dept` is Sales or company-wide, and the salary bands never leave the index. Take the user's departments from your login system, not from the conversation, where anyone can type a claim.
+Make the permission part of the search, as a metadata filter, here a condition that `dept` is Sales or company-wide, and the salary bands never leave the index. Take the user's departments from your login system, not from the conversation, where anyone can type a claim.
 
 </details>
 
@@ -325,7 +325,7 @@ What can you hand the auditor as proof?
 
 <details><summary>B. The link on the page, which opens kb-212</summary>
 
-✗ A link that opens the right article reads like proof. What it proves is that kb-212 exists in your knowledge base. The regex turns any id the model writes into a link, so a citation to an article the search never returned renders and opens the same way.
+✗ A link that opens the right article is how you check a citation. What it proves is that kb-212 exists in your knowledge base. The regex turns any id the model writes into a link, so a citation to an article the search never returned renders and opens the same way.
 
 </details>
 
@@ -337,11 +337,11 @@ What can you hand the auditor as proof?
 
 <details><summary>D. Nothing in your records settles it either way</summary>
 
-✓ Right. Nothing in your records settles it: the service saves the question and the rendered reply, and neither holds the ids the search returned. If the search returned kb-101, kb-145 and kb-180 and the reply cited kb-145 and kb-212, the page linked both all the same.
+✓ Right. You cannot prove it from your records: the service saves the question and the rendered reply, and neither holds the ids of the chunks the search returned. If the search returned kb-101, kb-145 and kb-180 and the reply cited kb-145 and kb-212, the page linked both all the same.
 
-The auditor gets a link that opens a real article and no way to tell whether the assistant ever read it. When a client disputes advice built on one of these answers, the firm cannot say what the assistant read before giving it.
+A citation in a plain reply is text the model wrote, chosen like every other word in it. The regex links whatever matches its pattern, and kb-212 is a real article, so the link opens.
 
-A citation in a plain reply is text the model wrote, chosen like every other word in it. The regex links whatever matches its pattern, and kb-212 is a real article, so the link opens. Make the citation checkable in code: save the retrieved ids with each answer, compare the cited ids with them, and drop or flag the rest; on the reply above, that leaves kb-212 cited but not retrieved. That check shows an article was in the prompt, not that it backs the sentence citing it. Some provider APIs offer citations as a feature of their own: you pass the documents as structured input, and the response points back into them. One such API parses the citations itself and documents that they always point into the documents you sent, and a provider's built-in file search returns its citations with the reply. On your own server, as here, a plain prompt gets plain text back, so the check is yours to write.
+Make the citation checkable in code: save the retrieved ids with each answer, compare the cited ids with them, and drop or flag the rest; on the example above, that leaves kb-212 cited but not retrieved. That check shows an article was in the prompt, not that it backs the sentence citing it.
 
 </details>
 
@@ -355,23 +355,23 @@ Across thousands of recruiters' questions about the minimum wage, which figure s
 
 <details><summary>A. 12.20 in most replies, 11.40 now and then</summary>
 
-✓ Right. Most replies give 12.20. A few give 11.40, each with the chunk that holds 12.20 at the top of the very request it answers, and the response carries no flag on them.
+✓ Right. Most replies give 12.20. A few give 11.40, each with the chunk that holds 12.20 at the top of the very request it answers, and the response carries no flag on them, so a figure below the legal minimum can reach a recruiter now and then.
 
-A recruiter copies 11.40 an hour into a job offer for a warehouse picker, and the offer goes out below the legal minimum. The agency's payroll team finds it when the first payslip comes back for checking, weeks after the worker started.
+Pasting the right chunk in makes a grounded reply more likely without making it certain. The model draws each word from the whole request and from what training left in its weights, which here holds 11.40 from years of pages. A 2024 study, ClashEval, set six models of that time against retrieved text that disagreed with their own answers. Where the text was right and the model's own answer wrong, each model still kept its own answer in about 2 to 4% of cases, depending on the model; the surer a model was of its answer, the less often it switched, and a model that gives 11.40 on every try without the chunk is a sure one. No step between the request and the reply checks a figure against the chunk, and a claim the chunk never makes gets through the same way.
 
-Pasting the right chunk in makes a grounded reply more likely without making it certain. The model draws each word from the whole request and from what training left in its weights, the numbers it learned, and here training holds 11.40 from years of pages. A 2024 study, ClashEval, set six models against retrieved text that disagreed with their own answers. Where the text was right and the model's own answer wrong, each model still kept its own answer in about 2 to 4% of cases, depending on the model. The surer a model was of its answer, the less often it switched, and a model that gives 11.40 on every try without the chunk is a sure one. Those were 2024 models, so measure yours. No step between the request and the reply checks a figure against the chunk, and a claim the chunk never makes gets through the same way. Check in code: have the model quote the sentence each figure comes from, confirm the quote appears word for word in a retrieved chunk and holds the figure in the reply, and hold back a reply that fails. Checking that a cited id was retrieved shows only that the chunk was there, not that the reply follows it.
+Check in code: have the model quote the sentence each figure comes from, confirm the quote appears word for word in a retrieved chunk and holds the figure in the reply, and hold back a reply that fails. Checking that a cited id was retrieved shows only that the chunk was there, not that the reply follows it.
 
 </details>
 
 <details><summary>B. 12.20 in every reply</summary>
 
-✗ The right figure leads every request, and putting it there was the whole point of the search. The model reads it and still draws each word from what training left in it too, where 11.40 stood for years. In a 2024 study, even the models that held on least still sided with their own wrong answer over right retrieved text about 2% of the time.
+✗ The right figure leads every request, and putting it there was the whole point of the search. The model reads it and still draws each word from what training left in it too, where 11.40 stood for years. In a 2024 study, even the models least inclined to keep their own answer still sided with it over right retrieved text about 2% of the time, so across thousands of recruiters' questions some replies still give 11.40.
 
 </details>
 
 <details><summary>C. 11.40 in every reply</summary>
 
-✗ Without the chunk the model said 11.40 every time, and that steadiness can pass for the stronger voice. Right text in the request loses seldom: in a 2024 study, six models set against right retrieved text held to their own wrong answer in about 4% of cases at most. Here the chunk is right, and every request carries it at the top.
+✗ Without the chunk the model said 11.40 every time, and an answer given every time is one the weights hold firmly. Right text in the request loses seldom: in a 2024 study, six models set against right retrieved text held to their own wrong answer in about 4% of cases at most, on average over the study's questions. Here the chunk is right, and every request carries it at the top.
 
 </details>
 
@@ -391,23 +391,23 @@ Where should the reranker run?
 
 <details><summary>A. On the three chunks the search returns</summary>
 
-✗ The three chunks are what the model reads, so they feel like the place to spend the effort. Given three chunks, a reranker returns the same three in a new order. For the 75 questions whose clause the search ranks 4th to 20th, the clause never reaches the reranker, and their requests carry the same text as before.
+✗ The three chunks are what the model reads, and a reranker improves the order of what it is given. Given three chunks, a reranker returns the same three in a new order. For the 75 questions whose clause the search ranks 4th to 20th, the clause never reaches the reranker, and their requests carry the same text as before.
 
 </details>
 
 <details><summary>B. On the search's top 20, keeping its best three</summary>
 
-✓ Right. On the top 20, the reranker can bring the answering clause into the three for any of the 75 questions where the search ranks it 4th to 20th, and it still reorders the 110 it had. The 15 below 20th stay out of its reach.
+✓ Right. On the top 20, the reranker can bring the answering clause into the three for any of the 75 questions where the search ranks it 4th to 20th, and the 110 it had stay inside the shortlist, though a reranker can also push one of them out of the three. The 15 below 20th stay out of its reach.
 
-With the reranker on the three alone, a handler checking a bike stolen from a locked shed keeps getting general notes on bike theft, while the clause that settles the claim sits fifth in the search, two places short of every request.
+A vector search compares two embeddings made apart, one for the query and one for the chunk, so a chunk on the general topic of a claim can sit closer than the clause that settles it. A reranker reads the query and the chunk together and scores how well one answers the other, and it can only reorder what it is given: on the three it returns the same three, and a clause the search ranks 31st never reaches a shortlist of the top 20. Reading a chunk with the query takes a pass of the model for each pair, which is why a reranker runs on a shortlist. BEIR, a 2021 benchmark of 18 datasets, found rerankers of this kind, as built then, among the best on average on data they were not trained for, at a high cost in computation.
 
-A vector search compares two embeddings made apart, one for the query and one for the chunk, so a chunk about bikes and theft in general can sit closer than the clause that answers. A reranker reads the query and the chunk together and scores how well one answers the other, and it can only reorder what it is given: on the three it returns the same three, and a clause the search ranks 31st never reaches a shortlist of the top 20. Reading a chunk with the query takes a pass of the model for each pair, which is why a reranker runs on a shortlist. BEIR, a 2021 benchmark of 18 datasets, found rerankers of this kind among the best on average on data they were not trained for, at a high cost in computation; those were 2021 models, so measure yours. Size the shortlist so the answering clause usually falls inside it, measured on questions whose answers you know, as these 200 are.
+Size the shortlist so the answering clause usually falls inside it, measured on questions whose answers you know, as these 200 are.
 
 </details>
 
 <details><summary>C. On all 300,000 chunks in the index, keeping the best three</summary>
 
-✗ If reading 20 chunks with the query helps, reading every chunk would also catch the 15 below 20th. A reranker spends a pass of the model on each chunk it scores, so this means 300,000 passes for every question, while the vector search compares the query with embeddings computed once, when the chunks were stored. A shortlist exists to keep that reading small enough for an answer in seconds.
+✗ A reranker on the top 20 catches the 75 clauses ranked 4th to 20th, and 15 more sit below 20th. A reranker spends a pass of the model on each chunk it scores, so this means 300,000 passes for every question, far past an answer in seconds, while the vector search compares the query with embeddings computed once, when the chunks were stored.
 
 </details>
 
@@ -436,29 +436,29 @@ Which articles does the help page list for each customer?
 
 <details><summary>A. Both English articles for <code>shipping</code>, and the Chinese one for <code>发货</code></summary>
 
-✗ A web search box finds "shipped" when you type "shipping", and years of that teach you to expect it everywhere. That comes from a step someone set up that cuts words to a shared stem, and this index has none. Terms match only when they are equal, so `shipping` misses the Monday article, and the Chinese article, one long term, matches nothing.
+✗ A web search box finds "shipped" when you type "shipping", and keyword search is the same kind of search. That comes from a step someone set up that cuts words to a shared stem, and this index has none. Terms match only when they are equal, so `shipping` misses the Monday article, and the Chinese article, one long term, matches nothing.
 
 </details>
 
 <details><summary>B. Only the free-shipping article for <code>shipping</code>, and the Chinese one for <code>发货</code></summary>
 
-✗ The Chinese article plainly contains 发货, and a lowercase split works well enough on English. `split()` cuts at whitespace, and Chinese is written without spaces, so the whole sentence becomes one term. BM25 compares whole terms, and `发货` is not that term, so all three articles score zero.
+✗ The Chinese article contains 发货, and a lowercase split works well enough on English. `split()` cuts at whitespace, and Chinese is written without spaces, so the whole sentence becomes one term. BM25 compares whole terms, and `发货` is not that term, so all three articles score zero.
 
 </details>
 
 <details><summary>C. Only the free-shipping article for <code>shipping</code>, and nothing for <code>发货</code></summary>
 
-✓ Right. `shipping` scores above zero on the free-shipping article alone, and `发货` scores zero on all three. The article saying an order shipped on Monday never reaches the English customer, and the Chinese customer finds nothing.
+✓ Right. `shipping` scores above zero on the free-shipping article alone, and `发货` scores zero on all three, so the article saying an order shipped on Monday never reaches the English customer, and the Chinese customer finds nothing.
 
-To English customers the search looks patchy, and to Chinese customers it looks broken. Support staff answer by hand the tickets an article already covers, one question about a parcel at a time.
+Keyword search matches search terms, and the terms are whatever your `search_terms` returns. `text.lower().split()` cuts at spaces only, so `shipped` and `shipping` are two unrelated terms, and a Chinese sentence, written without spaces, comes back as one term that no query equals. BM25 then scores what it was given. Search engines keep these steps apart too: one common engine by default lowercases and splits words without stemming, and another stems only when you turn on its stemming step.
 
-Keyword search matches search terms, and the terms are whatever your `search_terms` returns. `text.lower().split()` cuts at spaces only, so `shipped` and `shipping` are two unrelated terms, and a Chinese sentence, written without spaces, comes back as one term that no query equals. BM25 then scores what it was given. Stemming, which cuts each word down to a shared root, belongs to this step: stem both sides and both words become `ship`, after which `shipping` scores above zero on both English articles. Cut Chinese into two-character pieces, or use a splitter built for it, and `发货` finds its article. Search engines split the work the same way: one common engine by default lowercases and splits words without stemming, and another stems only when you turn on its stemming step.
+Fix the terms: stemming, which cuts each word down to a shared root, applied to the articles and to the query alike, makes both words `ship`, after which `shipping` scores above zero on both English articles; cutting Chinese into two-character pieces, or using a splitter built for it, lets `发货` find its article.
 
 </details>
 
 <details><summary>D. All three for each query, the best match first</summary>
 
-✗ A vector search has a score for every chunk, and BM25 gives every article a score too, so you expect each to land a little above zero. BM25 adds only for the query terms an article contains, and the score is zero wherever none appears: two of the three articles for `shipping`, and all three for `发货`.
+✗ A vector search has a score for every chunk, and BM25 gives every article a score too. BM25 adds only for the query terms an article contains, and the score is zero wherever none appears: two of the three articles for `shipping`, and all three for `发货`.
 
 </details>
 
@@ -478,7 +478,7 @@ Which merge do you choose?
 
 <details><summary>A. Add the scores with equal weights, 0.5 × BM25 + 0.5 × cosine</summary>
 
-✗ Equal weights are the natural first choice, on the idea that each search then gets an equal say. The weights multiply scores on different scales: cosine stays between -1 and 1, while BM25 here reaches 5.32. The sum gives billing-03 3.038 and billing-07 2.474, the order BM25 gives alone, and billing-12, with no keyword match, trails.
+✗ Equal weights are the usual first choice, giving each search an equal say. The weights multiply scores on different scales: cosine stays between -1 and 1, while BM25 here reaches 5.32. The sum gives billing-03 3.038 and billing-07 2.474, the order BM25 gives alone, and billing-12, with no keyword match, trails.
 
 </details>
 
@@ -486,21 +486,21 @@ Which merge do you choose?
 
 ✓ Right. Merged this way, billing-07 comes out on top, ahead of billing-03, with billing-12 third. Only positions count: billing-07, second by BM25 and first by cosine, beats billing-03, first by BM25 and third by cosine.
 
-With a raw score sum, the embeddings cost money to build and query, and on queries like this one they move almost nothing. Whenever the keyword scores run large, the account managers get the merged list in keyword order, until one of them asks what the vectors are for.
+Cosine similarity stays between -1 and 1. BM25 has no upper bound: it adds a term for every query word a chunk contains, so its scale moves with the query and the collection. In an equal-weight sum, billing-07 leads billing-03 by 0.242 in cosine and trails it by 1.37 in BM25, so the BM25 gap decides. Rank fusion puts the two lists on one footing by position: each list adds 1/(c + rank) for a chunk, with the constant c at 60, the value that the 2009 paper introducing it fixed in a trial run and found close to the best, though not critical. Here that gives 0.0325 for billing-07, 0.0323 for billing-03 and 0.0161 for billing-12.
 
-Cosine similarity stays between -1 and 1. BM25 has no upper bound: it adds a term for every query word a chunk contains, so its scale moves with the query and the collection. In an equal-weight sum, billing-07 leads billing-03 by 0.242 in cosine and trails it by 1.37 in BM25, so the BM25 gap decides. Hybrid search needs a merge that puts the two lists on one footing, and rank fusion does it by position: each list adds 1/(k + rank) for a chunk, with k at 60, the value that the 2009 paper introducing it fixed in a trial run and found close to the best, though not critical. Here that gives 0.0325 for billing-07, 0.0323 for billing-03 and 0.0161 for billing-12. It is not the only fix: a 2022 analysis of fusion found that a weighted sum of scores first rescaled to a common range, its one weight tuned on a small set of examples, did better than rank fusion both in and out of the domain it was tuned on.
+Merge by rank fusion, or by a weighted sum of scores first rescaled to a common range: a 2022 analysis found that sum, its one weight tuned on a small set of examples, did better than rank fusion both in and out of the domain it was tuned on.
 
 </details>
 
 <details><summary>C. Keep the higher of the two scores for each chunk</summary>
 
-✗ Taking the maximum is how you would combine two votes of confidence: whichever search is surer decides. The raw scores sit on different scales, so the bigger number wins on scale alone. Any BM25 score above 1 beats every cosine, and the result is billing-03, billing-07, billing-12, the BM25 order again.
+✗ Taking the maximum is how you would combine two votes of confidence: whichever search is surer decides. The raw scores sit on different scales, so the bigger number wins on scale alone. Any BM25 score above 1 beats every cosine, and the result is billing-03, billing-07, billing-12, with the cosine scores never deciding anything.
 
 </details>
 
 <details><summary>D. Put the vector list first, then append the keyword hits it lacks</summary>
 
-✗ Appending one list to the other keeps every chunk either search found, which feels like the point of running two. The order, though, is the vector list's alone: billing-07, billing-12, billing-03. BM25 decides nothing about the chunks both searches return, and billing-03, the best keyword match, comes last.
+✗ Appending one list to the other keeps every chunk either search found, and finding more is why you run two. The order, though, is the vector list's alone: billing-07, billing-12, billing-03. BM25 decides nothing about the chunks both searches return, and billing-03, the best keyword match, comes last.
 
 </details>
 
@@ -514,4 +514,4 @@ Cosine similarity stays between -1 and 1. BM25 has no upper bound: it adds a ter
 - [An Analysis of Fusion Functions for Hybrid Retrieval](https://arxiv.org/abs/2210.11934), 2022: rank fusion against a weighted sum of normalised keyword and vector scores, where the sum, tuned on a few examples, came out ahead.
 - [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401), 2020: the paper that named RAG, pairing a text generator with a search over a vector index of Wikipedia.
 
-Next: [Memory](../memory/README.md)
+Prev: [Embeddings and vector search](../embeddings-and-vector-search/README.md) · Next: [Memory](../memory/README.md)

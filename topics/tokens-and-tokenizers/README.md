@@ -1,6 +1,6 @@
 # Tokens and tokenizers
 
-Needs: none · Reviewed October 2026
+Next: [Context window](../context-window/README.md) · Reviewed October 2026
 
 A tokenizer cuts text into tokens and swaps each one for a number before the text reaches the model, then turns the numbers the model writes back into text. A model's context window, its limits and its bill are all counted in these tokens.
 
@@ -10,24 +10,11 @@ A tokenizer cuts text into tokens and swaps each one for a number before the tex
 - **Tokenizer**: a vocabulary plus the rules for splitting text into its tokens; most model families train their own, and a model works only with the one it was trained with.
 - **Encode and decode**: turning text into token IDs, the numbers that stand for tokens, and token IDs back into text.
 - **Special token**: a token reserved for structure, such as the end of a text or the start of a chat turn, with a marker string and an ID of its own.
-- **Chat template**: the format that turns a chat's list of messages into the one text the model reads, wrapping each message in markers, usually special tokens, that name its role, such as system, user or assistant, and mark where it starts and ends.
+- **Chat template**: the format that turns a chat's list of messages into the one text the model reads. It wraps each message in markers, usually special tokens, that name its role, such as system, user or assistant, and mark where the message starts and ends.
 
-The three kinds of system an LLM feature runs on, and how each one counts tokens:
+The questions below name three kinds of system: a provider's API, a model on your own server, and a ready-made app such as a chat app or a coding assistant. A given tokenizer cuts text the same way on all three; what differs is which tokenizer each one uses.
 
-- **A provider's API**: a company runs the model on its own servers; your code sends it requests over the internet and pays for the tokens they use. The provider counts with its own model's tokenizer and reports the input and output tokens with every response. Some providers publish their tokenizer, and many offer a counting request that returns the token count of a request you plan to send, with no reply generated.
-- **Your own server**: you run an open-weight model, one you can download, on your own hardware (for example with vLLM or llama.cpp). Its tokenizer and chat template come with the model's files, so your code can run the exact ones, and the server can tokenize text for you.
-- **A ready-made app**: a chat app, or a coding assistant in your terminal or editor. It counts for you: a chat app can tell you a message is too long, and a coding assistant can show how much of the window and how many tokens a session has used.
-
-How text becomes tokens is the same on all three.
-
-Models use **subword** tokenizers: common words stay whole, and rarer words are built from smaller pieces. Two of the kinds in wide use:
-
-| Kind | How it splits text | Where you meet it |
-| --- | --- | --- |
-| Byte-level BPE | byte pair encoding: starts from single bytes and merges pairs that often stand side by side into longer tokens | many chat models |
-| WordPiece | builds each word from the longest pieces in its vocabulary and marks each piece that continues a word, as in `ship` `##ped` | models for search and classification |
-
-Unigram, a third kind in wide use, trims a large list of candidate pieces to the ones that best cover its training text and splits each text the most likely way; some multilingual and translation models use it. SentencePiece, a common toolkit, runs BPE or Unigram on raw text with the space as an ordinary symbol, so it needs no spaces between words.
+Models use **subword** tokenizers: common words stay whole, and rarer words are built from smaller pieces. Two kinds appear most in the questions: **byte-level BPE**, used by many chat models, and **WordPiece**, used by many models for search and classification.
 
 Spaces, newlines and indents are tokenized like any other text.
 
@@ -47,29 +34,29 @@ How do the lengths the model reports compare with what `len` gives for the same 
 
 <details><summary>A. Lengths right on some titles and wrong on others</summary>
 
-✓ Right. Some reported lengths are right and some are wrong, and nothing in the reply marks which. The model never receives the letters: under seven published chat tokenizers, the 38-character title arrives as 13 to 16 tokens, such as `St`, `ainless`, ` Steel`, ` K` and `ettle`.
+✓ Right. Some lengths are right and some are wrong, and the reply does not show which, so a title the model calls short enough can still be over 30 characters and get rejected at upload.
 
-A title the model reports as fitting reaches the marketplace a few characters over and is turned away. The seller sees the kettle missing from the morning's listings and opens a ticket asking why only some titles failed.
+The model gets this 38-character title as 13 to 16 tokens, depending on the tokenizer, such as `St`, `ainless`, ` Steel`, ` K` and `ettle`. No token carries a count of its letters. To report a length, the model has to know how each token is spelled and add the letters up. A 2024 benchmark, CUTE, found that most of the models it tested seemed to know how their tokens are spelled but could not use that knowledge well when working with letters.
 
-A model reads token IDs, and nothing in an ID says how many letters its piece of text holds. To count characters, check a length, reverse a string or find words with a given letter, the model has to have learned how each of its tokens is spelled. A 2024 benchmark of spelling and character-editing tasks, CUTE, found that most of the models it tested seem to know the spelling of their tokens, yet fail to use that knowledge effectively to manipulate text; those were 2024 models, so measure yours. Count characters in your code, where `len` is exact: let the model propose the shorter title, check its length in code, and ask again when it is too long. If the model can call functions you provide, a length function gives it the exact count. The same holds on every kind of system, since a provider's API, your own server and a ready-made app all hand the model token IDs.
+Count the length in your code with `len`, and ask the model for a shorter title when it does not fit. If the model can call functions you provide, a length function gives it the exact count.
 
 </details>
 
 <details><summary>B. Lengths right on every title</summary>
 
-✗ Every program you have used counts characters exactly, as `len` does, and the model writes text far better than `len` ever could. It still gets no row of letters, only token IDs: 13 to 16 of them for this 38-character title, depending on the tokenizer, and how many letters each one stands for is not in the request.
+✗ Ordinary code counts characters exactly, as `len` does, and a model that writes fluent titles spells every word in them. It never gets the letters: it gets 13 to 16 token IDs for this title, and a length worked out without the letters is right only some of the time.
 
 </details>
 
 <details><summary>C. Lengths wrong only on titles with codes or unusual names</summary>
 
-✗ If anything trips a model up, you would bet on the product code or the made-up name, not on ordinary words. Ordinary words reach the model as token IDs as well: ` Kettle` is two or three tokens under each of seven chat tokenizers, never a row of six letters, and ` Stainless`, a single token under four of them, carries no count of its letters either.
+✗ The product code, 1.7L, is the odd piece of this title, and odd pieces are where model mistakes usually show up. Ordinary words arrive as tokens too: ` Kettle` is two or three tokens under each of seven chat tokenizers, and the model gets no letter count for an ordinary word either.
 
 </details>
 
 <details><summary>D. Lengths that count tokens instead of characters</summary>
 
-✗ Once you know the model reads tokens, it is a short step to expecting it to count in tokens. Nothing in the request tells it how many tokens it holds either: it gets the IDs, not a count of them. The number in the reply is text the model writes in the unit you asked for, and it can be wrong in that unit too.
+✗ Once you know the model reads tokens, its own tokens are the one unit it works in, so a count of them is the count it can give. It gets no count of its tokens, only the tokens themselves: the 13 to 16 tokens of this title come with no number attached, and the length in the reply is text the model writes, which can be wrong in any unit.
 
 </details>
 
@@ -88,23 +75,23 @@ Which reply costs more tokens?
 
 <details><summary>A. The English reply</summary>
 
-✗ Characters divided by four makes the longer text the dearer one, and the English reply is 16 characters longer. That ratio describes English text and does not carry over to another script. Under each of seven chat tokenizers, the shorter Greek reply takes 41 to 104 tokens against 23 to 28 for the English one.
+✗ Characters divided by four makes the longer text the more expensive one, and the English reply is 16 characters longer. That ratio describes English text and does not carry over to another script: the shorter Greek reply takes 41 to 104 tokens against 23 to 28 for the English one.
 
 </details>
 
 <details><summary>B. The Greek reply</summary>
 
-✓ Right. The Greek reply costs more tokens, though it has fewer characters and fewer words. Under seven chat tokenizers in wide use, the English reply is 23 to 28 tokens and the Greek one 41 to 104, from nearly twice to nearly four times as many.
+✓ Right. The Greek reply costs more tokens, even with fewer characters and fewer words: 41 to 104 tokens against 23 to 28 for the English one, depending on the tokenizer.
 
-Every Greek conversation runs over its budget while the English ones you tested stay inside it. Deep into a long chat, a Greek customer's conversation reaches the window at a length where your English test chats still had room to spare.
+A tokenizer learns its vocabulary from its training text, and words that are common there become single tokens. In the English reply nearly every word is one token, even confirmation. The Greek words come apart into pieces, such as `παρα`, `γ`, `γε` and `λία` for the word for order. Published rules of thumb put a token at about four characters, and one maker adds that the ratio depends on the model and the language. A 2023 study found that the same text can differ in token count by up to 15 times from one language to another, with large gaps even under tokenizers built for many languages.
 
-A tokenizer's vocabulary is learned from its training text, so words common there become single tokens and rarer ones are built from pieces. In the English reply nearly every word is a single token, even confirmation, at about five characters per token. The Greek words come apart into pieces, such as `παρα`, `γ`, `γε` and `λία` for the word for order, at 2.5 characters per token on the best of them and about one on the worst. Published rules of thumb put a token at about four characters, or a little under, and one maker adds that the ratio depends on the model and the language. A 2023 study found that one text translated into different languages can differ in token count by up to 15 times, and large gaps remain even under tokenizers built for many languages. Count each language with your model's own tokenizer, and budget each from its own count.
+Count each language with your model's own tokenizer and budget each from its own count. Budgets set from English tests run out early in Greek chats, and a long Greek conversation reaches the window while an English one of the same length still has room.
 
 </details>
 
 <details><summary>C. About the same for both</summary>
 
-✗ A translation agency would bill both replies at about the same rate, since they carry one message. The bill counts pieces of text, and the Greek words break into more of them. Across all seven chat tokenizers, the Greek reply takes from nearly twice to nearly four times as many tokens as the English one.
+✗ The two replies carry the same notice, and the Greek one is even shorter, 104 characters against 120. A token bill counts pieces of text, and the Greek words break into more of them: nearly twice to nearly four times as many tokens as the English reply under the same tokenizer.
 
 </details>
 
@@ -118,29 +105,29 @@ Against the same bulletin in sentence case, what does the version in capitals co
 
 <details><summary>A. The same tokens, ID for ID</summary>
 
-✗ A case-insensitive search box finds HARBOUR when you type harbour, and an uncased search model gives both versions of this bulletin the same tokens. A chat model's tokenizer keeps case: capital and small letters are different characters to it, and every piece that holds them is a different entry in its vocabulary. The bulletin takes 34 to 54 tokens in capitals against 21 to 25 written normally.
+✗ A case-insensitive search box finds HARBOUR when you type harbour, and a search model that ignores case gives both versions of this bulletin the same tokens. A chat model's tokenizer keeps case, so a piece in capitals is a different vocabulary entry from the same piece in small letters: the bulletin takes 34 to 54 tokens in capitals against 21 to 25.
 
 </details>
 
 <details><summary>B. A few more tokens, one or two per sentence</summary>
 
-✗ In sentence case, a capital at the start of a word costs nothing extra: `Strong` and ` Small` are single tokens under six of the seven tokenizers. A word that starts with a capital is common in training text, and a word written all in capitals is not. ` HARBOUR` takes three to five tokens where ` harbour` is one under the same six, and across the bulletin the count grows 1.6 to 2.2 times.
+✗ Sentence case already capitalises the first word of each sentence, and capitals only extend that to every letter. A capital at the start of a word costs nothing extra: `Strong` and ` Small` are single tokens under six of the seven tokenizers. Words written all in capitals are rare in training text, though, so ` HARBOUR` takes three to five tokens where ` harbour` takes one under the same six, and the whole bulletin grows 1.6 to 2.2 times.
 
 </details>
 
-<details><summary>C. Over one and a half times as many tokens</summary>
+<details><summary>C. Many more tokens, with longer words split into pieces</summary>
 
-✓ Right. In capitals the bulletin takes over one and a half times as many tokens as in sentence case. Under seven published chat tokenizers, these 116 characters are 21 to 25 tokens in sentence case and 34 to 54 in capitals, from 1.6 to 2.2 times the count.
+✓ Right. In capitals the bulletin takes over one and a half times as many tokens: these 116 characters are 21 to 25 tokens in sentence case and 34 to 54 in capitals, depending on the tokenizer, so a budget set from a sentence-case sample runs short once the feed sends capitals.
 
-On a stormy night the service sends its longest warnings, and a summary request that fitted every sample in testing now overruns the room you left in the prompt, on the very night a skipper opens the app to decide whether to leave harbour.
+A tokenizer's vocabulary comes from text where most words are written in small letters or start with one capital, so those forms became single tokens. Under one widely used tokenizer, ` harbour` is one token, while ` HARBOUR` is three: ` HAR`, `BO` and `UR`. A chat model's tokenizer keeps case, so short words such as ` THE` and ` IN` have capital forms of their own, while longer ones split.
 
-Most words in the text a vocabulary is learned from are written in small letters or start with one capital, so those forms became single tokens. Under one widely used tokenizer, ` harbour`, ` tonight` and ` northern` are one token each; in capitals they come apart as ` HAR`, `BO` and `UR`, as ` TON` and `IGHT`, and as ` NOR`, `THER` and `N`. A chat model's tokenizer keeps case, so short words such as ` THE` and ` IN` have capital forms of their own while longer ones split. Where the meaning allows, convert a feed that arrives in capitals to sentence case before it goes into the prompt, and set the budget from text in the case you will send.
+Where the meaning allows, convert the feed to sentence case before it goes into the prompt, and set the budget from text in the case you will send.
 
 </details>
 
 <details><summary>D. The same number of tokens, each with a different ID</summary>
 
-✗ You can picture the vocabulary holding a capital twin for every token, so the count would hold and only the IDs would change. Twins exist only for pieces that were common in training text. ` THE` and ` SEA` have one under six of the seven tokenizers, but ` NORTHERN` comes apart into two to five pieces, and even the tokenizer that splits capitals least takes the bulletin from 21 tokens to 34.
+✗ Capitals are the same letters in another case, and vocabularies hold capital twins of many tokens. Twins exist only for pieces that were common in the training text: ` THE` and ` SEA` have one under six of the seven tokenizers, but ` NORTHERN` splits into two to five pieces.
 
 </details>
 
@@ -150,33 +137,33 @@ Most words in the text a vocabulary is learned from are written in small letters
 
 A plumbing firm totals its invoices at the end of every month with a chat model that reads amounts written as 1,284.50 or 12,480.00. To save tokens, you drop the thousands separators, so the prompt now carries 1284.50 and 12480.00. A token viewer, a page that shows how a tokenizer splits text, shows 1,284.50 under the model's tokenizer as `1`, a comma, `284`, a point and `50`.
 
-In what pieces does the model now get an amount such as 1284.50?
+How does the model's tokenizer now split an amount such as 1284.50?
 
 <details><summary>A. In the same digit groups as before, minus the comma</summary>
 
-✗ An amount is one value to you and to a spreadsheet, and the comma only marks where its thousands start, so dropping it should leave the same pieces with the commas gone. The pieces move instead: 12,480.00 arrives as `12`, a comma, `480`, a point and `00`, and 12480.00 as `124`, `80`, a point and `00`, cut in other places.
+✗ To a spreadsheet, an amount is one value, and the comma only marks where the thousands start. The tokenizer cuts elsewhere: 12,480.00 arrives as `12`, a comma, `480`, a point and `00`, and 12480.00 as `124`, `80`, a point and `00`.
 
 </details>
 
 <details><summary>B. With each run of digits in one token</summary>
 
-✗ With no comma to break it, 1284 reads as one number, much as a common word reads as one token. Digits are not kept whole that way: under the published tokenizers that group digits, no token holds more than three of them, so a run of four or five comes apart, taken three at a time from its leftmost digit, and 1284 arrives as `128` and `4`.
+✗ Without a comma, 1284 is one number, the way a common word becomes one token. Digits are not kept whole like that: tokenizers that group digits never put more than three in one token, so a run of four or five is cut three at a time from the left, and 1284 arrives as `128` and `4`.
 
 </details>
 
 <details><summary>C. In digit groups that no longer match the thousands</summary>
 
-✓ Right. The digits now reach the model in groups that no longer match the thousands: 1284.50 arrives as `128`, `4`, a point and `50`, where with its separator it came as `1`, a comma, `284`, a point and `50`. The prompt is one token shorter per amount.
+✓ Right. The digits now come in groups that no longer line up with the thousands: 1284.50 arrives as `128`, `4`, a point and `50`, where with its separator it came as `1`, a comma, `284`, a point and `50`. You save one token per amount.
 
-The bookkeeper signs off a monthly total that the model added from pieces such as `124` and `80`, where `124` holds the ten-thousands, thousands and hundreds and `80` the tens and units, and when that total is wrong, nothing on the invoice list shows that the amounts reached the model any differently.
+The tokenizer does not know it is reading a price. It takes a run of digits three at a time from the left, so 1284 becomes `128` and a leftover `4`, and the groups fall out of line with thousands, hundreds and tens. A comma ends the run, so with separators each group starts fresh and matches the invoice. In a 2024 study, Tokenization counts, two widely used models of that time added numbers much more accurately when the groups followed the thousands.
 
-A model reads token IDs, and a number is no exception: it gets pieces of digits, never the value. The published tokenizers that group digits take each run three at a time from its leftmost digit, so a run of four or five digits ends on a short piece, and the groups fall out of line with thousands, hundreds and tens. A separator ends the run, so with separators the groups are the ones the invoice shows. A 2024 study, Tokenization counts, found that two models in wide use at the time added numbers much more accurately when commas made the digit groups run from the right, the way thousands are grouped; models have changed since, so test yours before you lean on it. Keep the separators in amounts the model reads, and better, do the sums in your code, or give the model an adding tool and let it report the result. Tokenizers that give each digit its own token have no groups to misalign, and under them the separators only add tokens.
+Keep the separators, or better, add the numbers in your code or give the model an adding tool. A tokenizer that gives every digit its own token has no groups to misalign, so there the separators only add tokens.
 
 </details>
 
 <details><summary>D. With each digit in a token of its own</summary>
 
-✗ Some tokenizers do give every digit a token of its own, and a long amount with no separators is the kind of run you would expect to fall apart. This tokenizer keeps up to three digits in one token whatever the run's length: 12480.00 is `124`, `80`, a point and `00`, four tokens where one per digit would take eight.
+✗ Some tokenizers give every digit its own token, and this run has no separators. The model's tokenizer keeps up to three digits together however long the run: 12480.00 is `124`, `80`, a point and `00`, four tokens where one per digit would need eight.
 
 </details>
 
@@ -190,29 +177,29 @@ For the statements sent to the provider, how far from the provider's count can y
 
 <details><summary>A. Far above it or far below it</summary>
 
-✓ Right. Your count can land far above the provider's or far below it: the same 30-line statement is 662 tokens under some widely used tokenizers and 947 to 999 under others.
+✓ Right. Your count can land far above the provider's or far below it: a 30-line statement of dates, amounts and account numbers is 662 tokens under some widely used tokenizers and 947 to 999 under others.
 
-When your count runs low, a statement your code passed as fitting comes back from the provider as too long, and the customer waiting for it gets an error page. When it runs high, your code rejects statements that would have fit, and the customers with the busiest accounts, whose statements run longest, are the ones turned away.
+A token count belongs to one tokenizer, and most model families train their own. Here the gap comes from the digits. Some tokenizers cut a run of digits into groups of up to three, so the account number 4815162342 is four tokens, `481`, `516`, `234` and `2`; others give each digit its own token, so it is ten. Prose differs less: one English shipping notice is 23 tokens under six of these tokenizers and 28 under the seventh. Versions differ too: one maker's newer tokenizer gives about 30 percent more tokens for the same text than its earlier one.
 
-The provider counts with its own model's tokenizer, and most model families train their own, so a count belongs to one tokenizer. Here the gap comes from the digits. Some tokenizers cut a run of digits into groups of up to three, so the account number 4815162342 is four tokens, `481`, `516`, `234` and `2`; others give each digit its own token, so it is ten. Prose differs less: the same two-sentence English shipping notice is 23 tokens under six of these tokenizers and 28 under the seventh. Counts move between versions too: one maker's newer tokenizer gives about 30 percent more tokens for the same text than its earlier one. Count each request with the tokenizer of the model that will receive it, chat template included. On a provider's API, read the input count the response reports, use its counting request before you send, or run its tokenizer where the maker publishes one. On your own server, run the model's own tokenizer through its chat template, or ask the server to tokenize.
+Count each request with the tokenizer of the model that receives it, chat template included. On a provider's API, read the input count each response reports, use its counting request before you send, or run its tokenizer where the maker publishes one. On your own server, run the model's own tokenizer through its chat template, or ask the server to tokenize. A count that runs low lets through statements the provider then rejects as too long; one that runs high turns away the busiest accounts, whose statements run longest.
 
 </details>
 
 <details><summary>B. Within a few percent of it</summary>
 
-✗ Paste a short English paragraph into two token counters and the numbers usually agree: one English shipping notice comes out at 23 tokens under six of seven chat tokenizers. The digits that fill a statement split differently: some tokenizers cut a run of digits into groups of up to three and others give every digit its own token, so one ten-digit account number is 4 tokens under the first kind and 10 under the second.
+✗ Paste a short English paragraph into two token counters and the numbers usually agree: one shipping notice is 23 tokens under six of seven chat tokenizers. Digits split differently. Some tokenizers group them by three and others give each digit its own token, so one ten-digit account number is 4 tokens under the first kind and 10 under the second.
 
 </details>
 
 <details><summary>C. Within a few tokens for each message</summary>
 
-✗ Counting recipes for chat requests add a fixed number of tokens per message for the chat template's role markers and boundaries, and that part of them is right. No allowance fixes the text itself splitting differently. A 30-line statement is 662 tokens under tokenizers that group digits by three and 947 to 999 under those that split every digit, before any template is added.
+✗ Counting recipes for chat requests add a few tokens per message for the chat template's markers, and that part is right. No allowance per message fixes the text itself splitting differently: a 30-line statement is 662 tokens under tokenizers that group digits by three and 947 to 999 under those that split every digit, before any template is added.
 
 </details>
 
 <details><summary>D. Far above it, never below it</summary>
 
-✗ Vocabulary size is the figure tokenizer comparisons lead with, and a larger vocabulary usually means fewer tokens, so a big hosted model's count should come in under yours. Which side comes out higher depends on the two tokenizers and the text. If the server's tokenizer groups digits by three and the provider's gives each digit a token, the same statement is 662 tokens on your count and 948 on the provider's.
+✗ A larger vocabulary usually means fewer tokens, and big hosted models have some of the largest. Which side comes out higher depends on the two tokenizers and the text: if yours groups digits by three and the provider's gives each digit a token, the statement is 662 tokens on your count and 948 on the provider's.
 
 </details>
 
@@ -226,29 +213,29 @@ In round 30, how does the request the model reads compare with your sum?
 
 <details><summary>A. The same count as your sum</summary>
 
-✗ A message list looks like data with labels, and a role reads like a field name that travels beside the text without being counted. The model reads one text, and the chat template writes each role and each boundary into it as tokens. Under one template, your 111 tokens of message text become a request of 430 tokens.
+✗ In your code, a message list is data with labels, and a role is a field name beside the text, like a key in a dictionary. The model reads one text, and the chat template writes each role and boundary into it as tokens: under one template, 111 tokens of message text become a request of 430.
 
 </details>
 
 <details><summary>B. It is well over your sum</summary>
 
-✓ Right. The model reads well over your sum. In round 30 the messages hold 105 to 123 tokens of text, and the filled chat template the model reads is 1.7 to 6.8 times that under the templates published with six open-weight models.
+✓ Right. The model reads well over your sum. In round 30 the messages hold 105 to 123 tokens of text, and the filled chat template is 1.7 to 6.8 times that, under the templates published with six open-weight models.
 
-Your sum never nears 200 and the check drops nothing, while the request the model reads passes 200 tokens by round 30 under each of the six templates, and as early as round 9 under the heaviest. The small machine in the office then reads up to 3.6 times the input you meant to allow before it answers the child.
+The chat template writes every message's role and boundaries into the text the model reads. Under one template, the child's word `necessary` arrives as `<|im_start|>`, `user`, a newline, the word itself, `<|im_end|>` and another newline: five tokens of markers around a one-token word. Across the six templates the markers average 1.5 to 10 tokens per message, while these messages hold about two tokens of text each. In a chat of long messages the markers would be a small share; in one-word rounds they outweigh the words.
 
-A chat template turns the message list into the one text the model reads, and it writes every message's role and boundaries into that text. Under one template, the child's word `necessary` arrives as `<|im_start|>`, `user`, a newline, the word itself, `<|im_end|>` and another newline: five tokens of markers around a one-token word. Across the six templates, what the template adds averages 1.5 to 10 tokens per message, while these messages hold about two tokens of text each, so the markers outweigh the words. In a chat of long messages the same markers are a small share. Budget from the request as the model reads it: fill the model's chat template with the whole message list and count that text with the model's tokenizer. On a provider's API the template is applied on the provider's side, so budget from the input count each response reports.
+Budget from the request as the model reads it: fill the chat template with the whole message list and count that text. On a provider's API the template is applied on the provider's side, so budget from the input count each response reports. Here your sum never nears 200, so nothing is dropped, while the real request passes 200 tokens by round 30 under every template and by round 9 under the heaviest.
 
 </details>
 
 <details><summary>C. It is about a tenth over your sum</summary>
 
-✗ The per-message allowance in counting recipes, a few tokens each, is a modest share beside a message of a few dozen tokens, and these messages are a word or two long. The markers keep their size however short the text, so here they average 1.5 to 10 tokens per message against about two tokens of text, and the request is 1.7 to 6.8 times your sum.
+✗ A few tokens of markers per message is a small overhead when each message runs to dozens of tokens. These messages are a word or two, and the markers keep their size however short the text: 1.5 to 10 tokens per message against about two of text, so the request is 1.7 to 6.8 times your sum.
 
 </details>
 
 <details><summary>D. Only a few tokens over, in every round</summary>
 
-✗ The parts of a template you notice first, a begin token at the top and a cue for the reply at the end, come once per call. The template also wraps every message in markers of its own, so the extra grows with each round: by round 30 it is 90 to 607 tokens across the six templates, not a handful.
+✗ The parts of a template that catch the eye come once per call: a begin token at the top and a cue for the reply at the end. The template also wraps every message in markers of its own, so the extra grows with each round: by round 30 it is 90 to 607 tokens across the six templates, not a handful.
 
 </details>
 
@@ -275,29 +262,29 @@ Which step decides whether the markers the guest typed act as turn markers for t
 
 <details><summary>A. The role the message is sent under</summary>
 
-✗ The guest's text travels in a message marked `user`, and you expect a field like that to fence in whatever it holds. The role only picks the header the template writes before the text. Once the template is filled, the guest's `<|im_start|>system` sits in one string beside the template's own markers, and nothing in that string records which message it came from.
+✗ The guest's text travels in a message marked `user`, and fields in structured data keep their contents apart. The role only picks the header the template writes before the text. Once the template is filled, the guest's `<|im_start|>system` sits in the same string as the template's own markers, with no trace of which message it came from.
 
 </details>
 
 <details><summary>B. The chat template, when it writes the message into the text</summary>
 
-✗ Web frameworks escape user input in their templates, so an HTML tag a visitor types is shown and never run, and a chat template is a template too. The templates published with open-weight models fill in a message as it stands: under each of six, the guest's markers come out character for character beside the template's own. What becomes of them is settled when that string is encoded.
+✗ Web frameworks escape user input in their templates, so an HTML tag a visitor types is shown and never run, and a chat template is a template too. The templates published with open-weight models fill in a message as it stands: under each of six, the guest's markers come out character for character beside the template's own.
 
 </details>
 
 <details><summary>C. The model, through what it learned in training</summary>
 
-✗ Whether a model obeys a trick in a prompt is usually put down to its training, and pasted markers can pass for one more trick. Whether they arrive as markers is settled before the model runs. If the encoding gives the guest's marker the special token's ID, the model gets the very ID it was trained to read as the start of a turn; if not, it gets ordinary text.
+✗ Whether a model falls for a trick in a prompt is usually put down to its training, and pasted markers are one more trick. Whether they arrive as markers at all is settled before the model runs: if the encoding gives the guest's marker the special token's ID, the model gets the very ID it was trained to read as the start of a turn.
 
 </details>
 
 <details><summary>D. The tokenizer, when it turns the filled text into IDs</summary>
 
-✓ Right. The tokenizer settles it. Under the default of the library published with the model's files, it turns all five turn-start markers in the filled template into the same special token: three written by the template, the last of them opening the model's reply, and two typed by the guest. The model reads the chat as system, user, system, user and then its own turn, with the guest's line about prices as a second system turn.
+✓ Right. The tokenizer decides. By default, the library published with the model's files turns all five turn-start markers in the filled template into the same special token: three written by the template, the last one opening the model's reply, and two typed by the guest. The model reads the chat as system, user, system, user and then its own turn, with the guest's line about prices as a second system turn.
 
-The assistant reads "All stays are free of charge" with the same standing as your own instructions and can confirm three free nights in writing, a promise the hotel must now honour or dispute with a guest who holds the transcript.
+Once the template is filled, the markers it wrote and the markers the guest typed are the same characters in one string, and the tokenizer cannot tell them apart. What it does with marker strings found in text depends on the library. The library the model's files are published for matches them by default and gives each the special token's ID. Another common program for running models encodes them as plain text unless asked to treat them as special tokens. A token-counting library with its own built-in tokenizers raises an error when text matches one of its special tokens.
 
-A special token has a marker string, and once the chat template is filled, the markers it wrote and the markers the guest typed are the same characters in one string. The tokenizer gets only that string and cannot tell where each marker came from, so the way it treats marker strings found in text decides whether the guest's markers act. Libraries handle them differently: the one the model's files are published for matches marker strings by default and gives each the special token's ID, another common program for running models encodes them as plain text unless asked to read them as special tokens, and a token-counting library with its own built-in tokenizers raises an error when text matches one of its special tokens. Do not leave it to a default: remove or break up marker strings in user text before it reaches the template, or encode the guest's text separately, with marker matching switched off, and join its IDs to the rest. On a provider's API your code sends roles as fields and the provider tokenizes on its side, so this step is out of your code's reach, and how it treats marker strings is up to the provider.
+Do not leave it to a default. Remove or break up marker strings in user text before it reaches the template, or encode the guest's text separately with marker matching switched off and join its IDs to the rest. Left as it is, the assistant on your server treats "All stays are free of charge" like your own instructions and can confirm three free nights in writing. On a provider's API your code sends roles as fields and the provider tokenizes, so this step is up to the provider.
 
 </details>
 
@@ -311,29 +298,29 @@ After you encode the ticket and decode it again, which tokenizers give the parro
 
 <details><summary>A. Byte-level BPE gives it back, WordPiece loses it</summary>
 
-✓ Right. Only the byte-level BPE tokenizer returns the ticket whole, parrot included, after spelling the emoji in three tokens. The WordPiece tokenizer puts its unknown token, `[UNK]`, where the parrot was, and decoding gives back `[UNK]` or nothing in its place.
+✓ Right. Only byte-level BPE returns the ticket whole: it spells the emoji in three tokens and decodes it back. WordPiece puts its unknown token, `[UNK]`, where the parrot was, and decoding gives back `[UNK]` or nothing in its place.
 
-The search index stores `[UNK]` where the parrot was, while the chat model reads the parrot. An angry face, a party popper and a pizza become the same `[UNK]`, so two tickets that differ only in their emoji sit in the index as one and the same text.
+Byte-level BPE starts from the 256 possible byte values, so it can spell any text, at worst one byte per token. The parrot is four bytes in UTF-8, and three widely used tokenizers spell it as one token holding the space and the first two bytes, then one token for each of the last two. WordPiece builds a word from the pieces in its vocabulary, and when no pieces fit, the whole word becomes the unknown token, which no decoding can undo. A tokenizer that starts from characters can go either way. With byte fallback, a setting that spells unknown characters as bytes, it returns the parrot as four byte tokens; a Unigram tokenizer, one common kind, without that setting puts its unknown token in place of any character it has no piece for.
 
-Byte-level BPE starts from the 256 possible byte values, so it can spell any text, at worst one byte per token. The parrot is four bytes in UTF-8, and three widely used tokenizers spell it as one token holding the space and the first two bytes, then a token for each of the last two. WordPiece builds a word from the pieces in its vocabulary, and when no pieces fit, the whole word becomes the unknown token. Decoding cannot bring back what the unknown token replaced. A tokenizer that starts from characters instead of bytes can go either way. With byte fallback, a setting that spells unknown characters as bytes, it gives the parrot back as four byte tokens; a Unigram tokenizer without it, holding no piece for the parrot, puts its unknown token in the parrot's place. Before you trust a search model with emoji, rare symbols or other scripts, encode a sample and look for its unknown token.
+Before you trust a search model with emoji, rare symbols or other scripts, encode a sample and look for its unknown token. In the index, an angry face, a party popper and a pizza become the same `[UNK]`, so tickets that differ only in their emoji look identical to the search.
 
 </details>
 
 <details><summary>B. Both tokenizers give it back</summary>
 
-✗ Introductions to subword tokenizers say a rare word is split into smaller known pieces, and an emoji is about as rare as a word gets. WordPiece can only split into pieces its vocabulary holds, and none of them spells the parrot. The emoji becomes the unknown token `[UNK]`, and decoding gives back `[UNK]` or nothing in the parrot's place.
+✗ Introductions to subword tokenizers say a rare word is split into smaller known pieces, and an emoji is about as rare as words get. WordPiece can only split into pieces its vocabulary holds, and none of them spells the parrot, so the emoji becomes `[UNK]`.
 
 </details>
 
 <details><summary>C. Both tokenizers lose the parrot</summary>
 
-✗ Text outside a vocabulary is usually taught as turning into an unknown token, and the parrot is outside both. WordPiece does put its unknown token there, but byte-level BPE has a token for each of the 256 byte values and never needs one: it spells the parrot as three tokens and decodes it back.
+✗ Text outside a vocabulary is usually taught as turning into an unknown token, and the parrot is outside both. WordPiece puts its unknown token there, but byte-level BPE has a token for each of the 256 byte values and never needs one: it spells the parrot in three tokens and decodes it back.
 
 </details>
 
 <details><summary>D. WordPiece gives it back, byte-level BPE loses it</summary>
 
-✗ In a token viewer, byte-level BPE shows the emoji as three scraps such as `ĠðŁ`, `¦` and `ľ`, while WordPiece shows one tidy `[UNK]`. The scraps are the parrot's four bytes written in a printable stand-in alphabet, and they decode back to the parrot. `[UNK]` holds nothing, and decoding cannot restore what it replaced.
+✗ In a token viewer, byte-level BPE shows the emoji as three scraps such as `ĠðŁ`, `¦` and `ľ`, while WordPiece shows one tidy `[UNK]`. The scraps are the space and the parrot's four bytes written in a printable stand-in alphabet, and they decode back to the parrot. `[UNK]` holds nothing, and decoding cannot restore what it replaced.
 
 </details>
 
@@ -355,31 +342,31 @@ if word_id in reply_ids:
 
 Which mentions of "refund" in this reply encode to `word_id`?
 
-<details><summary>A. Both mentions</summary>
+<details><summary>A. Both mentions encode to it</summary>
 
-✗ The check passed when you tested it on "refund" by itself, the way most filters get their first test. The ID belongs to the exact string you encoded, with nothing before it. In the reply, one mention starts with a capital and the other has a space in front, and each of them is a different token from the bare word.
+✗ Both mentions spell the word "refund", and the check looks for that word's ID. The ID belongs to that exact string with nothing before it. In the reply, one mention has a capital and the other a space in front, so neither is that string.
 
 </details>
 
 <details><summary>B. Only the lowercase one, in "Your refund"</summary>
 
-✗ Knowing that IDs are case-sensitive, you rule out the capital and keep the mention that spells the word exactly. It also carries the space in front of it, and that space belongs to the token. In one common tokenizer, " refund" with its space is ID 18376, while "refund" alone is 148482, so the lowercase mention misses too.
+✗ IDs are case-sensitive, so the capital is out and the lowercase mention is the one spelled like the word. It also carries the space in front of it, and the space belongs to the token: in one common tokenizer " refund" is ID 18376, while "refund" alone is 148482.
 
 </details>
 
-<details><summary>C. Neither mention</summary>
+<details><summary>C. Neither mention encodes to it</summary>
 
-✓ Right. Neither mention matches, and the reply is never flagged. In one widely used tokenizer, "refund" on its own is ID 148482, "Refund" at the start of the reply is 70182, and " refund" after "Your" is 18376.
+✓ Right. Neither mention matches, so the reply is never flagged. In one widely used tokenizer, "refund" alone is ID 148482, "Refund" at the start of the reply is 70182, and " refund" after "Your" is 18376.
 
-The review queue stays empty all week while the bot keeps promising refunds. The filter catches only the bare word with nothing before it, a form that almost never occurs inside a sentence, and the first anyone hears of the promises is a customer asking where the money is.
+A token ID stands for one exact piece of text, and in byte-level BPE the space before a word is part of that word's token. So ` refund`, `refund` and `Refund` are three different entries in the vocabulary. Inside a sentence almost every word follows a space and arrives in the spaced form, the one form this check never encodes. In three other published tokenizers `Refund` is not even one token: it splits into `Ref` and `und`.
 
-A token ID stands for one exact piece of text, and in byte-level BPE the space before a word is part of that word's token. ` refund` with its space, `refund` without it and `Refund` with a capital are three different entries in the vocabulary. Most words in running text follow a space, so they arrive in the spaced form. In three other published tokenizers the capitalised word is not even one token: it splits into `Ref` and `und`. Match on the decoded text, or encode every form you look for, spaced and unspaced, capitalised and not, and test the filter on whole sentences.
+Match on the decoded text instead, or encode every form you look for, spaced and unspaced, capitalised and not, and test the filter on whole sentences.
 
 </details>
 
 <details><summary>D. Only the capitalised one, at the start</summary>
 
-✗ Once you know the space is part of a token, the mention at the start stands out: like the word you encoded, it has nothing in front, and a capital letter is a matter of display. A byte-level tokenizer keeps case, so "Refund" is a token of its own, ID 70182 in one published tokenizer, and in several others it splits into `Ref` and `und`; neither form is the lowercase ID.
+✗ Once the space counts, the mention at the start stands out: like the encoded word, it has nothing in front, and a capital letter is a matter of display. A byte-level tokenizer keeps case, though. "Refund" is a token of its own, ID 70182 in one tokenizer, and in several others it splits into `Ref` and `und`.
 
 </details>
 
@@ -393,23 +380,23 @@ In the tokens the model reads, where does the space at the end of `Category: ` g
 
 <details><summary>A. In a token of its own</summary>
 
-✓ Right. The request ends on a token that holds only the space. Under each of seven published chat tokenizers, `Category: ` encodes as `Category`, `:` and a lone space, while the reply the model wrote in tests carries its space inside the label's first token, ` billing` under six of them.
+✓ Right. The request ends on a token that holds only the space. Under each of seven published chat tokenizers, `Category: ` encodes as `Category`, `:` and a lone space, while the label ` billing` carries its space inside its first token under six of them.
 
-If the model writes ` billing` with its space, as in every test, the label comes back with a space in front, code that compares it with `billing` as written finds no match, and the email drops into the unsorted pile a support agent clears by hand each evening.
+In the text a model learns from, a space before a word travels in that word's first token. In thousands of tokens of English prose, no word's bare letters follow a lone space under any of the seven tokenizers, and the lone spaces there stand before numbers. So a start that ends on a space leaves the model in a spot it almost never saw: if it writes ` billing` with its space, the space is doubled, and if it writes the word bare, it writes something it hardly ever met in training. A 2024 study of token alignment found that prompts ending partway through a token, a trailing space among them, led the tested models to wrong or nonsensical output.
 
-Under each of the seven tokenizers, a space before a word travels in that word's first token, so in the text a model learns from, a word after a space comes with the space attached: in thousands of tokens of English prose, no word's bare letters follow a lone space under any of the seven, and the lone spaces there stand before numbers. A start that ends on a space leaves the model in that spot with a word still to write: a spaced word doubles the space, and a word without its space follows a lone space as it hardly ever did in training. A 2024 study of token alignment found that prompts ending partway through a token fell outside what the models it tested saw in training and led to wrong or nonsensical output, and it counts a space at the end among those cases. End the start on the colon, `Category:`, so the model writes ` billing` in the form it knows, and strip spaces from the label before you match it. A provider's API that takes the start of a reply also turns that text into tokens before the model reads it, so the same advice holds there.
+End the start on the colon, `Category:`, so the model writes ` billing` in the form it knows, and strip spaces from the label before you match it, since ` billing` with its space fails a match against `billing`.
 
 </details>
 
 <details><summary>B. In one token with the colon</summary>
 
-✗ In typed text a colon and the space after it travel together, and `: ` could well be one entry in a vocabulary. These tokenizers split punctuation from the space that follows it: the colon is one token, and the space either joins the next word or, with nothing after it, stands alone.
+✗ In typed text a colon and the space after it travel together, and `: ` is common enough to be one vocabulary entry. These tokenizers keep punctuation apart from the space after it: the colon is one token, and the space joins the next word or, with nothing after it, stands alone.
 
 </details>
 
 <details><summary>C. In the same token as the label the model writes next</summary>
 
-✗ The finished text, `Category: billing`, reads the same either way, so you picture the tokenizer taking it whole and pairing the space with the label as before. Your code encodes the start before the model writes a word, and those tokens stay fixed: the space already sits in a token by itself, and whatever the model writes comes after it, never merged into it.
+✗ The finished text, `Category: billing`, is the same string either way, and encoded whole it pairs the space with the label. Your code encodes the start before the model writes a word, and those tokens stay fixed: the space already sits in a token of its own, and whatever the model writes comes after it.
 
 </details>
 
@@ -423,29 +410,29 @@ How does the second customer's list of IDs compare with the first one's?
 
 <details><summary>A. It is a different list, and a shorter one</summary>
 
-✗ Plain e and u are among the commonest letters in English and French text, while è and û are rare, so a question spelled with plain letters ought to need fewer pieces. The accents do not go away: each stays as a mark of its own, at least one more token, and it splits the word around it. Under one widely used tokenizer the typed question is 8 tokens and the pasted one 13.
+✗ Plain e and u are among the commonest letters in English and French, while è and û are rare, and tokenizers give common letters their own pieces. The accents are still there, each as a mark of its own: at least one more token each, and a split in the word around it. Under one widely used tokenizer the typed question is 8 tokens and the pasted one 13.
 
 </details>
 
 <details><summary>B. It is as long, with different IDs at the three accented letters</summary>
 
-✗ The pasted question shows the same three accented letters written another way, so you expect three changed IDs and a list of the same length. The accent mark is a character of its own, and it gets at least one token of its own. Under one tokenizer the typed ` brû` and `lée` are two tokens, while the pasted pair is five: ` bru`, a mark, `le`, a mark and `e`. The pasted question is two to seven tokens longer.
+✗ The pasted question shows the same three accented letters written another way, each still one letter on screen. Each accent mark is a character of its own and gets at least one token: under one tokenizer the typed ` brû` and `lée` are two tokens, and the pasted pair is five, ` bru`, a mark, `le`, a mark and `e`.
 
 </details>
 
 <details><summary>C. The same list</summary>
 
-✗ Side by side in the chat window or the cache log, the two questions cannot be told apart, so one cache entry for both is what you would expect. The tokenizer works on bytes, not on what the screen shows: the typed è is two bytes, the pasted one three, a plain e and a mark. With nothing rewritten first, different bytes give different tokens, and the two lists part at the first accented letter.
+✗ Side by side in the chat window or the cache log, the two questions cannot be told apart. The tokenizer works on bytes and rewrites nothing first: the typed è is two bytes, the pasted one three, a plain e and a mark, and the two lists part at the first accented letter.
 
 </details>
 
 <details><summary>D. It is a different list, and a longer one</summary>
 
-✓ Right. The pasted question encodes to a different, longer list, and the cache misses. It is 35 characters and 38 bytes against 32 and 35 for the typed one, and under five published byte-level tokenizers that change nothing first, it takes 13 to 16 tokens where the typed question takes 8 to 11.
+✓ Right. The pasted question encodes to a different, longer list, and the cache misses: 13 to 16 tokens where the typed one takes 8 to 11, under five published byte-level tokenizers that change nothing first.
 
-The first customer who pastes from the menu misses, and the answer is stored a second time under the pasted IDs. When the bakery switches to a flour with gluten and you correct the answer stored under the typed question, everyone who pastes from the menu keeps getting the old yes.
+Unicode can write è in two ways: as one character, two bytes in UTF-8, or as a plain e followed by a combining accent mark, three bytes in all. They look the same on screen, but a byte-level tokenizer splits bytes. Under one widely used tokenizer the typed ` crème` is one token, while the pasted one comes as ` cre`, the accent mark and `me`. Nothing is lost, but each mark costs a token or two and breaks the word around it.
 
-Unicode can write è in two ways: as one character, two bytes in UTF-8, or as a plain e followed by a combining accent mark, three bytes in all. Both look the same on screen, but a byte-level tokenizer splits bytes, and the bytes differ, so the tokens do. Under one widely used tokenizer the typed ` crème` is a single token, while the pasted one comes as ` cre`, the accent mark and `me`. Byte-level BPE spells the lone accent mark from its bytes, so nothing is lost, but each mark costs a token or two and breaks the word around it. Before you encode text to key a cache or match on IDs, normalise it to one form, such as the composed form, called NFC, where each accented letter is one character. Some tokenizers do this themselves: one of seven published chat tokenizers rewrites text into the composed form before splitting, so both questions get one list there, and decoding gives back the composed form rather than the bytes you sent.
+Normalise text to one form before you key a cache or match on IDs, such as the composed form, called NFC, where each accented letter is one character. One of seven published chat tokenizers does this itself, so both questions get one list there, and decoding gives back the composed form rather than the bytes you sent. Without it the same answer is stored twice, under two keys.
 
 </details>
 
@@ -469,7 +456,7 @@ Can this assertion fail on a real email?
 
 <details><summary>A. No; every snippet is the start of its email</summary>
 
-✗ Cutting the list of IDs and decoding it feels like cutting the string itself. A byte-level token is a run of bytes, and its edge need not fall between characters. The Korean character 춘 is three bytes and two tokens in common tokenizers; a cut after its first token leaves bytes that form no character, and `decode` turns them into `�`.
+✗ A token ID stands for a piece of text, and a cut between IDs falls between pieces. A byte-level token is a run of bytes, and its edge can fall inside a character: in common tokenizers the Korean character 춘 is three bytes and two tokens, and a cut after the first leaves bytes that `decode` turns into `�`.
 
 </details>
 
@@ -477,21 +464,21 @@ Can this assertion fail on a real email?
 
 ✓ Right. The assertion fails when the cut lands between the bytes of one character: the snippet then ends in the replacement character `�`, which the email does not contain. In "Delivered to our 춘천 office on Friday.", a cut one token into the first Korean character decodes to "Delivered to our �" under three widely used tokenizers.
 
-In production the assertion stops the summariser on emails with a name or an address in another script near the cut. Without the assertion, the `�` slips into the prompt and into every summary made from it, and the account manager reads a customer's city as a broken square in the weekly digest.
+Byte-level BPE works on bytes, and a character outside ASCII takes more than one byte in UTF-8: é takes two, this Korean character three. When the vocabulary has no token for the whole character, its bytes spread over several tokens, and a cut by token count can fall between them. Two widely used tokenizer libraries then write `�` by default. One of them says in its documentation that this default loses data, and it raises an error instead only when asked to decode strictly.
 
-Byte-level BPE works on bytes, and a character outside ASCII takes more than one byte in UTF-8: an accented letter such as é takes two, this Korean character three. When the vocabulary has no token for a whole character, its bytes spread over several tokens, and a cut by token count can fall between them. Decoding then meets an incomplete byte sequence. Two widely used tokenizer libraries replace it by default: one warns in its documentation that its default decoding loses data and writes `�`, the replacement character, and the other's byte-level decoder returns `�` too. Asked to decode strictly, refusing broken bytes, the first raises an error instead. To trim safely, step the cut back one token at a time until a strict decode succeeds, or until the text no longer ends in `�`.
+To trim safely, step the cut back one token at a time until a strict decode succeeds, or until the text no longer ends in `�`. Here the assertion stops the summariser on emails with a name or an address in another script near the cut; without it, the `�` would slip into the prompt and into every summary made from it.
 
 </details>
 
 <details><summary>C. Yes, when the cut lands between two pieces of a word</summary>
 
-✗ A string slice by character count can end in the middle of a word, and a half word is the damage most people expect from a trim. A cut between two pieces of a word still decodes to a shorter prefix. In "The invoice was redelivered", the last word comes in three tokens, ` red`, `el` and `ivered`, and a cut after ` red` leaves "The invoice was red", odd but still a prefix.
+✗ A string slice can end in the middle of a word, and a half word is the usual damage from a trim. A cut between two pieces of a word still decodes to a prefix: "The invoice was redelivered" ends in ` red`, `el` and `ivered`, and a cut after ` red` leaves "The invoice was red", odd but still the start of the email.
 
 </details>
 
 <details><summary>D. No; on such cuts <code>decode</code> raises an error first</summary>
 
-✗ Python's own `bytes.decode` raises an error on a broken byte sequence unless told otherwise, so a tokenizer's `decode` should do the same. With default arguments, two widely used tokenizer libraries raise nothing: they return the text with `�` at the end, and the assertion fails on it. One of them raises an error only when you ask it for strict decoding.
+✗ Python's own `bytes.decode` raises an error on a broken byte sequence unless told otherwise. With default arguments, two widely used tokenizer libraries raise nothing: they return the text with `�` at the end, and the assertion fails on it. One of them raises an error only when asked for strict decoding.
 
 </details>
 
@@ -523,23 +510,23 @@ Compared with the two fields as plain text, what does the JSON do to the prompt'
 
 <details><summary>B. It adds a few tokens for the braces, quotes and keys</summary>
 
-✗ The request itself travels as JSON and the provider decodes it, so the codes should turn back into characters on the way, leaving only the JSON's punctuation. Decoding the request undoes only the request's own layer. Your prompt is a string inside it, and that string holds the codes as text, a backslash, a u and four hex digits per character. The two fields are 48 tokens as text and 160 as this JSON under a common tokenizer.
+✗ The request itself travels as JSON and the provider decodes it, and decoding JSON turns its escape codes back into characters. Decoding the request undoes only the request's own layer. Your prompt is a string inside it, and that string holds the codes as text: a backslash, a u and four hex digits per character. The two fields are 48 tokens as text and 160 as this JSON under a common tokenizer.
 
 </details>
 
 <details><summary>C. It raises it by about half</summary>
 
-✗ A BPE tokenizer merges what often stands side by side, and every code starts with the same backslash and u, so a code might cost a token or two, near what the character cost. The merges come from the tokenizer's training text, not from your prompt, and `\u90e8` comes apart into `\u`, `90`, `e` and `8`. Each code takes three to six tokens under seven chat tokenizers, where the plain text spends about one token per character.
+✗ A BPE tokenizer merges what often stands side by side, and every code starts with the same backslash and u. The merges come from the tokenizer's training text, not from your prompt, and `\u90e8` comes apart into `\u`, `90`, `e` and `8`. Each code takes three to six tokens under seven chat tokenizers, where the plain text spends about one token per character.
 
 </details>
 
 <details><summary>D. It more than doubles it</summary>
 
-✓ Right. The JSON costs more than twice as much as the plain text. The two fields are 48 tokens as plain text and 160 as this JSON under a common tokenizer, and across seven chat tokenizers the JSON runs from 2.6 to 6.0 times the plain text.
+✓ Right. The JSON costs more than twice as much as the plain text: 48 tokens as plain text and 160 as this JSON under a common tokenizer, and 2.6 to 6.0 times the plain text across seven chat tokenizers, so an estimate made from the plain text falls short on every prompt with Japanese in it.
 
-Every prompt with Japanese in it carries more than twice the tokens you planned for, on the bill and in the window. Your estimate came from the plain text, so it covers a fraction of the bill, and the gap shows the first time someone sets an invoice beside it.
+Everything in the prompt's text is tokenized, and after escaping, that text holds no Japanese characters at all. "南部鉄器" goes in as `\u5357\u90e8\u9244…`, six ASCII characters for each Japanese one, and the JSON string runs to 313 characters instead of 78. The provider unpacks the request's own JSON, and what comes out is your prompt with the codes still in it, which the tokenizer cuts into short pieces like any other text. Written with the characters kept, the JSON costs 8 or 9 tokens more than the plain text under every one of the seven tokenizers, for the braces, quotes and keys. English text is not spared: curly quotes, a long dash, €, an accented letter or an emoji are escaped the same way, each becoming a code of three to six tokens where the character took one, and an emoji becomes two codes, eight to ten tokens where it took two to five. JSON writers differ, and some keep the characters by default, so check what yours writes.
 
-Everything in the prompt's text is tokenized, and after escaping, that text holds no Japanese characters at all. "南部鉄器" goes in as `\u5357\u90e8\u9244…`, six ASCII characters for each Japanese one, and the JSON string runs to 313 characters instead of 78. The provider unpacks the request's own JSON, and what comes out is your prompt with the codes still in it, which the tokenizer cuts into short pieces like any other text. Written with the characters kept, the JSON costs 8 or 9 tokens more than the plain text under every one of the seven tokenizers, for the braces, quotes and keys. English text is not spared: curly quotes, a long dash, €, an accented letter or an emoji are escaped the same way, each becoming a code of three to six tokens where the character took one, and an emoji becomes two codes, eight to ten tokens where it took two to five. JSON writers differ, and some keep the characters by default, so check what yours writes. Write JSON for a prompt with the characters kept, and count the exact string you send.
+Write JSON for a prompt with the characters kept, and count the exact string you send.
 
 </details>
 
