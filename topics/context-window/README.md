@@ -310,7 +310,7 @@ Once the list is longer than 50 messages, what does the model get on the next ca
 
 **The system prompt has no special place in the list**: it is item 0, and the slice walks past it as soon as the list is longer than 50 items. In this chat that happens on the user's 26th message, when the list holds the system prompt, 25 exchanges of two messages each and the new message, 52 items, and `history[-50:]` keeps the last 50. The request takes the list as it comes, so nothing fails.
 
-<p align="center"><img src="figures/q08-trimming-chat-history.svg" width="680" alt="One list of 52 items, its middle items not drawn. A bracket marks the first 2 items, the system prompt and a user message, as not in the request. A bold bracket marks the last 50, sent to the model. The first 2 items turn coral at the call."></p>
+<p align="center"><img src="figures/q08-trimming-chat-history.svg" width="100%" alt="One list of 52 items, its middle items not drawn. A bracket marks the first 2 items, the system prompt and a user message, as not in the request. A second bracket marks the last 50, sent to the model. The first 2 items turn coral at the call."></p>
 
 Keep the system prompt outside the history, add it to every call, and trim by tokens rather than by message count. Code that passes the system prompt in its own field cannot lose it to this slice, though the first user turns still go.
 
