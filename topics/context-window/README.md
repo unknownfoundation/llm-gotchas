@@ -4,6 +4,8 @@ Prev: [Tokens and tokenizers](../tokens-and-tokenizers/README.md) · Next: [Insi
 
 A model's context window caps the tokens in one call: the request the model reads and the reply it writes, counted together. It decides how you send a long document and how you keep a long chat going.
 
+<p align="center"><img src="figures/context-window.svg" width="100%" alt="A map in three columns, each headed by its icon, lit in turn as one call passes. Your code lights with its system prompt, message list and generation cap. A current runs as text to the server, lit with chaining and prompt caching, then as tokens to the model, lit with its context window and output limit."></p>
+
 - **Token**: a piece of text, often a word or part of one; windows, limits and bills are counted in tokens.
 - **System prompt**: the instructions that set how the model should behave, usually sent as the first message, with the role `system`, or as a separate field.
 - **Message list**: the conversation so far, as a list of turns with roles: `user` for the person, `assistant` for the model; tool results go in this list too.
@@ -46,7 +48,9 @@ What happens on the patient's next message?
 
 ✓ Right. The request carries the Thursday text as an `assistant` message, shaped like every reply the model really wrote, and the word Monday is nowhere in it. Thursday is the only answer the model has on record.
 
-The model keeps nothing between calls; it rereads the list your code sends every time. No field marks a message as edited, and nothing checks that an `assistant` message came from the model: one your code wrote by hand goes in like any other. So the saved chat is the bot's whole memory, and whoever can edit it decides what the bot remembers saying.
+The model keeps nothing between calls; **it rereads the list your code sends every time**. No field marks a message as edited, and nothing checks that an `assistant` message came from the model: one your code wrote by hand goes in like any other. So the saved chat is the bot's whole memory, and whoever can edit it decides what the bot remembers saying.
+
+<p align="center"><img src="figures/01-correcting-the-bots-reply-in-a-saved-chat.svg" width="100%" alt="One row, the saved chat: system prompt, user, an assistant message that reads Monday and then changes to Thursday with no other mark, and a last user message. A bracket under all four marks the next request. At the call all four blocks and the model turn teal, and a current flows to the model."></p>
 
 Guard who can write the stored history, and log edits in a separate table, outside the list you send. In this case the fix works and the patient hears one story; a bug that saves the wrong text would put words in the bot's mouth the same way.
 
@@ -82,7 +86,9 @@ What does the app show the lawyer?
 
 ✓ Right. The summary stops when the window is full, well short of the cap, and the call returns normally, so the lawyer reads a summary that breaks off partway. The contract goes in whole, and the reply gets only the room it leaves.
 
-The window holds the input and the reply together, so a contract that fills most of it leaves the reply the remainder, whatever the generation cap says. A provider's API either refuses the request up front when the input plus the cap is larger than the window, or runs it and stops the reply where the window ends; this call returned without an error, so it ran. On your own server it depends on the server: one stops the reply and marks it as cut, and some can be set to drop the oldest tokens and keep writing, which loses the start of the contract instead.
+**The window holds the input and the reply together**, so a contract that fills most of it leaves the reply the remainder, whatever the generation cap says. A provider's API either refuses the request up front when the input plus the cap is larger than the window, or runs it and stops the reply where the window ends; this call returned without an error, so it ran. On your own server it depends on the server: one stops the reply and marks it as cut, and some can be set to drop the oldest tokens and keep writing, which loses the start of the contract instead.
+
+<p align="center"><img src="figures/02-summarising-a-contract-that-nearly-fills-the-window.svg" width="100%" alt="One context window. The contract fills nearly all of it from the left and turns teal. The summary fills the small rest up to the window's edge, stops there and turns coral."></p>
 
 Before you show a reply, check the field that says why it ended, and set the cap from the window minus the counted input.
 
@@ -124,7 +130,9 @@ Which plan gets the whole translation back?
 
 ✓ Right. Each chapter comes back as a reply well inside the model's output limit, and the chapters joined in order make the whole book.
 
-A reply is bound three ways: by the window, which it shares with the input; by the generation cap you set; and by the model's output limit, the most one reply from that model can run to. On large models the output limit is often a small part of the window: a model that reads a million tokens may write about 128,000 in one reply. Some providers allow longer replies in a batch job, where you hand over requests and collect the results later, up to 300,000 tokens per reply on one of them, still short of this book.
+A reply is bound three ways: by the window, which it shares with the input; by the generation cap you set; and by **the model's output limit, the most one reply from that model can run to**. On large models the output limit is often a small part of the window: a model that reads a million tokens may write about 128,000 in one reply. Some providers allow longer replies in a batch job, where you hand over requests and collect the results later, up to 300,000 tokens per reply on one of them, still short of this book.
+
+<p align="center"><img src="figures/03-translating-a-whole-novel-in-one-call.svg" width="100%" alt="One context window. The novel fills a little under half of it from the left and turns teal. A reply grows after it, stops where a bracket under the window, labelled output limit, ends, and turns coral. The output limit is a length from the reply's start. The rest of the window, past the reply, stays free."></p>
 
 Translate chapter by chapter, send a short list of names and terms with each call so the chapters agree, and join the parts in order; a chapter that fails can be sent again on its own. When you size a long job, check the output limit as well as the window.
 
@@ -164,7 +172,9 @@ What comes back?
 
 <details><summary>D. An error, and no answer</summary>
 
-✓ Right. The API refuses the request with an error, HTTP status 400, before the model reads any of it, and nothing is cut to make it fit, so the engineer gets an error instead of an answer.
+✓ Right. The API **refuses the request with an error**, HTTP status 400, before the model reads any of it, and nothing is cut to make it fit, so the engineer gets an error instead of an answer.
+
+<p align="center"><img src="figures/04-pasting-a-whole-manual-into-one-request.svg" width="100%" alt="A context window. The request fills it and runs past its edge, whole. Sent with default settings, a current runs to the provider API. At once the whole request turns coral, its part past the edge under a bracket, out of context window, and a coral current runs on, marked HTTP status 400, to a coral error."></p>
 
 An API that cut long input on its own would have to guess which part to drop, and it could drop the question at the end or the very page that answers it. A provider's API refuses unless you turn on an option that drops or summarises the oldest part. On your own server it depends on the server and its settings, and some can be set to cut input to fit. A ready-made app can drop or summarise old turns as a conversation grows.
 
@@ -184,7 +194,9 @@ What happens when the claimant sends the next message?
 
 ✓ Right. The API refuses the request with an error, and the claimant gets no reply, on this message or any later one while the history stays this long. Reading the wording from the cache did not take it out of the request.
 
-The window counts the whole request, cached part included. Prompt caching changes how the provider processes the opening of a request and what it charges for it; the model still reads all of the wording on every call. So a cached wording that takes half the window leaves the history and the reply the other half, as before caching was on.
+The window **counts the whole request, cached part included**. Prompt caching changes how the provider processes the opening of a request and what it charges for it; the model still reads all of the wording on every call. So a cached wording that takes half the window leaves the history and the reply the other half, as before caching was on.
+
+<p align="center"><img src="figures/05-caching-the-policy-wording-in-a-long-claims-chat.svg" width="100%" alt="The policy wording fills half a context window, and a bracket marks it the cached part. The history follows, past the window's edge. Sent with default settings, a current runs to the provider API. The whole request turns coral, the part past the edge marked out of context window, and a coral current runs on, refused, to an error."></p>
 
 Count the whole request before you send it, and trim the history to the window minus the wording and the room the reply needs.
 
@@ -232,7 +244,9 @@ What happens on a hard ticket?
 
 ✓ Right. Partway through the run a request grows larger than the window, the API refuses it with an error, and the run ends with no answer for the ticket, after sixteen steps already paid for.
 
-Each step's request carries the whole message list: the system prompt, the tool definitions, the ticket, and every call and result so far. Say the opening takes 2,000 tokens and each step adds a 200-token tool request beside its 8,000-token log. Step 6 sends 43,000 tokens, which is why the tests passed. Step 16 sends 125,000, and step 17 sends 133,200, past the window, and is refused like any other request that is too long.
+**Each step's request carries the whole message list**: the system prompt, the tool definitions, the ticket, and every call and result so far. Say the opening takes 2,000 tokens and each step adds a 200-token tool request beside its 8,000-token log. Step 6 sends 43,000 tokens, which is why the tests passed. Step 16 sends 125,000, and step 17 sends 133,200, past the window, and is refused like any other request that is too long.
+
+<p align="center"><img src="figures/06-running-a-log-reading-agent-on-a-hard-ticket.svg" width="100%" alt="At step 6 the first five steps take a third of a context window and go to the provider API. By step 17, steps 6 to 16 have joined them, past the window's edge. The whole request turns coral, the part past the edge marked out of context window, and a coral current runs on, refused, to an error."></p>
 
 Keep the run small: have the tool return the log lines that matter, replace each old result the model has already used with a short note, keeping a result after every tool request, and count the request's tokens before every step.
 
@@ -272,7 +286,9 @@ How should the assistant handle the handbook so the officer gets every warning?
 
 <details><summary>D. Send each part in a call of its own, then merge the lists</summary>
 
-✓ Right. Each call reads one part and lists its warnings with their pages, and a last step merges the lists. Every page is read by some call, so no warning has to survive a search or a summary to reach the list.
+✓ Right. **Each call reads one part** and lists its warnings with their pages, and a last step merges the lists. Every page is read by some call, so no warning has to survive a search or a summary to reach the list.
+
+<p align="center"><img src="figures/07-listing-every-warning-in-a-handbook-twice-the-size-of-the-window.svg" width="100%" alt="Four handbook parts in a column, an arrow to the model, an arrow on to the lists. Call by call, one part lights alone, a current runs along both arrows, and its list of warnings with pages appears and stays lit. At the end a bracket marks the four lists as the merged list."></p>
 
 A document larger than the window can be handled two ways, and the task decides which. When a question points at a few places, send only the parts that matter, finding them with a search over the handbook cut into sections. When the task needs the whole document, such as a full list, process it in parts, one call each, and combine the results.
 
@@ -310,7 +326,7 @@ Once the list is longer than 50 messages, what does the model get on the next ca
 
 **The system prompt has no special place in the list**: it is item 0, and the slice walks past it as soon as the list is longer than 50 items. In this chat that happens on the user's 26th message, when the list holds the system prompt, 25 exchanges of two messages each and the new message, 52 items, and `history[-50:]` keeps the last 50. The request takes the list as it comes, so nothing fails.
 
-<p align="center"><img src="figures/q08-trimming-chat-history.svg" width="100%" alt="One list of 52 items, its middle items not drawn. A bracket marks the first 2 items, the system prompt and a user message, as not in the request. A second bracket marks the last 50, sent to the model. The first 2 items turn coral at the call."></p>
+<p align="center"><img src="figures/08-trimming-chat-history-to-the-last-50-messages.svg" width="100%" alt="One list of 52 items, its middle items not drawn. A bracket marks the first 2 items, the system prompt and a user message, as not in the request. A second bracket marks the last 50, sent to the model. The first 2 items turn coral at the call."></p>
 
 Keep the system prompt outside the history, add it to every call, and trim by tokens rather than by message count. Code that passes the system prompt in its own field cannot lose it to this slice, though the first user turns still go.
 
@@ -346,7 +362,9 @@ What did the summariser do to the input bill of a chat that ends this way?
 
 ✓ Right. The summary call read the whole history plus its instruction, and the one call after it saved less than that, so this chat paid more input than it would have without a summariser.
 
-A summary is a model call like any other, and it pays back only over later calls, each of which sends the short summary instead of the long history. One such call always saves less than the summary call read. Take turns of a 100-token message and a 200-token reply, the summariser runs once the history passes 2,000 tokens, its instruction is 300 tokens and its summary 400. The summary call reads 2,400 tokens, and the next call sends 500 instead of 2,200, saving 1,700. A chat of 8 turns bills 9,900 input tokens with the summariser and 9,200 without one; at 9 turns it bills 1,000 fewer, and at 12 turns 6,100 fewer.
+A summary is a model call like any other, and it pays back only over later calls, each of which sends the short summary instead of the long history. One such call always **saves less than the summary call read**. Take turns of a 100-token message and a 200-token reply, the summariser runs once the history passes 2,000 tokens, its instruction is 300 tokens and its summary 400. The summary call reads 2,400 tokens, and the next call sends 500 instead of 2,200, saving 1,700. A chat of 8 turns bills 9,900 input tokens with the summariser and 9,200 without one; at 9 turns it bills 1,000 fewer, and at 12 turns 6,100 fewer.
+
+<p align="center"><img src="figures/09-adding-a-summariser-to-a-language-learning-chat.svg" width="100%" alt="One bar, the input bill, filled call by call. 7 turns cost 7,000, the summary call 2,400, which crosses a mark at 9,200 without a summariser and turns coral, and the next call 500 instead of 2,200. The bill ends at 9,900 input tokens."></p>
 
 Before you add one, check how many turns chats run after it would fire; the summary's own output is billed on top.
 
@@ -388,7 +406,9 @@ Which change can put the budget back into the summary that this customer's reque
 
 ✓ Right. A summary written from the saved messages reads the message in which the customer gave the budget, so the budget can reach the summary again.
 
-A running summary is written each time from the last summary and the newest messages, and that call reads only what your code sends it. Once one rewrite leaves the budget out, every later rewrite reads a summary without it and newer messages that never mention it, so no change to how the next rewrite works can bring it back. The earliest details are the most exposed: by the 120th message, a detail from the first batch has been through six rewrites, each a chance to drop it under a limit that stays fixed while the chat grows.
+A running summary is **written each time from the last summary and the newest messages**, and that call reads only what your code sends it. Once one rewrite leaves the budget out, every later rewrite reads a summary without it and newer messages that never mention it, so no change to how the next rewrite works can bring it back. The earliest details are the most exposed: by the 120th message, a detail from the first batch has been through six rewrites, each a chance to drop it under a limit that stays fixed while the chat grows.
+
+<p align="center"><img src="figures/10-keeping-a-running-summary-of-a-kitchen-quote-chat.svg" width="100%" alt="Saved messages: the customer's budget message, the messages between, the newest messages. The summary is first written from the early messages, the budget among them. Every later rewrite reads only it and the newest messages, and it turns coral. Then a bracket takes every saved message, and a fresh summary comes back."></p>
 
 The saved messages are the one place the budget still exists. Rebuild the summary from them, in parts if the chat no longer fits the window, and keep the saved messages for as long as a chat can run.
 
@@ -406,7 +426,9 @@ What can the model count on having from the early part of the session?
 
 ✓ Right. After compaction the early turns reach the model only as the shorter version the API wrote in their place. If that version kept all eleven chapters, the answer can be right; if it kept only that the student named their exam chapters, the model has nothing better to go on.
 
-Compacting replaces the older turns with a shorter version: a written summary, or an encoded item that a person cannot read but the model can. Either way it carries forward what the process judged important. A default summary can drop something a later turn needs, so some APIs let you replace its prompt, and some keep the most recent turns word for word.
+Compacting **replaces the older turns with a shorter version**: a written summary, or an encoded item that a person cannot read but the model can. Either way it carries forward what the process judged important. A default summary can drop something a later turn needs, so some APIs let you replace its prompt, and some keep the most recent turns word for word.
+
+<p align="center"><img src="figures/11-turning-on-compaction-for-a-study-planning-chat.svg" width="100%" alt="One row, the session: older turns (eleven chapters, reply), a shorter version and recent turns. At compaction the older turns go dashed and the shorter version appears. A bracket marks the shorter version and the recent turns as what the model reads, and a request flows to the model, which turns teal."></p>
 
 Anything that must survive exactly, such as a list the student will ask about again, belongs in a store your code controls and sends with each call. Without that, a revision plan built hours later can leave chapters out with no hint that the list was ever longer.
 
@@ -442,7 +464,9 @@ Which five older turns go into the request with the traveller's question?
 
 ✓ Right. The five older turns are the ones that score highest against the traveller's question. The score does not look for the first message, so the request for flights to Tokyo comes along only if its text happens to resemble the question.
 
-Retrieving adds back the older turns related to the new message, and related means alike: the search scores each stored turn by how much it resembles the message that came in last. "The first thing I asked" is about a turn's place in the chat, and no turn's text says where it sits. Say the search gives a turn one point for each word it shares with the new message, common words left out: the flights request shares none and ranks last, while any turn that happens to say "first", "asked" or "tonight" outranks it. A search that compares meaning has the same blind spot, since it still compares text.
+Retrieving adds back the older turns related to the new message, and related means alike: the search **scores each stored turn by how much it resembles the message that came in last**. "The first thing I asked" is about a turn's place in the chat, and no turn's text says where it sits. Say the search gives a turn one point for each word it shares with the new message, common words left out: the flights request shares none and ranks last, while any turn that happens to say "first", "asked" or "tonight" outranks it. A search that compares meaning has the same blind spot, since it still compares text.
+
+<p align="center"><img src="figures/12-asking-a-long-trip-planning-chat-what-you-asked-first.svg" width="100%" alt="A store of chat turns: the flights request at the top, older turns, the last six messages and the new message. Each older turn is scored from the top down. The five that share a word with the new message light as the top five, the flights request, score 0, turns coral, and a request goes to the model."></p>
 
 Store each turn with its position and time, so your code can answer a question about order from the store, and send the facts the chat must keep all evening, such as the first request and the dates, with every call.
 
@@ -490,7 +514,9 @@ What should you expect the move to have done to the bill and the answers?
 
 ✓ Right. Every call now carries the whole chat, so late calls in a long chat cost many times more than early ones, on top of the traffic. And a 2024 benchmark found that almost all the long-context models it tested lose accuracy as the input grows.
 
-A larger window only raises the limit: each call still sends the whole list, and every token in it is billed as input. Say a turn adds a 100-token message and a 200-token reply. Turn 1 sends 100 tokens and turn 50 sends 14,800, and the totals climb far faster than the chat: 50 turns send 372,500 input tokens in all, and 100 turns send 1,495,000. The accuracy finding comes from RULER, a 2024 benchmark of long-context tasks on 17 models of that time.
+A larger window only raises the limit: **each call still sends the whole list**, and every token in it is billed as input. Say a turn adds a 100-token message and a 200-token reply. Turn 1 sends 100 tokens and turn 50 sends 14,800, and the totals climb far faster than the chat: 50 turns send 372,500 input tokens in all, and 100 turns send 1,495,000. The accuracy finding comes from RULER, a 2024 benchmark of long-context tasks on 17 models of that time.
+
+<p align="center"><img src="figures/13-removing-the-trimmer-after-moving-to-the-largest-window.svg" width="100%" alt="One bar, the turn-50 call. The new message, 100 tokens, lands first in teal at a mark for turn 1. The 49 turns before it, 14,700 tokens resent whole, follow and turn coral past the mark. The call sends 14,800 input tokens."></p>
 
 Keep a trimmer that cuts by tokens, and save the large window for the requests that need it.
 
@@ -532,7 +558,9 @@ Where in the prompt should you expect the model to use that chapter least well?
 
 ✓ Right. The middle is where the chapter would be used least well. A 2023 study, Lost in the Middle, found that models often used a passage best near the start or the end of a long input and worst in the middle, even models built for long inputs.
 
-Fitting in the window means the model receives every token; it does not mean the model uses them evenly. The study placed one relevant document among many others and watched accuracy fall as it moved toward the middle of the list. Model makers' prompting guides agree that layout matters and give their own advice: one puts long documents first and the question last, another repeats the instructions before and after the documents.
+Fitting in the window means the model receives every token; **it does not mean the model uses them evenly**. The study placed one relevant document among many others and watched accuracy fall as it moved toward the middle of the list. Model makers' prompting guides agree that layout matters and give their own advice: one puts long documents first and the question last, another repeats the instructions before and after the documents.
+
+<p align="center"><img src="figures/14-choosing-where-the-leave-chapter-goes-in-a-long-prompt.svg" width="100%" alt="One context window. The handbook fills it from the left with the leave chapter in the middle, and room to spare after it. All of it is received and turns teal. Then the leave chapter in the middle turns coral, the place used worst. The handbook before and after it stays teal."></p>
 
 Keep what matters most at the edges of a long prompt, or better, retrieve only the sections that matter instead of sending the whole handbook.
 
@@ -562,7 +590,9 @@ What does the third call charge you for?
 
 ✓ Right. The third call charges for the whole chain, though you sent only the new question. Say the first call is 2,000 tokens, each later question 500 and each reply 300: the third call is charged for 3,600 input tokens for a 500-token question, and its reply on top as output.
 
-Chaining saves your code from resending the chat, and the server still feeds the stored chain to the model on each call, so you pay for every earlier token in it again, at a lower rate where prompt caching applies. The usage page shows 2,000, 2,800 and 3,600 input tokens for three short questions, 8,400 in all, though your code sent 3,000.
+Chaining saves your code from resending the chat, and **the server still feeds the stored chain to the model on each call**, so you pay for every earlier token in it again, at a lower rate where prompt caching applies. The usage page shows 2,000, 2,800 and 3,600 input tokens for three short questions, 8,400 in all, though your code sent 3,000.
+
+<p align="center"><img src="figures/15-billing-a-chained-contract-q-a.svg" width="100%" alt="One bar, the third call's input bill. The new question, 500 tokens, the only part your code sent, lands first in teal at the mark. The contract and both earlier exchanges, 3,100 tokens the server reads again, follow and turn coral past it. The bill ends at 3,600 input tokens."></p>
 
 When a chain grows long, start a new one from a short summary.
 

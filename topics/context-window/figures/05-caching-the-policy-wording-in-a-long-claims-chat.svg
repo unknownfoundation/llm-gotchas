@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>The policy wording fills half a context window, and a bracket marks it the cached part. The history follows, past the window's edge. Sent with default settings, a current runs to the provider API. The whole request turns coral, the part past the edge marked out of context window, and a coral current runs on, refused, to an error.</title>
+<style>@keyframes a-wording-fill-level{0%,4.02%{transform:scaleX(0)}14.46%,95.18%{transform:scaleX(1)}97.59%,100%{transform:scaleX(0)}}
+@keyframes a-wording-text-show{0%,12.85%{opacity:0}14.46%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-cached-mark-show{0%,18.07%{opacity:0}19.68%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-history-fill-level{0%,28.51%{transform:scaleX(0)}38.96%,95.18%{transform:scaleX(1)}97.59%,100%{transform:scaleX(0)}}
+@keyframes a-history-text-show{0%,37.35%{opacity:0}38.96%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-excess-fill-level{0%,38.96%{transform:scaleX(0)}49.4%,95.18%{transform:scaleX(1)}97.59%,100%{transform:scaleX(0)}}
+@keyframes a-outside-mark-show{0%,53.01%{opacity:0}54.62%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-send-flow-show{0%,53.01%{opacity:0}54.62%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-refuse-flow-show{0%,53.01%{opacity:0}54.62%,95.18%{opacity:1}97.59%,100%{opacity:0}}
+@keyframes a-api-color{0%,53.01%{color:#4A5677}54.62%,95.18%{color:#5CC8C0}97.59%,100%{color:#4A5677}}
+@keyframes a-wording-outline{0%,53.01%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}54.62%,95.18%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.59%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-history-outline{0%,53.01%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}54.62%,95.18%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.59%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-excess-outline{0%,53.01%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}54.62%,95.18%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.59%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-refuse-head-fill{0%,53.01%{fill:#E6EAF0}54.62%,95.18%{fill:#F07F78}97.59%,100%{fill:#E6EAF0}}
+@keyframes a-error-color{0%,53.01%{color:#4A5677}54.62%,95.18%{color:#F07F78}97.59%,100%{color:#4A5677}}
+#wording-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-wording-fill-level 12.45s linear infinite}
+#wording-text{animation:a-wording-text-show 12.45s linear infinite}
+#cached-mark{animation:a-cached-mark-show 12.45s linear infinite}
+#history-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-history-fill-level 12.45s linear infinite}
+#history-text{animation:a-history-text-show 12.45s linear infinite}
+#excess-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-excess-fill-level 12.45s linear infinite}
+#outside-mark{animation:a-outside-mark-show 12.45s linear infinite}
+#send-flow{animation:a-send-flow-show 12.45s linear infinite,flow 0.4s linear infinite}
+#refuse-flow{animation:a-refuse-flow-show 12.45s linear infinite,flow 0.4s linear infinite}
+#api>svg{animation:a-api-color 12.45s linear infinite}
+#wording{animation:a-wording-outline 12.45s linear infinite}
+#history{animation:a-history-outline 12.45s linear infinite}
+#excess{animation:a-excess-outline 12.45s linear infinite}
+#refuse-head{animation:a-refuse-head-fill 12.45s linear infinite}
+#error>svg{animation:a-error-color 12.45s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="106" rx="10" fill="#141A2E"/>
+<text x="22" y="31.5" fill="#E6EAF0">context window</text>
+<rect id="window" x="22" y="42" width="300" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="wording-fill">
+<rect id="wording" x="22.75" y="42" width="148.5" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="wording-text" x="97" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">policy wording</text>
+<g id="history-fill">
+<path id="history" d="M175.75 42H322V60H175.75A3 3 0 0 1 172.75 57V45A3 3 0 0 1 175.75 42Z" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="history-text" x="247" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">history</text>
+<g id="excess-fill">
+<path id="excess" d="M322 42H348.25A3 3 0 0 1 351.25 45V57A3 3 0 0 1 348.25 60H322V42Z" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<path d="M322 38V64" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<g id="cached-mark" opacity="1">
+<path d="M24 63V68H170V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="97" y="81.5" fill="#E6EAF0" text-anchor="middle">cached part</text>
+</g>
+<g id="outside-mark" opacity="1">
+<path d="M324 63V68H350V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="337" y="81.5" fill="#E6EAF0" text-anchor="middle">out of context window</text>
+</g>
+<path id="send-shaft" d="M364 51H458.33" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M364 51H458.33" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="458.33,47.5 466.33,51 458.33,54.5" fill="#E6EAF0"/>
+<text x="411.17" y="45.38" fill="#E6EAF0" text-anchor="middle">default settings</text>
+<g id="api"><svg x="475.67" y="35" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 28H35A7.5 7.5 0 1 0 32.5 13.5A10 10 0 0 0 13 15A6.5 6.5 0 1 0 12.5 28z" />
+<path d="M24 28v4" />
+<rect x="18" y="32" width="12" height="6" rx="2" />
+<path d="M21 38v4M27 38v4" />
+</svg></g>
+<text x="491.67" y="81.5" fill="#E6EAF0" text-anchor="middle">provider API</text>
+<path id="refuse-shaft" d="M517 51H611.33" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="refuse-flow" d="M517 51H611.33" fill="none" stroke="#F07F78" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="refuse-head" points="611.33,47.5 619.33,51 611.33,54.5" fill="#F07F78"/>
+<text x="564.17" y="45.38" fill="#E6EAF0" text-anchor="middle">refused</text>
+<g id="error"><svg x="628.67" y="35" width="32" height="32" color="#F07F78" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18" />
+<path d="M17 17l14 14M31 17L17 31" />
+</svg></g>
+<text x="644.67" y="81.5" fill="#E6EAF0" text-anchor="middle">error</text>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>One context window. The novel fills a little under half of it from the left and turns teal. A reply grows after it, stops where a bracket under the window, labelled output limit, ends, and turns coral. The output limit is a length from the reply's start. The rest of the window, past the reply, stays free.</title>
+<style>@keyframes a-output-limit-mark-show{0%,17.39%{opacity:0}19.57%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-novel-outline{0%,17.39%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}19.57%,93.48%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-novel-fill-level{0%,5.43%{transform:scaleX(0)}19.57%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-novel-text-show{0%,17.39%{opacity:0}19.57%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-reply-fill-level{0%,24.46%{transform:scaleX(0)}38.59%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-reply-text-show{0%,36.41%{opacity:0}38.59%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-reply-outline{0%,36.41%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}38.59%,93.48%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-free-text-show{0%,36.41%{opacity:0}38.59%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+#output-limit-mark{animation:a-output-limit-mark-show 9.2s linear infinite}
+#novel{animation:a-novel-outline 9.2s linear infinite}
+#novel-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-novel-fill-level 9.2s linear infinite}
+#novel-text{animation:a-novel-text-show 9.2s linear infinite}
+#reply-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-reply-fill-level 9.2s linear infinite}
+#reply-text{animation:a-reply-text-show 9.2s linear infinite}
+#reply{animation:a-reply-outline 9.2s linear infinite}
+#free-text{animation:a-free-text-show 9.2s linear infinite}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="106" rx="10" fill="#141A2E"/>
+<text x="190" y="31.5" fill="#E6EAF0">context window</text>
+<rect id="window" x="190" y="42" width="300" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="novel-fill">
+<rect id="novel" x="190.75" y="42" width="118.5" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+</g>
+<text id="novel-text" x="250" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">novel</text>
+<g id="reply-fill">
+<rect id="reply" x="310.75" y="42" width="36.9" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="reply-text" x="329.2" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">reply</text>
+<text id="free-text" x="419.2" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">free</text>
+<g id="output-limit-mark" opacity="1">
+<path d="M312 63V68H346.4V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="329.2" y="81.5" fill="#E6EAF0" text-anchor="middle">output limit</text>
+</g>
+</svg>

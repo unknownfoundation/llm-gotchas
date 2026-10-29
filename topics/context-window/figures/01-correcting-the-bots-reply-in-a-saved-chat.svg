@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>One row, the saved chat: system prompt, user, an assistant message that reads Monday and then changes to Thursday with no other mark, and a last user message. A bracket under all four marks the next request. At the call all four blocks and the model turn teal, and a current flows to the model.</title>
+<style>@keyframes a-reply-label-0-show{0%,6.58%{opacity:1}9.21%,92.11%{opacity:0}96.05%,100%{opacity:1}}
+@keyframes a-reply-label-1-show{0%,6.58%{opacity:0}9.21%,92.11%{opacity:1}96.05%,100%{opacity:0}}
+@keyframes a-system-outline{0%,23.68%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}26.32%,92.11%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.05%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-first-user-outline{0%,23.68%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}26.32%,92.11%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.05%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-reply-outline{0%,23.68%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}26.32%,92.11%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.05%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-next-outline{0%,23.68%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}26.32%,92.11%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.05%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-next-block-show{0%,23.68%{opacity:0}26.32%,92.11%{opacity:1}96.05%,100%{opacity:0}}
+@keyframes a-request-bracket-show{0%,23.68%{opacity:0}26.32%,92.11%{opacity:1}96.05%,100%{opacity:0}}
+@keyframes a-send-flow-show{0%,23.68%{opacity:0}26.32%,92.11%{opacity:1}96.05%,100%{opacity:0}}
+@keyframes a-model-color{0%,23.68%{color:#4A5677}26.32%,92.11%{color:#5CC8C0}96.05%,100%{color:#4A5677}}
+#reply-label-0{animation:a-reply-label-0-show 7.6s linear infinite}
+#reply-label-1{animation:a-reply-label-1-show 7.6s linear infinite}
+#system{animation:a-system-outline 7.6s linear infinite}
+#first-user{animation:a-first-user-outline 7.6s linear infinite}
+#reply{animation:a-reply-outline 7.6s linear infinite}
+#next{animation:a-next-outline 7.6s linear infinite}
+#next-block{animation:a-next-block-show 7.6s linear infinite}
+#request-bracket{animation:a-request-bracket-show 7.6s linear infinite}
+#send-flow{animation:a-send-flow-show 7.6s linear infinite,flow 0.4s linear infinite}
+#model>svg{animation:a-model-color 7.6s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="106" rx="10" fill="#141A2E"/>
+<text x="104.95" y="31.5" fill="#E6EAF0">saved chat</text>
+<rect id="system" x="104.95" y="42" width="78.91" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="112.95" y="53.95" fill="#E6EAF0">system prompt</text>
+<rect id="first-user" x="187.87" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="195.87" y="53.95" fill="#E6EAF0">user</text>
+<rect id="reply" x="226.53" y="42" width="99.19" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text id="reply-label-0" x="234.53" y="53.95" fill="#E6EAF0" opacity="0">assistant: Monday</text>
+<text id="reply-label-1" x="234.53" y="53.95" fill="#E6EAF0" opacity="1">assistant: Thursday</text>
+<g id="next-block" opacity="1">
+<rect id="next" x="329.72" y="42" width="34.66" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="337.72" y="53.95" fill="#E6EAF0">user</text>
+</g>
+<g id="request-bracket" opacity="1">
+<path d="M106.95 63V68H362.38V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="234.67" y="81.5" fill="#E6EAF0" text-anchor="middle">next request</text>
+</g>
+<path id="send-shaft" d="M376.38 51H528.38" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M376.38 51H528.38" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="528.38,47.5 536.38,51 528.38,54.5" fill="#E6EAF0"/>
+<g id="model"><svg x="545.71" y="35" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
+<path d="M24 8.5V39.5M24 14.5L18 14.5M24 22L19 22L15.5 25.5M24 32L17.5 32" />
+<circle cx="18" cy="14.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="15.5" cy="25.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="17.5" cy="32" r="2" fill="currentColor" stroke="none" />
+</svg></g>
+<text x="561.71" y="81.5" fill="#E6EAF0" text-anchor="middle">model</text>
+</svg>

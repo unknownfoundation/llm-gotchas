@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>A context window. The request fills it and runs past its edge, whole. Sent with default settings, a current runs to the provider API. At once the whole request turns coral, its part past the edge under a bracket, out of context window, and a coral current runs on, marked HTTP status 400, to a coral error.</title>
+<style>@keyframes a-request-fill-level{0%,5.32%{transform:scaleX(0)}19.15%,93.62%{transform:scaleX(1)}96.81%,100%{transform:scaleX(0)}}
+@keyframes a-request-text-show{0%,17.02%{opacity:0}19.15%,93.62%{opacity:1}96.81%,100%{opacity:0}}
+@keyframes a-excess-fill-level{0%,19.15%{transform:scaleX(0)}32.98%,93.62%{transform:scaleX(1)}96.81%,100%{transform:scaleX(0)}}
+@keyframes a-outside-mark-show{0%,37.77%{opacity:0}39.89%,93.62%{opacity:1}96.81%,100%{opacity:0}}
+@keyframes a-send-flow-show{0%,37.77%{opacity:0}39.89%,93.62%{opacity:1}96.81%,100%{opacity:0}}
+@keyframes a-refuse-flow-show{0%,37.77%{opacity:0}39.89%,93.62%{opacity:1}96.81%,100%{opacity:0}}
+@keyframes a-api-color{0%,37.77%{color:#4A5677}39.89%,93.62%{color:#5CC8C0}96.81%,100%{color:#4A5677}}
+@keyframes a-request-outline{0%,37.77%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}39.89%,93.62%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}96.81%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-excess-outline{0%,37.77%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}39.89%,93.62%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}96.81%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-refuse-head-fill{0%,37.77%{fill:#E6EAF0}39.89%,93.62%{fill:#F07F78}96.81%,100%{fill:#E6EAF0}}
+@keyframes a-error-color{0%,37.77%{color:#4A5677}39.89%,93.62%{color:#F07F78}96.81%,100%{color:#4A5677}}
+#request-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-request-fill-level 9.4s linear infinite}
+#request-text{animation:a-request-text-show 9.4s linear infinite}
+#excess-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-excess-fill-level 9.4s linear infinite}
+#outside-mark{animation:a-outside-mark-show 9.4s linear infinite}
+#send-flow{animation:a-send-flow-show 9.4s linear infinite,flow 0.4s linear infinite}
+#refuse-flow{animation:a-refuse-flow-show 9.4s linear infinite,flow 0.4s linear infinite}
+#api>svg{animation:a-api-color 9.4s linear infinite}
+#request{animation:a-request-outline 9.4s linear infinite}
+#excess{animation:a-excess-outline 9.4s linear infinite}
+#refuse-head{animation:a-refuse-head-fill 9.4s linear infinite}
+#error>svg{animation:a-error-color 9.4s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="106" rx="10" fill="#141A2E"/>
+<text x="22" y="31.5" fill="#E6EAF0">context window</text>
+<rect id="window" x="22" y="42" width="300" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="request-fill">
+<path id="request" d="M25.75 42H322V60H25.75A3 3 0 0 1 22.75 57V45A3 3 0 0 1 25.75 42Z" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="request-text" x="172" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">request</text>
+<g id="excess-fill">
+<path id="excess" d="M322 42H348.25A3 3 0 0 1 351.25 45V57A3 3 0 0 1 348.25 60H322V42Z" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<path d="M322 38V64" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<g id="outside-mark" opacity="1">
+<path d="M324 63V68H350V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="337" y="81.5" fill="#E6EAF0" text-anchor="middle">out of context window</text>
+</g>
+<path id="send-shaft" d="M364 51H458.33" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M364 51H458.33" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="458.33,47.5 466.33,51 458.33,54.5" fill="#E6EAF0"/>
+<text x="411.17" y="45.38" fill="#E6EAF0" text-anchor="middle">default settings</text>
+<g id="api"><svg x="475.67" y="35" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 28H35A7.5 7.5 0 1 0 32.5 13.5A10 10 0 0 0 13 15A6.5 6.5 0 1 0 12.5 28z" />
+<path d="M24 28v4" />
+<rect x="18" y="32" width="12" height="6" rx="2" />
+<path d="M21 38v4M27 38v4" />
+</svg></g>
+<text x="491.67" y="81.5" fill="#E6EAF0" text-anchor="middle">provider API</text>
+<path id="refuse-shaft" d="M517 51H611.33" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="refuse-flow" d="M517 51H611.33" fill="none" stroke="#F07F78" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="refuse-head" points="611.33,47.5 619.33,51 611.33,54.5" fill="#F07F78"/>
+<text x="564.17" y="45.38" fill="#E6EAF0" text-anchor="middle">HTTP status 400</text>
+<g id="error"><svg x="628.67" y="35" width="32" height="32" color="#F07F78" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="18" />
+<path d="M17 17l14 14M31 17L17 31" />
+</svg></g>
+<text x="644.67" y="81.5" fill="#E6EAF0" text-anchor="middle">error</text>
+</svg>

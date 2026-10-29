@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="82" viewBox="0 0 680 82" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>One context window. The contract fills nearly all of it from the left and turns teal. The summary fills the small rest up to the window's edge, stops there and turns coral.</title>
+<style>@keyframes a-contract-outline{0%,17.39%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}19.57%,93.48%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-contract-fill-level{0%,5.43%{transform:scaleX(0)}19.57%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-contract-text-show{0%,17.39%{opacity:0}19.57%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-summary-fill-level{0%,24.46%{transform:scaleX(0)}38.59%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-summary-text-show{0%,36.41%{opacity:0}38.59%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-summary-outline{0%,36.41%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}38.59%,93.48%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+#contract{animation:a-contract-outline 9.2s linear infinite}
+#contract-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-contract-fill-level 9.2s linear infinite}
+#contract-text{animation:a-contract-text-show 9.2s linear infinite}
+#summary-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-summary-fill-level 9.2s linear infinite}
+#summary-text{animation:a-summary-text-show 9.2s linear infinite}
+#summary{animation:a-summary-outline 9.2s linear infinite}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="82" rx="10" fill="#141A2E"/>
+<text x="190" y="31.5" fill="#E6EAF0">context window</text>
+<rect id="window" x="190" y="42" width="300" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="contract-fill">
+<rect id="contract" x="190.75" y="42" width="238.5" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+</g>
+<text id="contract-text" x="310" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">contract</text>
+<g id="summary-fill">
+<rect id="summary" x="430.75" y="42" width="58.5" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="summary-text" x="460" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">summary</text>
+</svg>

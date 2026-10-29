@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="197" viewBox="0 0 680 197" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>A map in three columns, each headed by its icon, lit in turn as one call passes. Your code lights with its system prompt, message list and generation cap. A current runs as text to the server, lit with chaining and prompt caching, then as tokens to the model, lit with its context window and output limit.</title>
+<style>@keyframes a-code-color{0%,5.59%{color:#4A5677}7.82%,93.3%{color:#5CC8C0}96.65%,100%{color:#4A5677}}
+@keyframes a-system-outline{0%,5.59%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}7.82%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-messages-outline{0%,5.59%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}7.82%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-cap-outline{0%,5.59%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}7.82%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-request-flow-show{0%,5.59%{opacity:0}7.82%,93.3%{opacity:1}96.65%,100%{opacity:0}}
+@keyframes a-server-color{0%,20.11%{color:#4A5677}22.35%,93.3%{color:#5CC8C0}96.65%,100%{color:#4A5677}}
+@keyframes a-chaining-outline{0%,20.11%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}22.35%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-caching-outline{0%,20.11%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}22.35%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-tokens-flow-show{0%,20.11%{opacity:0}22.35%,93.3%{opacity:1}96.65%,100%{opacity:0}}
+@keyframes a-model-color{0%,34.64%{color:#4A5677}36.87%,93.3%{color:#5CC8C0}96.65%,100%{color:#4A5677}}
+@keyframes a-window-outline{0%,34.64%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}36.87%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-limit-outline{0%,34.64%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}36.87%,93.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.65%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+#code>svg{animation:a-code-color 8.95s linear infinite}
+#system{animation:a-system-outline 8.95s linear infinite}
+#messages{animation:a-messages-outline 8.95s linear infinite}
+#cap{animation:a-cap-outline 8.95s linear infinite}
+#request-flow{animation:a-request-flow-show 8.95s linear infinite,flow 0.4s linear infinite}
+#server>svg{animation:a-server-color 8.95s linear infinite}
+#chaining{animation:a-chaining-outline 8.95s linear infinite}
+#caching{animation:a-caching-outline 8.95s linear infinite}
+#tokens-flow{animation:a-tokens-flow-show 8.95s linear infinite,flow 0.4s linear infinite}
+#model>svg{animation:a-model-color 8.95s linear infinite}
+#window{animation:a-window-outline 8.95s linear infinite}
+#limit{animation:a-limit-outline 8.95s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="197" rx="10" fill="#141A2E"/>
+<g id="code"><svg x="66" y="22" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10L6 24L16 38M32 10L42 24L32 38M27 8L21 40" />
+</svg></g>
+<text x="82" y="67.5" fill="#E6EAF0" text-anchor="middle">your code</text>
+<rect id="system" x="22" y="78" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="30" y="89.94" fill="#E6EAF0">system prompt</text>
+<rect id="messages" x="22" y="102" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="30" y="113.94" fill="#E6EAF0">message list</text>
+<rect id="cap" x="22" y="126" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="30" y="137.94" fill="#E6EAF0">generation cap</text>
+<path id="request-shaft" d="M154 111H242.94" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="request-flow" d="M154 111H242.94" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="request-head" points="242.94,107.5 250.94,111 242.94,114.5" fill="#E6EAF0"/>
+<text x="198.47" y="105.38" fill="#E6EAF0" text-anchor="middle">text</text>
+<g id="server"><svg x="306" y="22" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 28H35A7.5 7.5 0 1 0 32.5 13.5A10 10 0 0 0 13 15A6.5 6.5 0 1 0 12.5 28z" />
+<path d="M24 28v4" />
+<rect x="18" y="32" width="12" height="6" rx="2" />
+<path d="M21 38v4M27 38v4" />
+</svg><svg x="342" y="22" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="7" width="26" height="28" rx="3" />
+<line x1="11" y1="21" x2="37" y2="21" />
+<circle cx="17" cy="14" r="2" fill="currentColor" stroke="none" />
+<circle cx="17" cy="28" r="2" fill="currentColor" stroke="none" />
+<path d="M23 14h8M23 28h8M16 35v5M32 35v5M11 40h26" />
+</svg></g>
+<text x="340" y="67.5" fill="#E6EAF0" text-anchor="middle">server</text>
+<rect id="chaining" x="262.94" y="90" width="154.12" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="270.94" y="101.94" fill="#E6EAF0">chaining, on some provider APIs</text>
+<rect id="caching" x="262.94" y="114" width="154.12" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="270.94" y="125.94" fill="#E6EAF0">prompt caching</text>
+<path id="tokens-shaft" d="M429.06 111H518" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="tokens-flow" d="M429.06 111H518" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="tokens-head" points="518,107.5 526,111 518,114.5" fill="#E6EAF0"/>
+<text x="473.53" y="105.38" fill="#E6EAF0" text-anchor="middle">tokens</text>
+<g id="model"><svg x="582" y="22" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
+<path d="M24 8.5V39.5M24 14.5L18 14.5M24 22L19 22L15.5 25.5M24 32L17.5 32" />
+<circle cx="18" cy="14.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="15.5" cy="25.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="17.5" cy="32" r="2" fill="currentColor" stroke="none" />
+</svg></g>
+<text x="598" y="67.5" fill="#E6EAF0" text-anchor="middle">model</text>
+<rect id="window" x="538" y="90" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="546" y="101.94" fill="#E6EAF0">context window</text>
+<rect id="limit" x="538" y="114" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="546" y="125.94" fill="#E6EAF0">output limit</text>
+<text x="340" y="172" fill="#E6EAF0" text-anchor="middle">One call, from your code to the model.</text>
+</svg>

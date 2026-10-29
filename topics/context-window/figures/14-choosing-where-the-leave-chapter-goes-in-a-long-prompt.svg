@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="82" viewBox="0 0 680 82" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>One context window. The handbook fills it from the left with the leave chapter in the middle, and room to spare after it. All of it is received and turns teal. Then the leave chapter in the middle turns coral, the place used worst. The handbook before and after it stays teal.</title>
+<style>@keyframes a-before-outline{0%,39.25%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}41.12%,94.39%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.2%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-leave-outline{0%,39.25%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}41.12%,45.33%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}47.2%,94.39%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.2%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-after-outline{0%,39.25%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}41.12%,94.39%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.2%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-before-fill-level{0%,4.67%{transform:scaleX(0)}16.82%,94.39%{transform:scaleX(1)}97.2%,100%{transform:scaleX(0)}}
+@keyframes a-before-text-show{0%,14.95%{opacity:0}16.82%,94.39%{opacity:1}97.2%,100%{opacity:0}}
+@keyframes a-leave-fill-level{0%,16.82%{transform:scaleX(0)}28.97%,94.39%{transform:scaleX(1)}97.2%,100%{transform:scaleX(0)}}
+@keyframes a-leave-text-show{0%,27.1%{opacity:0}28.97%,94.39%{opacity:1}97.2%,100%{opacity:0}}
+@keyframes a-after-fill-level{0%,28.97%{transform:scaleX(0)}41.12%,94.39%{transform:scaleX(1)}97.2%,100%{transform:scaleX(0)}}
+@keyframes a-after-text-show{0%,39.25%{opacity:0}41.12%,94.39%{opacity:1}97.2%,100%{opacity:0}}
+@keyframes a-spare-text-show{0%,39.25%{opacity:0}41.12%,94.39%{opacity:1}97.2%,100%{opacity:0}}
+#before{animation:a-before-outline 10.7s linear infinite}
+#leave{animation:a-leave-outline 10.7s linear infinite}
+#after{animation:a-after-outline 10.7s linear infinite}
+#before-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-before-fill-level 10.7s linear infinite}
+#before-text{animation:a-before-text-show 10.7s linear infinite}
+#leave-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-leave-fill-level 10.7s linear infinite}
+#leave-text{animation:a-leave-text-show 10.7s linear infinite}
+#after-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-after-fill-level 10.7s linear infinite}
+#after-text{animation:a-after-text-show 10.7s linear infinite}
+#spare-text{animation:a-spare-text-show 10.7s linear infinite}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="82" rx="10" fill="#141A2E"/>
+<text x="190" y="31.5" fill="#E6EAF0">context window</text>
+<rect id="window" x="190" y="42" width="300" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="before-fill">
+<rect id="before" x="190.75" y="42" width="69" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+</g>
+<text id="before-text" x="225.25" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">handbook</text>
+<g id="leave-fill">
+<rect id="leave" x="261.25" y="42" width="73.5" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="leave-text" x="298" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">leave chapter</text>
+<g id="after-fill">
+<rect id="after" x="336.25" y="42" width="69" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+</g>
+<text id="after-text" x="370.75" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">handbook</text>
+<text id="spare-text" x="448" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">room to spare</text>
+</svg>

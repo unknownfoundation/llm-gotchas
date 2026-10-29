@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="130" viewBox="0 0 680 130" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>Saved messages: the customer's budget message, the messages between, the newest messages. The summary is first written from the early messages, the budget among them. Every later rewrite reads only it and the newest messages, and it turns coral. Then a bracket takes every saved message, and a fresh summary comes back.</title>
+<style>@keyframes a-summary-block-show{0%,9.31%{opacity:0}11.27%,94.12%{opacity:1}97.06%,100%{opacity:0}}
+@keyframes a-budget-outline{0%,4.9%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}6.86%,9.31%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}11.27%,43.14%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}45.1%,94.12%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.06%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-summary-outline{0%,9.31%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}11.27%,17.65%,19.61%,30.39%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}32.35%,94.12%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.06%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-model-color{0%,9.31%{color:#4A5677}11.27%,94.12%{color:#5CC8C0}97.06%,100%{color:#4A5677}}
+@keyframes a-send-flow-show{0%,4.9%{opacity:0}6.86%,94.12%{opacity:1}97.06%,100%{opacity:0}}
+@keyframes a-back-flow-show{0%,4.9%{opacity:0}6.86%,94.12%{opacity:1}97.06%,100%{opacity:0}}
+@keyframes a-newest-outline{0%,17.65%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}19.61%,43.14%,45.1%,94.12%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.06%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-every-saved-bracket-show{0%,43.14%{opacity:0}45.1%,94.12%{opacity:1}97.06%,100%{opacity:0}}
+@keyframes a-fresh-block-show{0%,43.14%{opacity:0}45.1%,94.12%{opacity:1}97.06%,100%{opacity:0}}
+@keyframes a-fresh-outline{0%,43.14%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}45.1%,94.12%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.06%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+#summary-block{animation:a-summary-block-show 10.2s linear infinite}
+#budget{animation:a-budget-outline 10.2s linear infinite}
+#summary{animation:a-summary-outline 10.2s linear infinite}
+#model>svg{animation:a-model-color 10.2s linear infinite}
+#send-flow{animation:a-send-flow-show 10.2s linear infinite,flow 0.4s linear infinite}
+#back-flow{animation:a-back-flow-show 10.2s linear infinite,flow 0.4s linear infinite}
+#newest{animation:a-newest-outline 10.2s linear infinite}
+#every-saved-bracket{animation:a-every-saved-bracket-show 10.2s linear infinite}
+#fresh-block{animation:a-fresh-block-show 10.2s linear infinite}
+#fresh{animation:a-fresh-outline 10.2s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="130" rx="10" fill="#141A2E"/>
+<text x="22" y="31.5" fill="#E6EAF0">saved messages</text>
+<rect id="budget" x="22" y="42" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="30" y="53.95" fill="#E6EAF0">budget message</text>
+<g fill="#E6EAF0"><circle cx="82" cy="70" r="1.2"/><circle cx="82" cy="75" r="1.2"/><circle cx="82" cy="80" r="1.2"/></g>
+<rect id="newest" x="22" y="90" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="30" y="101.94" fill="#E6EAF0">newest messages</text>
+<g id="every-saved-bracket" opacity="1">
+<path d="M145 42H150V108H145" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="158" y="71.9" fill="#E6EAF0">every saved</text>
+<text x="158" y="83.99" fill="#E6EAF0">message</text>
+</g>
+<path id="send-shaft" d="M221.73 75H340.53" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M221.73 75H340.53" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="340.53,71.5 348.53,75 340.53,78.5" fill="#E6EAF0"/>
+<text x="281.13" y="69.38" fill="#E6EAF0" text-anchor="middle">write</text>
+<g id="model"><svg x="357.86" y="59" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
+<path d="M24 8.5V39.5M24 14.5L18 14.5M24 22L19 22L15.5 25.5M24 32L17.5 32" />
+<circle cx="18" cy="14.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="15.5" cy="25.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="17.5" cy="32" r="2" fill="currentColor" stroke="none" />
+</svg></g>
+<text x="373.86" y="105.5" fill="#E6EAF0" text-anchor="middle">model</text>
+<path id="back-shaft" d="M399.2 75H518" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="back-flow" d="M399.2 75H518" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="back-head" points="518,71.5 526,75 518,78.5" fill="#E6EAF0"/>
+<g id="summary-block" opacity="1">
+<rect id="summary" x="538" y="54" width="120" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+<text x="546" y="65.94" fill="#E6EAF0">summary</text>
+</g>
+<g id="fresh-block" opacity="1">
+<rect id="fresh" x="538" y="78" width="120" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="546" y="89.94" fill="#E6EAF0">fresh summary</text>
+</g>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="346" viewBox="0 0 680 346" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>A store of chat turns: the flights request at the top, older turns, the last six messages and the new message. Each older turn is scored from the top down. The five that share a word with the new message light as the top five, the flights request, score 0, turns coral, and a request goes to the model.</title>
+<style>@keyframes a-flights-outline{0%,4.63%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}6.48%,8.8%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}10.65%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-pick-a-outline{0%,8.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}10.65%,12.96%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}14.81%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-pick-b-outline{0%,12.96%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}14.81%,17.13%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}18.98%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-pick-c-outline{0%,17.13%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}18.98%,21.3%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}23.15%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-pick-d-outline{0%,21.3%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}23.15%,25.46%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}27.31%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-pick-e-outline{0%,25.46%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}27.31%,29.63%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}31.48%,33.8%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}35.65%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-added-back-bracket-show{0%,33.8%{opacity:0}35.65%,94.44%{opacity:1}97.22%,100%{opacity:0}}
+@keyframes a-left-out-bracket-show{0%,33.8%{opacity:0}35.65%,94.44%{opacity:1}97.22%,100%{opacity:0}}
+@keyframes a-last-six-outline{0%,45.83%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}47.69%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-new-outline{0%,45.83%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}47.69%,94.44%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}97.22%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-send-flow-show{0%,45.83%{opacity:0}47.69%,94.44%{opacity:1}97.22%,100%{opacity:0}}
+@keyframes a-model-color{0%,45.83%{color:#4A5677}47.69%,94.44%{color:#5CC8C0}97.22%,100%{color:#4A5677}}
+#flights{animation:a-flights-outline 10.8s linear infinite}
+#pick-a{animation:a-pick-a-outline 10.8s linear infinite}
+#pick-b{animation:a-pick-b-outline 10.8s linear infinite}
+#pick-c{animation:a-pick-c-outline 10.8s linear infinite}
+#pick-d{animation:a-pick-d-outline 10.8s linear infinite}
+#pick-e{animation:a-pick-e-outline 10.8s linear infinite}
+#added-back-bracket{animation:a-added-back-bracket-show 10.8s linear infinite}
+#left-out-bracket{animation:a-left-out-bracket-show 10.8s linear infinite}
+#last-six{animation:a-last-six-outline 10.8s linear infinite}
+#new{animation:a-new-outline 10.8s linear infinite}
+#send-flow{animation:a-send-flow-show 10.8s linear infinite,flow 0.4s linear infinite}
+#model>svg{animation:a-model-color 10.8s linear infinite}
+@keyframes flow{from{stroke-dashoffset:8}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="346" rx="10" fill="#141A2E"/>
+<text x="100.6" y="31.5" fill="#E6EAF0">store</text>
+<rect id="flights" x="100.6" y="42" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+<text x="108.6" y="53.95" fill="#E6EAF0">"... flights from Lisbon to Tokyo ..."</text>
+<g fill="#E6EAF0"><circle cx="206.14" cy="70" r="1.2"/><circle cx="206.14" cy="75" r="1.2"/><circle cx="206.14" cy="80" r="1.2"/></g>
+<rect id="pick-a" x="100.6" y="90" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="101.94" fill="#E6EAF0">"... first ..."</text>
+<g fill="#E6EAF0"><circle cx="206.14" cy="118" r="1.2"/><circle cx="206.14" cy="123" r="1.2"/><circle cx="206.14" cy="128" r="1.2"/></g>
+<rect id="pick-b" x="100.6" y="138" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="149.94" fill="#E6EAF0">"... asked ..."</text>
+<g fill="#E6EAF0"><circle cx="206.14" cy="166" r="1.2"/><circle cx="206.14" cy="171" r="1.2"/><circle cx="206.14" cy="176" r="1.2"/></g>
+<rect id="pick-c" x="100.6" y="186" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="197.94" fill="#E6EAF0">"... asked ..."</text>
+<rect id="pick-d" x="100.6" y="210" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="221.94" fill="#E6EAF0">"... first ..."</text>
+<rect id="pick-e" x="100.6" y="234" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="245.94" fill="#E6EAF0">"... tonight ..."</text>
+<g fill="#E6EAF0"><circle cx="206.14" cy="262" r="1.2"/><circle cx="206.14" cy="267" r="1.2"/><circle cx="206.14" cy="272" r="1.2"/></g>
+<rect id="last-six" x="100.6" y="282" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="293.94" fill="#E6EAF0">last six messages</text>
+<rect id="new" x="100.6" y="306" width="211.08" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+<text x="108.6" y="317.94" fill="#E6EAF0">"What was the first thing I asked you tonight?"</text>
+<g id="left-out-bracket" opacity="1">
+<path d="M314.68 42H319.68V60H314.68" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="327.68" y="47.9" fill="#E6EAF0">ranks last</text>
+<text x="327.68" y="59.99" fill="#E6EAF0">score 0</text>
+</g>
+<g id="added-back-bracket" opacity="1">
+<path d="M314.68 90H319.68V252H314.68" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="327.68" y="167.9" fill="#E6EAF0">top five</text>
+<text x="327.68" y="179.99" fill="#E6EAF0">score 1</text>
+</g>
+<path id="send-shaft" d="M380.73 183H532.73" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<path id="send-flow" d="M380.73 183H532.73" fill="none" stroke="#5CC8C0" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1 7" opacity="1"/>
+<polygon id="send-head" points="532.73,179.5 540.73,183 532.73,186.5" fill="#E6EAF0"/>
+<text x="456.73" y="177.38" fill="#E6EAF0" text-anchor="middle">request</text>
+<g id="model"><svg x="550.07" y="167" width="32" height="32" color="#5CC8C0" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8.5A8 8 0 0 0 14 9A8.5 8.5 0 0 0 8 17.5A10.5 10.5 0 0 0 8 30.5A8.5 8.5 0 0 0 14 39A8 8 0 0 0 24 39.5A8 8 0 0 0 34 39A8.5 8.5 0 0 0 40 30.5A10.5 10.5 0 0 0 40 17.5A8.5 8.5 0 0 0 34 9A8 8 0 0 0 24 8.5Z" />
+<path d="M24 8.5V39.5M24 14.5L18 14.5M24 22L19 22L15.5 25.5M24 32L17.5 32" />
+<circle cx="18" cy="14.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="15.5" cy="25.5" r="2" fill="currentColor" stroke="none" />
+<circle cx="17.5" cy="32" r="2" fill="currentColor" stroke="none" />
+</svg></g>
+<text x="566.07" y="213.5" fill="#E6EAF0" text-anchor="middle">model</text>
+</svg>

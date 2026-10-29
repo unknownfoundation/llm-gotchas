@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="106" viewBox="0 0 680 106" font-family="ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif" font-size="9.5" role="img">
+<title>One bar, the turn-50 call. The new message, 100 tokens, lands first in teal at a mark for turn 1. The 49 turns before it, 14,700 tokens resent whole, follow and turn coral past the mark. The call sends 14,800 input tokens.</title>
+<style>@keyframes a-message-outline{0%,17.39%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}19.57%,93.48%{stroke:#5CC8C0;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+@keyframes a-message-fill-level{0%,5.43%{transform:scaleX(0)}19.57%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-message-text-show{0%,17.39%{opacity:0}19.57%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-call-value-0-show{0%,17.39%{opacity:0}19.57%,36.41%{opacity:1}38.59%,93.48%,96.74%,100%{opacity:0}}
+@keyframes a-chat-fill-level{0%,24.46%{transform:scaleX(0)}38.59%,93.48%{transform:scaleX(1)}96.74%,100%{transform:scaleX(0)}}
+@keyframes a-chat-text-show{0%,36.41%{opacity:0}38.59%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-call-value-1-show{0%,36.41%{opacity:0}38.59%,93.48%{opacity:1}96.74%,100%{opacity:0}}
+@keyframes a-chat-outline{0%,36.41%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}38.59%,93.48%{stroke:#F07F78;stroke-width:1.5px;stroke-dasharray:none}96.74%,100%{stroke:#4A5677;stroke-width:1px;stroke-dasharray:none}}
+#message{animation:a-message-outline 9.2s linear infinite}
+#message-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-message-fill-level 9.2s linear infinite}
+#message-text{animation:a-message-text-show 9.2s linear infinite}
+#call-value-0{animation:a-call-value-0-show 9.2s linear infinite}
+#chat-fill{transform-box:fill-box;transform-origin:0 50%;animation:a-chat-fill-level 9.2s linear infinite}
+#chat-text{animation:a-chat-text-show 9.2s linear infinite}
+#call-value-1{animation:a-call-value-1-show 9.2s linear infinite}
+#chat{animation:a-chat-outline 9.2s linear infinite}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<rect width="680" height="106" rx="10" fill="#141A2E"/>
+<text x="54.13" y="31.5" fill="#E6EAF0">turn 50</text>
+<rect x="54.13" y="42" width="480" height="18" rx="3" fill="none" stroke="#4A5677" stroke-width="1"/>
+<g id="message-fill">
+<rect id="message" x="54.88" y="42" width="14.5" height="18" rx="3" fill="#1B2442" stroke="#5CC8C0" stroke-width="1.5"/>
+</g>
+<g id="message-text" opacity="1">
+<path d="M56.13 63V68H68.13V63" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="62.13" y="81.5" fill="#E6EAF0" text-anchor="middle">message: 100</text>
+</g>
+<g id="chat-fill">
+<rect id="chat" x="70.88" y="42" width="462.5" height="18" rx="3" fill="#1B2442" stroke="#F07F78" stroke-width="1.5"/>
+</g>
+<text id="chat-text" x="302.13" y="53.95" fill="#E6EAF0" text-anchor="middle" opacity="1">49 turns: 14,700</text>
+<path d="M70.13 38V64" fill="none" stroke="#E6EAF0" stroke-width="1"/>
+<text x="96" y="31.5" fill="#E6EAF0">turn 1: 100</text>
+<text id="call-value-0" x="542.13" y="53.95" fill="#E6EAF0" opacity="0">100 input tokens</text>
+<text id="call-value-1" x="542.13" y="53.95" fill="#E6EAF0" opacity="1">14,800 input tokens</text>
+</svg>
